@@ -20,7 +20,7 @@ const DISCUSSION_RE = /^DISCUSSION:\s*([\s\S]*)$/i;
 
 /* ── Inline content parsers ── */
 
-const CHART_BLOCK_RE = /\[CHART:(BAR|LINE|PIE)\]\s*([\s\S]*?)\s*\[\/CHART\]/gi;
+const CHART_START_RE = /\[CHART:(BAR|LINE|PIE)\]/gi;
 const MATH_BLOCK_RE = /\$\$([\s\S]*?)\$\$/g;
 const MATH_INLINE_RE = /\$((?!\$)[\s\S]*?)\$/g;
 const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -30,27 +30,81 @@ function parseInlineContent(raw: string): ContentBlock[] {
   const blocks: ContentBlock[] = [];
   let remaining = raw;
 
-  // 1. Extract chart blocks first (they are the largest tokens)
-  remaining = remaining.replace(CHART_BLOCK_RE, (_match, type: string, jsonStr: string) => {
-    const chartType = type.toUpperCase() as ChartType;
-    try {
-      const parsed = JSON.parse(jsonStr);
-      blocks.push({
-        type: 'chart',
-        content: jsonStr,
-        chartType,
-        chartData: {
-          labels: parsed.labels ?? [],
-          datasets: parsed.datasets
-            ? parsed.datasets
-            : [{ data: parsed.data ?? [] }],
-        },
-      });
-    } catch {
-      blocks.push({ type: 'text', content: `Data grafik tidak valid: ${jsonStr.slice(0, 60)}` });
+  // 1. Extract chart blocks
+  // Handle both with and without [/CHART] by matching balanced JSON braces
+  let match;
+  let newRemaining = '';
+  let lastIndex = 0;
+
+  while ((match = CHART_START_RE.exec(remaining)) !== null) {
+    newRemaining += remaining.slice(lastIndex, match.index);
+    const type = match[1];
+    
+    let start = remaining.indexOf('{', CHART_START_RE.lastIndex);
+    // Ignore if { is too far (e.g.,>20 chars of whitespace)
+    if (start !== -1 && start - CHART_START_RE.lastIndex <= 20) {
+      let depth = 0;
+      let inString = false;
+      let escape = false;
+      let endIndex = -1;
+      
+      for (let i = start; i < remaining.length; i++) {
+        const char = remaining[i];
+        if (escape) { escape = false; continue; }
+        if (char === '\\') { escape = true; continue; }
+        if (char === '"') { inString = !inString; continue; }
+        if (!inString) {
+          if (char === '{') depth++;
+          else if (char === '}') depth--;
+          
+          if (depth === 0) {
+            endIndex = i + 1;
+            break;
+          }
+        }
+      }
+      
+      if (endIndex !== -1) {
+        const jsonStr = remaining.slice(start, endIndex);
+        
+        let endOfChart = endIndex;
+        const afterJson = remaining.slice(endIndex);
+        const closingMatch = afterJson.match(/^\s*\[\/CHART\]/i);
+        if (closingMatch) {
+          endOfChart += closingMatch[0].length;
+        }
+
+        const chartType = type.toUpperCase() as ChartType;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          blocks.push({
+            type: 'chart',
+            content: jsonStr,
+            chartType,
+            chartData: {
+              labels: parsed.labels ?? [],
+              datasets: parsed.datasets
+                ? parsed.datasets
+                : [{ data: parsed.data ?? [] }],
+            },
+          });
+        } catch {
+          blocks.push({ type: 'text', content: `Data grafik tidak valid: ${jsonStr.slice(0, 60)}` });
+        }
+        
+        newRemaining += '\u0000CHART\u0000';
+        lastIndex = endOfChart;
+        CHART_START_RE.lastIndex = lastIndex; // Update RegEx cursor
+        continue;
+      }
     }
-    return '\u0000CHART\u0000';
-  });
+    
+    // Fallback if no valid JSON brace pair found
+    newRemaining += match[0];
+    lastIndex = CHART_START_RE.lastIndex;
+  }
+  newRemaining += remaining.slice(lastIndex);
+  remaining = newRemaining;
 
   // 2. Extract block math $$...$$
   remaining = remaining.replace(MATH_BLOCK_RE, (_match, tex: string) => {
