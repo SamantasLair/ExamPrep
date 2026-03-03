@@ -9,12 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
+type FeedbackMode = 'graded' | 'neutral';
+
 interface QuestionRendererProps {
   question: Question;
   answer?: string;
   onAnswer?: (questionId: number, answer: string) => void;
   showDiscussion?: boolean;
   showCorrectAnswer?: boolean;
+  feedbackMode?: FeedbackMode;
   disabled?: boolean;
 }
 
@@ -24,16 +27,20 @@ export function QuestionRenderer({
   onAnswer,
   showDiscussion = false,
   showCorrectAnswer = false,
+  feedbackMode = 'graded',
   disabled = false,
 }: QuestionRendererProps) {
-  const isCorrect = showCorrectAnswer && answer === question.correctAnswer;
-  const isWrong = showCorrectAnswer && answer !== undefined && answer !== question.correctAnswer;
+  const isGraded = showCorrectAnswer && feedbackMode === 'graded';
+  const isNeutral = showCorrectAnswer && feedbackMode === 'neutral';
+  const isCorrect = isGraded && answer === question.correctAnswer;
+  const isWrong = isGraded && answer !== undefined && answer !== question.correctAnswer;
 
   return (
     <Card className={cn(
       'transition-all duration-200',
-      showCorrectAnswer && isCorrect && 'border-green-500/50 bg-green-50/30 dark:bg-green-950/10',
-      showCorrectAnswer && isWrong && 'border-red-500/50 bg-red-50/30 dark:bg-red-950/10',
+      isCorrect && 'border-green-500/50 bg-green-50/30 dark:bg-green-950/10',
+      isWrong && 'border-red-500/50 bg-red-50/30 dark:bg-red-950/10',
+      isNeutral && answer !== undefined && 'border-muted-foreground/30 bg-muted/20',
     )}>
       <CardContent className="pt-5 space-y-4">
         {/* Header */}
@@ -44,9 +51,14 @@ export function QuestionRenderer({
           <Badge variant={question.type === 'MCQ' ? 'default' : 'outline'} className="text-xs">
             {question.type === 'MCQ' ? 'Pilihan Ganda' : 'Essay'}
           </Badge>
-          {showCorrectAnswer && (
+          {isGraded && (
             <Badge variant={isCorrect ? 'default' : 'destructive'} className="text-xs ml-auto">
               {isCorrect ? 'Benar' : 'Salah'}
+            </Badge>
+          )}
+          {isNeutral && answer !== undefined && (
+            <Badge variant="secondary" className="text-xs ml-auto">
+              Jawaban Anda: {answer}
             </Badge>
           )}
         </div>
@@ -65,8 +77,9 @@ export function QuestionRenderer({
             className="space-y-2"
           >
             {question.options.map((opt) => {
-              const isThisCorrect = showCorrectAnswer && opt.key === question.correctAnswer;
+              const isThisCorrect = isGraded && opt.key === question.correctAnswer;
               const isThisSelected = answer === opt.key;
+              const isThisWrongPick = isGraded && isThisSelected && !isThisCorrect;
               return (
                 <Label
                   key={opt.key}
@@ -75,8 +88,9 @@ export function QuestionRenderer({
                     'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
                     'hover:bg-accent/50',
                     isThisSelected && !showCorrectAnswer && 'border-primary bg-primary/5',
-                    showCorrectAnswer && isThisCorrect && 'border-green-500 bg-green-50/50 dark:bg-green-950/20',
-                    showCorrectAnswer && isThisSelected && !isThisCorrect && 'border-red-500 bg-red-50/50 dark:bg-red-950/20',
+                    isThisCorrect && 'border-green-500 bg-green-50/50 dark:bg-green-950/20',
+                    isThisWrongPick && 'border-red-500 bg-red-50/50 dark:bg-red-950/20',
+                    isNeutral && isThisSelected && 'border-muted-foreground bg-muted/40',
                     disabled && 'cursor-default',
                   )}
                 >
@@ -104,8 +118,8 @@ export function QuestionRenderer({
 
         {/* Discussion */}
         {showDiscussion && question.discussion && question.discussion.length > 0 && (
-          <div className="mt-4 p-4 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
-            <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-2">Pembahasan</p>
+          <div className="mt-4 p-4 rounded-lg bg-muted/40 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Pembahasan</p>
             <div className="text-sm">
               <ContentBlockList blocks={question.discussion} />
             </div>
@@ -115,3 +129,4 @@ export function QuestionRenderer({
     </Card>
   );
 }
+

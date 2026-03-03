@@ -44,13 +44,14 @@ export default function ReviewPage() {
   }
 
   const responses = (attempt?.responses ?? {}) as Record<string, string>;
+  const feedbackMode = test?.show_answer ? 'graded' : 'neutral';
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold">📖 Pembahasan</h1>
+            <h1 className="text-lg font-bold">Pembahasan</h1>
             <Badge variant="outline">{test?.title}</Badge>
           </div>
           <div className="flex items-center gap-3">
@@ -75,6 +76,7 @@ export default function ReviewPage() {
                 answer={responses[q.id]}
                 showDiscussion
                 showCorrectAnswer
+                feedbackMode={feedbackMode}
                 disabled
               />
             ))}
@@ -84,3 +86,4 @@ export default function ReviewPage() {
     </div>
   );
 }
+

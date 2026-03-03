@@ -5,37 +5,41 @@ import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { loginAdminAction, checkAdminAuthAction } from '@/app/actions';
 
 export default function AdminDoorPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    // Basic client-side persistence
-    const authFlag = localStorage.getItem('exaprep_admin_auth');
-    if (authFlag === 'true') {
-      setIsAuthenticated(true);
-    }
+    // Check session on mount
+    checkAdminAuthAction().then((isAuth) => {
+      if (isAuth) setIsAuthenticated(true);
+    });
   }, []);
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-
-    if (password === correctPassword) {
+    setLoading(true);
+    const success = await loginAdminAction(password);
+    if (success) {
       setError(false);
       setIsAuthenticated(true);
-      localStorage.setItem('exaprep_admin_auth', 'true');
+      // Optional: keep it in storage if you want it to persist for other client stuff,
+      // but cookies handle the main auth. We can store it temporarily for Supabase inserts later.
+      localStorage.setItem('temp_admin_pass', password);
     } else {
       setError(true);
       setPassword('');
     }
+    setLoading(false);
   };
 
-  if (!isMounted) return null; // Prevent hydration mismatch
+  if (!isMounted) return null;
 
   if (isAuthenticated) {
     return <AdminDashboard />;
@@ -61,7 +65,9 @@ export default function AdminDoorPage() {
               />
               {error && <p className="text-xs text-destructive">Kredensial tidak valid.</p>}
             </div>
-            <Button type="submit" className="w-full font-medium">Masuk</Button>
+            <Button type="submit" className="w-full font-medium" disabled={loading}>
+              {loading ? 'Memeriksa...' : 'Masuk'}
+            </Button>
           </form>
           <div className="mt-4 text-center">
             <Button variant="link" size="sm" onClick={() => window.location.href = '/'} className="text-xs text-muted-foreground">

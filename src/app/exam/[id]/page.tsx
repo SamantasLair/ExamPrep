@@ -74,11 +74,10 @@ export default function ExamPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center space-y-3">
-          <div className="text-6xl">{finalScore >= (test?.passing_grade ?? 70) ? '🎉' : '📚'}</div>
           <h1 className="text-2xl font-bold">Ujian Selesai!</h1>
           <p className="text-4xl font-bold text-primary">{finalScore}</p>
-          <p className="text-muted-foreground text-sm">
-            KKM: {test?.passing_grade ?? 70} — {finalScore >= (test?.passing_grade ?? 70) ? 'LULUS ✓' : 'BELUM LULUS ✗'}
+          <p className={`text-sm font-semibold ${finalScore >= (test?.passing_grade ?? 70) ? 'text-green-600' : 'text-red-500'}`}>
+            KKM: {test?.passing_grade ?? 70} {finalScore >= (test?.passing_grade ?? 70) ? 'LULUS' : 'BELUM LULUS'}
           </p>
         </div>
         <div className="flex gap-3">

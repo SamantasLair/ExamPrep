@@ -14,7 +14,7 @@ interface ChartRendererProps {
 
 export function ChartRenderer({ block }: ChartRendererProps) {
   if (!block.chartData || !block.chartType) {
-    return <p className="text-sm text-destructive">⚠️ Missing chart configuration</p>;
+    return <p className="text-sm text-destructive">Konfigurasi grafik tidak ditemukan</p>;
   }
   const { labels, datasets } = block.chartData;
   const data = labels.map((label, i) => {
@@ -72,6 +72,6 @@ export function ChartRenderer({ block }: ChartRendererProps) {
         </ResponsiveContainer>
       );
     default:
-      return <p className="text-sm text-destructive">⚠️ Unknown chart type: {block.chartType}</p>;
+      return <p className="text-sm text-destructive">Tipe grafik tidak dikenal: {block.chartType}</p>;
   }
 }

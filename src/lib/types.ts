@@ -34,6 +34,7 @@ export interface TestRow {
   start_at: string | null;
   end_at: string | null;
   passing_grade: number;
+  show_answer: boolean;
   created_by: string | null;
   created_at: string;
 }

@@ -19,7 +19,7 @@ interface ExamRunnerProps {
   onSubmit: (answers: Record<string, string>, score: number) => void;
 }
 
-const STORAGE_KEY_PREFIX = 'lexe_exam_';
+const STORAGE_KEY_PREFIX = 'exaprep_exam_';
 
 function getStorageKey(examId: string) {
   return `${STORAGE_KEY_PREFIX}${examId}`;
@@ -37,6 +37,26 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit }: Exa
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
   const [showConfirm, setShowConfirm] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const submitRef = useRef<() => void>(() => {});
+
+  const calculateScore = useCallback(() => {
+    const mcqs = questions.filter((q) => q.type === 'MCQ');
+    if (mcqs.length === 0) return 0;
+    const correct = mcqs.filter((q) => answers[q.id] === q.correctAnswer).length;
+    return Math.round((correct / mcqs.length) * 100);
+  }, [questions, answers]);
+
+  const handleSubmit = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const score = calculateScore();
+    localStorage.removeItem(getStorageKey(examId));
+    onSubmit(answers, score);
+  }, [answers, calculateScore, examId, onSubmit]);
+
+  // Keep ref in sync with latest handleSubmit
+  useEffect(() => {
+    submitRef.current = handleSubmit;
+  }, [handleSubmit]);
 
   // Restore from localStorage on mount
   useEffect(() => {
@@ -60,40 +80,24 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit }: Exa
     } catch { /* storage full, ignore */ }
   }, [answers, currentIdx, timeLeft, examId]);
 
-  // Timer
+  // Timer (stable: no dependency on handleSubmit thanks to ref)
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timerRef.current!);
-          handleSubmit();
+          submitRef.current();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAnswer = useCallback((qId: number, val: string) => {
     setAnswers((prev) => ({ ...prev, [qId]: val }));
   }, []);
-
-  const calculateScore = useCallback(() => {
-    const mcqs = questions.filter((q) => q.type === 'MCQ');
-    if (mcqs.length === 0) return 0;
-    const correct = mcqs.filter((q) => answers[q.id] === q.correctAnswer).length;
-    return Math.round((correct / mcqs.length) * 100);
-  }, [questions, answers]);
-
-  const handleSubmit = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    const score = calculateScore();
-    localStorage.removeItem(getStorageKey(examId));
-    onSubmit(answers, score);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [answers, calculateScore, examId, onSubmit]);
 
   const answeredCount = Object.keys(answers).length;
   const progressPct = (answeredCount / questions.length) * 100;
@@ -159,14 +163,14 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit }: Exa
           onClick={() => setCurrentIdx((p) => Math.max(0, p - 1))}
           disabled={currentIdx === 0}
         >
-          ← Sebelumnya
+          Sebelumnya
         </Button>
         <Button
           variant="outline"
           onClick={() => setCurrentIdx((p) => Math.min(questions.length - 1, p + 1))}
           disabled={currentIdx === questions.length - 1}
         >
-          Selanjutnya →
+          Selanjutnya
         </Button>
       </div>
 
@@ -189,3 +193,4 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit }: Exa
     </div>
   );
 }
+

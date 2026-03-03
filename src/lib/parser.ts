@@ -47,7 +47,7 @@ function parseInlineContent(raw: string): ContentBlock[] {
         },
       });
     } catch {
-      blocks.push({ type: 'text', content: `⚠️ Invalid chart data: ${jsonStr.slice(0, 60)}…` });
+      blocks.push({ type: 'text', content: `Data grafik tidak valid: ${jsonStr.slice(0, 60)}` });
     }
     return '\u0000CHART\u0000';
   });
