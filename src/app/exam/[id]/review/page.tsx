@@ -18,6 +18,7 @@ export default function ReviewPage() {
   const [attempt, setAttempt] = useState<AttemptRow | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExamActive, setIsExamActive] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -32,6 +33,15 @@ export default function ReviewPage() {
       if (attemptRes.data) setAttempt(attemptRes.data as AttemptRow);
       setLoading(false);
     }
+    
+    // Check if the exam is currently active in localStorage
+    const activeExam = localStorage.getItem(`exaprep_exam_${examId}`);
+    if (activeExam) {
+      setIsExamActive(true);
+      setLoading(false);
+      return;
+    }
+
     load();
   }, [examId]);
 
@@ -39,6 +49,18 @@ export default function ReviewPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse text-muted-foreground">Memuat pembahasan...</div>
+      </div>
+    );
+  }
+
+  if (isExamActive) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <h1 className="text-xl font-bold text-destructive">Akses Ditolak</h1>
+        <p className="text-muted-foreground">Selesaikan ujian terlebih dahulu untuk melihat pembahasan.</p>
+        <Button onClick={() => router.push(`/exam/${examId}`)} className="mt-4">
+          Kembali ke Ujian
+        </Button>
       </div>
     );
   }

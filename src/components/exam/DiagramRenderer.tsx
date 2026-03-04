@@ -42,13 +42,13 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
 
       if (type === 'functionPlot') {
         const board = JXG.JSXGraph.initBoard(boardId, {
-          boundingbox: [
+          boundingbox: (cfg.boundingBox as [number, number, number, number]) ?? [
             (cfg.xMin as number) ?? -10,
             (cfg.yMax as number) ?? 10,
             (cfg.xMax as number) ?? 10,
             (cfg.yMin as number) ?? -10,
-          ],
-          axis: true,
+          ] as [number, number, number, number],
+          axis: cfg.axis !== undefined ? !!cfg.axis : true,
           showNavigation: false,
           showCopyright: false,
         });
@@ -63,13 +63,13 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
 
       } else if (type === 'geometry') {
         const board = JXG.JSXGraph.initBoard(boardId, {
-          boundingbox: [
+          boundingbox: (cfg.boundingBox as [number, number, number, number]) ?? [
             (cfg.xMin as number) ?? -10,
             (cfg.yMax as number) ?? 10,
             (cfg.xMax as number) ?? 10,
             (cfg.yMin as number) ?? -10,
-          ],
-          axis: true,
+          ] as [number, number, number, number],
+          axis: cfg.axis !== undefined ? !!cfg.axis : true,
           showNavigation: false,
           showCopyright: false,
         });
