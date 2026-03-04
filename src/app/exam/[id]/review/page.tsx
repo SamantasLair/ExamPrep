@@ -19,27 +19,39 @@ export default function ReviewPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExamActive, setIsExamActive] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     async function load() {
+      // 1. Check if the user has a finished attempt in localStorage
+      const finishedAttemptId = localStorage.getItem(`exaprep_finished_${examId}`);
+      
+      // If none, maybe they are still taking the test?
+      if (!finishedAttemptId) {
+        const activeExam = localStorage.getItem(`exaprep_exam_${examId}`);
+        if (activeExam) setIsExamActive(true);
+        else setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Fetch test and the specific attempt
       const [testRes, attemptRes] = await Promise.all([
         supabase.from('tests').select('*').eq('id', examId).single(),
-        supabase.from('attempts').select('*').eq('test_id', examId).order('finished_at', { ascending: false }).limit(1).single(),
+        supabase.from('attempts').select('*').eq('id', finishedAttemptId).single(),
       ]);
+      
       if (testRes.data) {
         setTest(testRes.data as TestRow);
         try { setQuestions(parseMarkdown(testRes.data.raw_markdown)); } catch { /* ignore */ }
       }
-      if (attemptRes.data) setAttempt(attemptRes.data as AttemptRow);
+      if (attemptRes.data) {
+        setAttempt(attemptRes.data as AttemptRow);
+      } else {
+        // Attempt ID invalid or deleted
+        setAccessDenied(true);
+      }
       setLoading(false);
-    }
-    
-    // Check if the exam is currently active in localStorage
-    const activeExam = localStorage.getItem(`exaprep_exam_${examId}`);
-    if (activeExam) {
-      setIsExamActive(true);
-      setLoading(false);
-      return;
     }
 
     load();
@@ -60,6 +72,18 @@ export default function ReviewPage() {
         <p className="text-muted-foreground">Selesaikan ujian terlebih dahulu untuk melihat pembahasan.</p>
         <Button onClick={() => router.push(`/exam/${examId}`)} className="mt-4">
           Kembali ke Ujian
+        </Button>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <h1 className="text-xl font-bold text-destructive">Akses Ditolak</h1>
+        <p className="text-muted-foreground">Anda belum menyelesaikan ujian ini atau data sesi tidak ditemukan.</p>
+        <Button onClick={() => router.push('/')} className="mt-4">
+          Ke Halaman Utama
         </Button>
       </div>
     );

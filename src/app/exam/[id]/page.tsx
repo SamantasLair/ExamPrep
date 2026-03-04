@@ -44,13 +44,19 @@ export default function ExamPage() {
   const handleSubmit = useCallback(async (answers: Record<string, string>, score: number) => {
     setFinalScore(score);
     setSubmitted(true);
-    await supabase.from('attempts').insert({
+    const { data: attemptData } = await supabase.from('attempts').insert({
       test_id: examId,
       responses: answers,
       score,
       status: 'finished',
       finished_at: new Date().toISOString(),
-    });
+    }).select().single();
+
+    if (attemptData) {
+      try {
+        localStorage.setItem(`exaprep_finished_${examId}`, attemptData.id);
+      } catch { /* ignore */ }
+    }
   }, [examId]);
 
   if (loading) {
