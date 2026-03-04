@@ -90,6 +90,16 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
             board.create('circle', [points[el.center as string], el.radius as number], {
               strokeWidth: 2,
             });
+          } else if (el.type === 'polygon' && Array.isArray(el.vertices)) {
+            const polygonPoints = (el.vertices as string[])
+              .map((vName) => points[vName])
+              .filter(Boolean);
+            if (polygonPoints.length > 0) {
+              board.create('polygon', polygonPoints, {
+                fillOpacity: 0.1,
+                borders: { strokeWidth: 2 },
+              });
+            }
           }
         }
 
