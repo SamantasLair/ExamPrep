@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { ContentBlock } from '@/lib/types';
 import { MathRenderer } from './MathRenderer';
 import { ChartRenderer } from './ChartRenderer';
+import { DiagramRenderer } from './DiagramRenderer';
 import { Button } from '@/components/ui/button';
 
 interface ContentBlockRendererProps {
@@ -30,6 +31,12 @@ export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
       return (
         <div className="my-4 p-4 rounded-xl border bg-card">
           <ChartRenderer block={block} />
+        </div>
+      );
+    case 'diagram':
+      return (
+        <div className="my-4 p-4 rounded-xl border bg-card">
+          <DiagramRenderer block={block} />
         </div>
       );
     case 'image':

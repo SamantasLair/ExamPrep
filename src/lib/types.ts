@@ -3,11 +3,13 @@
 export type ChartType = 'BAR' | 'LINE' | 'PIE';
 
 export interface ContentBlock {
-  type: 'text' | 'math-inline' | 'math-block' | 'chart' | 'image' | 'code-block';
+  type: 'text' | 'math-inline' | 'math-block' | 'chart' | 'image' | 'code-block' | 'diagram';
   content: string;
   language?: string;
   chartType?: ChartType;
   chartData?: { labels: string[]; datasets: { label?: string; data: number[] }[] };
+  diagramType?: 'functionPlot' | 'geometry' | '3d';
+  diagramConfig?: Record<string, unknown>;
 }
 
 export interface Option {

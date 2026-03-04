@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { parseMarkdown } from '@/lib/parser';
 import { QuestionRenderer } from '@/components/exam/QuestionRenderer';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -84,7 +84,10 @@ export function AdminDashboard() {
   const [showAnswer, setShowAnswer] = useState(true);
   const [immediateFeedback, setImmediateFeedback] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  
+  const [currentPreviewIdx, setCurrentPreviewIdx] = useState(0);
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
+  const prevQuestionsLen = useRef(0);
+
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
 
@@ -95,6 +98,13 @@ export function AdminDashboard() {
       return [];
     }
   }, [markdown]);
+
+  useEffect(() => {
+    if (questions.length !== prevQuestionsLen.current) {
+      setCurrentPreviewIdx(0);
+      prevQuestionsLen.current = questions.length;
+    }
+  }, [questions]);
 
   const loadTests = async () => {
     const { data } = await supabase.from('tests').select('*').order('created_at', { ascending: false });
@@ -390,20 +400,73 @@ export function AdminDashboard() {
                     <Badge variant="secondary" className="text-xs">{questions.length} soal</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 p-0 overflow-hidden">
-                  <ScrollArea className="h-full p-4">
-                    {questions.length === 0 ? (
-                      <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-                        Belum ada soal terdeteksi. Pastikan format markdown benar.
-                      </div>
-                    ) : (
-                      <div className="space-y-4 pr-4 pb-10">
-                        {questions.map((q) => (
-                          <QuestionRenderer key={q.id} question={q} showDiscussion disabled />
+                <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
+                  {questions.length === 0 ? (
+                    <div className="flex items-center justify-center flex-1 text-muted-foreground text-sm">
+                      Belum ada soal terdeteksi. Pastikan format markdown benar.
+                    </div>
+                  ) : (
+                    <>
+                      {/* Number Grid Navigator */}
+                      <div className="flex flex-wrap gap-1.5 p-3 border-b bg-muted/20">
+                        {questions.map((q, idx) => (
+                          <Button
+                            key={q.id}
+                            variant={idx === currentPreviewIdx ? 'default' : 'outline'}
+                            size="sm"
+                            className="w-8 h-8 p-0 text-xs font-mono"
+                            onClick={() => {
+                              setSlideDir(idx > currentPreviewIdx ? 'right' : 'left');
+                              setCurrentPreviewIdx(idx);
+                            }}
+                          >
+                            {q.id}
+                          </Button>
                         ))}
                       </div>
-                    )}
-                  </ScrollArea>
+                      {/* Single Card with Slide Animation */}
+                      <div className="flex-1 overflow-y-auto p-4">
+                        <div
+                          key={`preview-${currentPreviewIdx}`}
+                          className={`animate-slide-${slideDir}`}
+                        >
+                          <QuestionRenderer
+                            question={questions[currentPreviewIdx]}
+                            showDiscussion
+                            disabled
+                          />
+                        </div>
+                      </div>
+                      {/* Prev / Next */}
+                      <div className="flex items-center justify-between p-3 border-t bg-muted/20">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSlideDir('left');
+                            setCurrentPreviewIdx((p) => Math.max(0, p - 1));
+                          }}
+                          disabled={currentPreviewIdx === 0}
+                        >
+                          ← Sebelumnya
+                        </Button>
+                        <span className="text-xs text-muted-foreground font-mono">
+                          {currentPreviewIdx + 1} / {questions.length}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSlideDir('right');
+                            setCurrentPreviewIdx((p) => Math.min(questions.length - 1, p + 1));
+                          }}
+                          disabled={currentPreviewIdx === questions.length - 1}
+                        >
+                          Selanjutnya →
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>

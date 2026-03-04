@@ -21,6 +21,7 @@ const DISCUSSION_RE = /^DISCUSSION:\s*([\s\S]*)$/i;
 /* ── Inline content parsers ── */
 
 const CHART_START_RE = /\[CHART:(BAR|LINE|PIE)\]/gi;
+const DIAGRAM_START_RE = /\[DIAGRAM\]/gi;
 const CODE_BLOCK_RE = /```(\w*)\s*([\s\S]*?)```/g;
 const MATH_BLOCK_RE = /\$\$([\s\S]*?)\$\$/g;
 const MATH_INLINE_RE = /\$((?!\$)[\s\S]*?)\$/g;
@@ -31,11 +32,60 @@ function parseInlineContent(raw: string): ContentBlock[] {
   const blocks: ContentBlock[] = [];
   let remaining = raw;
 
-  // 1. Extract chart blocks
-  // Handle both with and without [/CHART] by matching balanced JSON braces
+  // 0. Extract diagram blocks [DIAGRAM] {...} [/DIAGRAM]
   let match;
   let newRemaining = '';
   let lastIndex = 0;
+
+  while ((match = DIAGRAM_START_RE.exec(remaining)) !== null) {
+    newRemaining += remaining.slice(lastIndex, match.index);
+    let start = remaining.indexOf('{', DIAGRAM_START_RE.lastIndex);
+    if (start !== -1 && start - DIAGRAM_START_RE.lastIndex <= 20) {
+      let depth = 0, inString = false, escape = false, endIndex = -1;
+      for (let i = start; i < remaining.length; i++) {
+        const char = remaining[i];
+        if (escape) { escape = false; continue; }
+        if (char === '\\') { escape = true; continue; }
+        if (char === '"') { inString = !inString; continue; }
+        if (!inString) {
+          if (char === '{') depth++;
+          else if (char === '}') depth--;
+          if (depth === 0) { endIndex = i + 1; break; }
+        }
+      }
+      if (endIndex !== -1) {
+        const jsonStr = remaining.slice(start, endIndex);
+        let endOfDiagram = endIndex;
+        const afterJson = remaining.slice(endIndex);
+        const closingMatch = afterJson.match(/^\s*\[\/DIAGRAM\]/i);
+        if (closingMatch) endOfDiagram += closingMatch[0].length;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          blocks.push({
+            type: 'diagram',
+            content: jsonStr,
+            diagramType: parsed.type ?? 'functionPlot',
+            diagramConfig: parsed,
+          });
+        } catch {
+          blocks.push({ type: 'text', content: `Konfigurasi diagram tidak valid: ${jsonStr.slice(0, 60)}` });
+        }
+        newRemaining += '\u0000DIAGRAM\u0000';
+        lastIndex = endOfDiagram;
+        DIAGRAM_START_RE.lastIndex = lastIndex;
+        continue;
+      }
+    }
+    newRemaining += match[0];
+    lastIndex = DIAGRAM_START_RE.lastIndex;
+  }
+  newRemaining += remaining.slice(lastIndex);
+  remaining = newRemaining;
+
+  // 1. Extract chart blocks
+  // Handle both with and without [/CHART] by matching balanced JSON braces
+  newRemaining = '';
+  lastIndex = 0;
 
   while ((match = CHART_START_RE.exec(remaining)) !== null) {
     newRemaining += remaining.slice(lastIndex, match.index);
@@ -125,7 +175,7 @@ function parseInlineContent(raw: string): ContentBlock[] {
   let blockIdx = 0;
 
   for (const seg of segments) {
-    if (seg === 'CHART' || seg === 'MATH' || seg === 'CODE') {
+    if (seg === 'CHART' || seg === 'MATH' || seg === 'CODE' || seg === 'DIAGRAM') {
       finalBlocks.push(blocks[blockIdx++]);
       continue;
     }
