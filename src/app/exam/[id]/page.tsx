@@ -111,6 +111,7 @@ export default function ExamPage() {
           durationMinutes={test?.duration_minutes ?? 60}
           examId={examId}
           onSubmit={handleSubmit}
+          immediateFeedback={test?.immediate_feedback ?? false}
         />
       </div>
     </div>

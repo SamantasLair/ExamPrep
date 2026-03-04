@@ -17,6 +17,7 @@ interface ExamRunnerProps {
   durationMinutes: number;
   examId: string;
   onSubmit: (answers: Record<string, string>, score: number) => void;
+  immediateFeedback?: boolean;
 }
 
 const STORAGE_KEY_PREFIX = 'exaprep_exam_';
@@ -31,7 +32,7 @@ function formatTime(seconds: number): string {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-export function ExamRunner({ questions, durationMinutes, examId, onSubmit }: ExamRunnerProps) {
+export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immediateFeedback = false }: ExamRunnerProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
@@ -153,6 +154,8 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit }: Exa
           question={questions[currentIdx]}
           answer={answers[questions[currentIdx].id]}
           onAnswer={handleAnswer}
+          showCorrectAnswer={immediateFeedback && answers[questions[currentIdx].id] !== undefined}
+          feedbackMode={immediateFeedback ? 'graded' : 'neutral'}
         />
       )}
 

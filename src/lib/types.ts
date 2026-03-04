@@ -3,8 +3,9 @@
 export type ChartType = 'BAR' | 'LINE' | 'PIE';
 
 export interface ContentBlock {
-  type: 'text' | 'math-inline' | 'math-block' | 'chart' | 'image';
+  type: 'text' | 'math-inline' | 'math-block' | 'chart' | 'image' | 'code-block';
   content: string;
+  language?: string;
   chartType?: ChartType;
   chartData?: { labels: string[]; datasets: { label?: string; data: number[] }[] };
 }
@@ -35,6 +36,7 @@ export interface TestRow {
   end_at: string | null;
   passing_grade: number;
   show_answer: boolean;
+  immediate_feedback?: boolean;
   created_by: string | null;
   created_at: string;
 }

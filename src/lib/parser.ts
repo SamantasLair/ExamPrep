@@ -21,6 +21,7 @@ const DISCUSSION_RE = /^DISCUSSION:\s*([\s\S]*)$/i;
 /* ── Inline content parsers ── */
 
 const CHART_START_RE = /\[CHART:(BAR|LINE|PIE)\]/gi;
+const CODE_BLOCK_RE = /```(\w*)\s*([\s\S]*?)```/g;
 const MATH_BLOCK_RE = /\$\$([\s\S]*?)\$\$/g;
 const MATH_INLINE_RE = /\$((?!\$)[\s\S]*?)\$/g;
 const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -112,13 +113,19 @@ function parseInlineContent(raw: string): ContentBlock[] {
     return '\u0000MATH\u0000';
   });
 
-  // 3. Split on placeholders and process remaining text segments
+  // 3. Extract code blocks ```...```
+  remaining = remaining.replace(CODE_BLOCK_RE, (_match, lang: string, code: string) => {
+    blocks.push({ type: 'code-block', content: code.trim(), language: lang.trim() });
+    return '\u0000CODE\u0000';
+  });
+
+  // 4. Split on placeholders and process remaining text segments
   const segments = remaining.split('\u0000');
   const finalBlocks: ContentBlock[] = [];
   let blockIdx = 0;
 
   for (const seg of segments) {
-    if (seg === 'CHART' || seg === 'MATH') {
+    if (seg === 'CHART' || seg === 'MATH' || seg === 'CODE') {
       finalBlocks.push(blocks[blockIdx++]);
       continue;
     }

@@ -1,14 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import type { ContentBlock } from '@/lib/types';
 import { MathRenderer } from './MathRenderer';
 import { ChartRenderer } from './ChartRenderer';
+import { Button } from '@/components/ui/button';
 
 interface ContentBlockRendererProps {
   block: ContentBlock;
 }
 
 export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(block.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   switch (block.type) {
     case 'text':
       return <span className="whitespace-pre-wrap">{block.content}</span>;
@@ -30,6 +40,25 @@ export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
           className="my-3 max-w-full rounded-lg border shadow-sm"
           loading="lazy"
         />
+      );
+    case 'code-block':
+      return (
+        <div className="my-4 relative rounded-md border bg-zinc-950 text-zinc-50 overflow-hidden font-mono text-xs">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-900 border-b border-zinc-800">
+            <span className="text-zinc-400 font-semibold">{block.language || 'code'}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopy}
+              className="h-6 px-2 text-zinc-400 hover:text-white"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </Button>
+          </div>
+          <div className="p-3 overflow-x-auto whitespace-pre">
+            <code>{block.content}</code>
+          </div>
+        </div>
       );
     default:
       return null;
