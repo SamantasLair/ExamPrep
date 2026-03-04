@@ -190,18 +190,28 @@ export function AdminDashboard() {
       immediate_feedback: immediateFeedback,
     };
 
-    let errorObj;
+    let errorObj = null;
+    let rlsBlocked = false;
+
     if (editId) {
-      const { error } = await supabase.from('tests').update(payload).eq('id', editId);
+      const { data, error } = await supabase.from('tests').update(payload).eq('id', editId).select();
       errorObj = error;
+      if (!error && (!data || data.length === 0)) {
+        rlsBlocked = true;
+      }
     } else {
-      const { error } = await supabase.from('tests').insert(payload);
+      const { data, error } = await supabase.from('tests').insert(payload).select();
       errorObj = error;
+      if (!error && (!data || data.length === 0)) {
+        rlsBlocked = true;
+      }
     }
 
     setSaving(false);
     if (errorObj) {
       setSaveMsg(errorObj.message);
+    } else if (rlsBlocked) {
+      setSaveMsg('Gagal Menyimpan: RLS Supabase memblokir UPDATE/INSERT. Anda harus membuat Policy di dashboard Supabase milik Anda untuk tabel "tests".');
     } else {
       setSaveMsg('Ujian berhasil disimpan.');
       setTimeout(() => {
