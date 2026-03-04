@@ -42,9 +42,7 @@ export default function ExamPage() {
   }, [examId]);
 
   const handleSubmit = useCallback(async (answers: Record<string, string>, score: number) => {
-    setFinalScore(score);
-    setSubmitted(true);
-    const { data: attemptData } = await supabase.from('attempts').insert({
+    const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert({
       test_id: examId,
       responses: answers,
       score,
@@ -52,11 +50,17 @@ export default function ExamPage() {
       finished_at: new Date().toISOString(),
     }).select().single();
 
-    if (attemptData) {
-      try {
-        localStorage.setItem(`exaprep_finished_${examId}`, attemptData.id);
-      } catch { /* ignore */ }
+    if (attemptError || !attemptData) {
+      alert('Gagal Mengirim Ujian: RLS Supabase memblokir INSERT data ujian. Hubungi administrator (buat Policy INSERT untuk tabel attempts di Supabase).');
+      return; // Halt submission so they don't lose progress
     }
+
+    setFinalScore(score);
+    setSubmitted(true);
+    
+    try {
+      localStorage.setItem(`exaprep_finished_${examId}`, attemptData.id);
+    } catch { /* ignore */ }
   }, [examId]);
 
   if (loading) {

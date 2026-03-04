@@ -49,6 +49,7 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
             (cfg.yMin as number) ?? -10,
           ] as [number, number, number, number],
           axis: cfg.axis !== undefined ? !!cfg.axis : true,
+          keepaspectratio: true,
           showNavigation: false,
           showCopyright: false,
         });
@@ -70,6 +71,7 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
             (cfg.yMin as number) ?? -10,
           ] as [number, number, number, number],
           axis: cfg.axis !== undefined ? !!cfg.axis : true,
+          keepaspectratio: true,
           showNavigation: false,
           showCopyright: false,
         });
@@ -84,11 +86,19 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
             });
           } else if (el.type === 'line' && points[el.p1 as string] && points[el.p2 as string]) {
             board.create('line', [points[el.p1 as string], points[el.p2 as string]], {
-              straightFirst: false, straightLast: false, strokeWidth: 2,
+              straightFirst: false, 
+              straightLast: false, 
+              strokeWidth: 2,
+              dash: (el.dash as number) ?? 0,
+              strokeColor: (el.strokeColor as string) ?? '#0072b2',
             });
           } else if (el.type === 'circle' && points[el.center as string]) {
             board.create('circle', [points[el.center as string], el.radius as number], {
               strokeWidth: 2,
+              dash: (el.dash as number) ?? 0,
+              strokeColor: (el.strokeColor as string) ?? '#0072b2',
+              fillColor: (el.fillColor as string) ?? 'none',
+              fillOpacity: (el.fillOpacity as number) ?? 0,
             });
           } else if (el.type === 'polygon' && Array.isArray(el.vertices)) {
             const polygonPoints = (el.vertices as string[])
@@ -96,10 +106,23 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
               .filter(Boolean);
             if (polygonPoints.length > 0) {
               board.create('polygon', polygonPoints, {
-                fillOpacity: 0.1,
-                borders: { strokeWidth: 2 },
+                fillOpacity: (el.fillOpacity as number) ?? 0.1,
+                fillColor: (el.fillColor as string) ?? '#0072b2',
+                borders: { 
+                  strokeWidth: 2,
+                  dash: (el.dash as number) ?? 0,
+                  strokeColor: (el.strokeColor as string) ?? '#0072b2',
+                },
               });
             }
+          } else if (el.type === 'sector' && points[el.p1 as string] && points[el.p2 as string] && points[el.p3 as string]) {
+            board.create('sector', [points[el.p1 as string], points[el.p2 as string], points[el.p3 as string]], {
+              strokeWidth: 2,
+              dash: (el.dash as number) ?? 0,
+              strokeColor: (el.strokeColor as string) ?? '#0072b2',
+              fillColor: (el.fillColor as string) ?? 'none',
+              fillOpacity: (el.fillOpacity as number) ?? 0,
+            });
           }
         }
 
