@@ -367,16 +367,13 @@ ATURAN KRITIS
 
       {/* PRINT OVERLAY (Only visible when printing or in print preview) */}
       {showPrintModal && (
-        <div className="fixed inset-0 z-50 bg-background flex flex-col print:absolute print:inset-0">
+        <div className="fixed inset-0 z-50 bg-background flex flex-col print:static print:h-auto print:bg-white print:overflow-visible print:block">
           <style>{printDocumentStyle.css}</style>
           
           <div className="border-b p-4 flex flex-col items-start gap-4 bg-card print:hidden shadow-sm">
             <div className="flex items-center justify-between w-full">
               <h2 className="text-lg font-bold flex items-center gap-2"><Printer className="w-5 h-5"/> Print Settings</h2>
-              <div className="flex items-center gap-3">
-                <Button onClick={() => window.print()} className="whitespace-nowrap">Cetak Sekarang</Button>
-                <Button variant="ghost" onClick={() => setShowPrintModal(false)}>Tutup</Button>
-              </div>
+              {/* Note: Buttons moved entirely to the bottom of the toolbar to avoid duplication */}
             </div>
 
             <div className="flex flex-wrap items-center gap-6 w-full">
@@ -435,9 +432,9 @@ ATURAN KRITIS
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black print:text-black">
+          <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black print:text-black print:overflow-visible print:block print:h-auto print:w-full">
             <div 
-              className={`mx-auto bg-white p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-10' : ''}`}
+              className={`mx-auto bg-white p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-10 [column-fill:auto]' : ''}`}
               style={{ 
                 fontSize: `${printFontSize}px`,
                 maxWidth: `${printDocumentStyle.w}mm`,

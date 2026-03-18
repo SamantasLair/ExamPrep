@@ -62,7 +62,7 @@ export function QuestionRenderer({
       )}
 
         {/* Question Body */}
-        <div className="text-sm">
+        <div className={cn(printMode ? "text-[1em]" : "text-sm")}>
           <ContentBlockList blocks={question.body} />
         </div>
 
@@ -137,7 +137,7 @@ export function QuestionRenderer({
       {showDiscussion && question.discussion && question.discussion.length > 0 && (
         <div className={cn("mt-4 p-4 rounded-lg", printMode ? "border-l-4 border-l-black pl-4 py-2 mt-2" : "bg-muted/40 border border-border")}>
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Jawaban & Pembahasan</p>
-          <div className="text-sm">
+          <div className={cn(printMode ? "text-[1em]" : "text-sm")}>
             <ContentBlockList blocks={question.discussion} />
           </div>
         </div>
