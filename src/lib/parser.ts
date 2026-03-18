@@ -15,8 +15,8 @@ import type { ContentBlock, Option, Question, ChartType } from './types';
 
 const QUESTION_HEADER_RE = /^#\s*Q(\d+)\s*\((PILGAN|ESSAY)\)\s*$/i;
 const OPTION_RE = /^\[\[([A-E])\]\]\s*(.*)/;
-const ANSWER_RE = /^ANSWER:\s*(.+)$/i;
-const DISCUSSION_RE = /^DISCUSSION:\s*([\s\S]*)$/i;
+const ANSWER_RE = /^(?:Jawaban:\s*)?ANSWER:\s*(.+)$/i;
+const DISCUSSION_RE = /^(?:Pembahasan:\s*)?DISCUSSION:\s*([\s\S]*)$/i;
 
 /* ── Inline content parsers ── */
 

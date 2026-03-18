@@ -102,6 +102,8 @@ export function AdminDashboard() {
   const [printPaperSize, setPrintPaperSize] = useState<'A4' | 'F4' | 'Custom'>('A4');
   const [customPaperWidth, setCustomPaperWidth] = useState(210); // in mm
   const [customPaperHeight, setCustomPaperHeight] = useState(297); // in mm
+  const [printShowHeader, setPrintShowHeader] = useState(true);
+  const [printCustomTitle, setPrintCustomTitle] = useState('');
 
   // Prompt Generator State
   const [promptType, setPromptType] = useState('Pilihan Ganda (PILGAN)');
@@ -373,7 +375,10 @@ ATURAN KRITIS
           <div className="border-b p-4 flex flex-col items-start gap-4 bg-card print:hidden shadow-sm">
             <div className="flex items-center justify-between w-full">
               <h2 className="text-lg font-bold flex items-center gap-2"><Printer className="w-5 h-5"/> Print Settings</h2>
-              {/* Note: Buttons moved entirely to the bottom of the toolbar to avoid duplication */}
+              <div className="flex items-center gap-3">
+                <Button onClick={() => window.print()} className="whitespace-nowrap">Cetak Sekarang</Button>
+                <Button variant="ghost" onClick={() => setShowPrintModal(false)}>Tutup</Button>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-6 w-full">
@@ -414,6 +419,21 @@ ATURAN KRITIS
                   + Pembahasan
                 </Label>
               </div>
+              
+              <div className="flex flex-col gap-2 border-r pr-6 border-muted-foreground/20 min-w-[200px]">
+                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                  <input type="checkbox" checked={printShowHeader} onChange={(e) => setPrintShowHeader(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" />
+                  Kop / Judul Ujian
+                </Label>
+                {printShowHeader && (
+                  <Input 
+                    placeholder="Judul Khusus (Opsional)" 
+                    value={printCustomTitle} 
+                    onChange={(e) => setPrintCustomTitle(e.target.value)}
+                    className="h-8 text-xs w-full"
+                  />
+                )}
+              </div>
 
               <div className="flex items-center gap-3 border-r pr-6 border-muted-foreground/20">
                 <Label className="text-xs font-semibold whitespace-nowrap">Teks (px)</Label>
@@ -424,11 +444,6 @@ ATURAN KRITIS
                 <Label className="text-xs font-semibold whitespace-nowrap">Diagram (%)</Label>
                 <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-20 h-8 text-sm" />
               </div>
-            </div>
-
-            <div className="flex items-center gap-3 w-full border-t border-muted-foreground/20 pt-4 mt-2 justify-end">
-              <Button onClick={() => window.print()} className="whitespace-nowrap">Cetak Sekarang</Button>
-              <Button variant="ghost" onClick={() => setShowPrintModal(false)}>Tutup</Button>
             </div>
           </div>
 
@@ -443,13 +458,15 @@ ATURAN KRITIS
                 '--print-graphic-scale': printGraphicScale / 100 
               } as React.CSSProperties}
             >
-              <div className="mb-6 pb-2 border-b-2 border-black col-span-full">
-                <h1 className="font-bold uppercase leading-tight" style={{ fontSize: `${printFontSize * 1.25}px` }}>{examTitle || 'SOAL UJIAN'}</h1>
-                <p className="mt-1 font-medium" style={{ fontSize: `${printFontSize * 0.9}px` }}>Waktu: {duration} Menit</p>
-              </div>
+              {printShowHeader && (
+                <div className="mb-6 pb-2 border-b-2 border-black col-span-full">
+                  <h1 className="font-bold uppercase leading-tight" style={{ fontSize: `${printFontSize * 1.25}px` }}>{printCustomTitle || examTitle || 'SOAL UJIAN'}</h1>
+                  <p className="mt-1 font-medium" style={{ fontSize: `${printFontSize * 0.9}px` }}>Waktu: {duration} Menit</p>
+                </div>
+              )}
               
               {questions.map((q, idx) => (
-                <div key={q.id} className="mb-4 break-inside-avoid-page relative">
+                <div key={q.id} className="mb-4 break-inside-avoid relative">
                   <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
                   <div className="pl-6">
                     <QuestionRenderer question={q} disabled showDiscussion={showPrintDiscussion} printMode={true} />
