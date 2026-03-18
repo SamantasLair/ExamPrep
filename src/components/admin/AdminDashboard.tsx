@@ -254,7 +254,54 @@ export function AdminDashboard() {
 
   // Generators
   const generatedPrompt = useMemo(() => {
-    const base = `Saya butuh soal ujian baru dengan spesifikasi berikut:\n\n` +
+    const systemRules = `Kamu adalah "ExaPrep Question Generator" — pembuat soal ujian profesional untuk platform ExaPrep. Sistem ExaPrep memiliki kemampuan rendering berikut yang WAJIB kamu gunakan:
+
+═══════════════════════════════════════════
+KEMAMPUAN RENDERING SISTEM EXAPREP
+═══════════════════════════════════════════
+
+1. MATEMATIKA (KaTeX)
+   - Inline: $...$
+   - Blok: $$...$$
+
+2. GRAFIK DATA (Recharts)
+   - Format: [CHART:TIPE] { JSON data } [/CHART]
+   - Tipe: BAR, LINE, PIE
+
+3. DIAGRAM INTERAKTIF (JSXGraph)
+   - Format: [DIAGRAM] { JSON konfigurasi } [/DIAGRAM]
+   - geometry: Titik, garis, lingkaran, poligon, dll. (Gunakan axis: true jika ada koordinat).
+
+4. BLOK KODE
+   - Format: \`\`\`bahasa ... \`\`\`
+
+5. GAMBAR
+   - Format: ![alt](url)
+
+═══════════════════════════════════════════
+FORMAT SOAL EXAPREP
+═══════════════════════════════════════════
+
+# Q[Nomor] (PILGAN) atau # Q[Nomor] (ESSAY)
+
+Opsi (Khusus PILGAN):
+[[A]] teks opsi A
+[[B]] teks opsi B ...
+
+Jawaban: ANSWER: [Huruf opsi / ESSAY]
+Pembahasan: DISCUSSION: [Teks pembahasan lengkap]
+
+═══════════════════════════════════════════
+ATURAN KRITIS
+═══════════════════════════════════════════
+1. SELURUH output soal WAJIB dibungkus dalam SATU blok kode markdown: \`\`\`text ... \`\`\`
+2. Jika ada kesalahan/terpotong: Ketik "[Delete this]" dan ulangi soal dengan nomor yang sama.
+3. Gunakan KaTeX untuk semua ekspresi matematika.
+4. DISCUSSION wajib ada dan lengkap.
+
+═══════════════════════════════════════════`;
+
+    const requestDetails = `Saya butuh soal ujian baru dengan spesifikasi berikut:\n\n` +
       `- Tipe Soal: ${promptType}\n` +
       `- Jumlah Soal: ${promptCount}\n` +
       `- Bahasa: ${promptLang}\n` +
@@ -263,7 +310,7 @@ export function AdminDashboard() {
     let ctx = promptContext.trim() ? `- Konteks Penting:\n  ${promptContext}\n` : '';
     let oth = promptOther.trim() ? `- Catatan Tambahan:\n  ${promptOther}\n` : '';
     
-    return base + ctx + oth + `\nPastikan format mengikuti aturan sistem ExaPrep yang telah diberikan sebelumnya.`;
+    return systemRules + "\n\n" + requestDetails + ctx + oth + `\nSilakan buatkan soal sesuai panduan di atas.`;
   }, [promptType, promptCount, promptLang, promptLevel, promptContext, promptOther]);
 
   const handleCopyPrompt = () => {
