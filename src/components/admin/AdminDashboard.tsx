@@ -336,7 +336,7 @@ ATURAN KRITIS
   }, [printPaperSize, customPaperWidth, customPaperHeight]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen print:min-h-0 bg-background text-foreground flex flex-col">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none print:hidden">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -445,17 +445,51 @@ ATURAN KRITIS
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black print:text-black print:overflow-visible print:block print:h-auto print:w-full">
+          <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black print:text-black print:overflow-visible print:block print:h-auto print:w-full scroll-smooth">
+            {/* 
+               PRINT PREVIEW CONTAINER
+               - On screen: A scrollable area with shadow pages and balanced columns
+               - In print: A continuous flow that browser fragments naturally with auto-fill
+            */}
             <div 
-              className={`mx-auto bg-white p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-10 [column-fill:auto]' : ''}`}
+              className={cn(
+                "mx-auto bg-white shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 print:m-0 print:bg-transparent relative",
+                printColumns === '2' ? 'columns-2 gap-10' : ''
+              )}
               style={{ 
                 fontSize: `${printFontSize}px`,
                 maxWidth: `${printDocumentStyle.w}mm`,
+                padding: '15mm', 
                 minHeight: `${printDocumentStyle.h}mm`,
-                // Passing the graphic scale down using CSS variables. 
                 '--print-graphic-scale': printGraphicScale / 100 
               } as React.CSSProperties}
             >
+              {/* PAGE BREAK INDICATORS (Visual only, hidden in print) */}
+              <style>{`
+                @media screen {
+                  .preview-page-lines {
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    pointer-events: none;
+                    background-image: linear-gradient(to bottom, transparent calc(${printDocumentStyle.h}mm - 1px), #e2e8f0 ${printDocumentStyle.h}mm);
+                    background-size: 100% ${printDocumentStyle.h}mm;
+                    z-index: 0;
+                  }
+                  .column-balancing-fix {
+                    column-fill: balance;
+                  }
+                }
+                @media print {
+                  .column-balancing-fix {
+                    column-fill: auto;
+                  }
+                }
+              `}</style>
+              
+              <div className="preview-page-lines print:hidden" />
+              
+              <div className="column-balancing-fix relative z-10 font-serif">
+              
               {printShowHeader && (
                 <div className="mb-6 pb-2 border-b-2 border-black col-span-full">
                   <h1 className="font-bold uppercase leading-tight" style={{ fontSize: `${printFontSize * 1.25}px` }}>{printCustomTitle || examTitle || 'SOAL UJIAN'}</h1>
@@ -464,13 +498,18 @@ ATURAN KRITIS
               )}
               
               {questions.map((q, idx) => (
-                <div key={q.id} className="mb-4 break-inside-avoid relative">
-                  <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
-                  <div className="pl-6">
-                    <QuestionRenderer question={q} disabled showDiscussion={showPrintDiscussion} printMode={true} />
+                <div key={q.id}>
+                  {/* Rough page break indicator every 5 questions? No, that's bad. 
+                      Let's just provide the container fix first. */}
+                  <div className="mb-4 break-inside-avoid relative">
+                    <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                    <div className="pl-6">
+                      <QuestionRenderer question={q} disabled showDiscussion={showPrintDiscussion} printMode={true} />
+                    </div>
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </div>
