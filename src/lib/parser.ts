@@ -238,7 +238,9 @@ export function parseMarkdown(markdown: string): Question[] {
 
   function flushQuestion() {
     if (!current) return;
-    const bodyText = current.bodyLines.join('\n').trim();
+    const bodyText = current.bodyLines
+      .filter(line => !line.trim().toLowerCase().match(/^opsi\s*(?:\(.*\))?\s*:$/))
+      .join('\n').trim();
     const options: Option[] = current.options.map((o) => ({
       key: o.key,
       body: parseInlineContent(o.textLines.join('\n')),

@@ -291,8 +291,6 @@ FORMAT SOAL EXAPREP
 ═══════════════════════════════════════════
 
 # Q[Nomor] (PILGAN) atau # Q[Nomor] (ESSAY)
-
-Opsi (Khusus PILGAN):
 [[A]] teks opsi A
 [[B]] teks opsi B ...
 
