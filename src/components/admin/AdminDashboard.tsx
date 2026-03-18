@@ -99,6 +99,9 @@ export function AdminDashboard() {
   const [printFontSize, setPrintFontSize] = useState(14); // in px
   const [printGraphicScale, setPrintGraphicScale] = useState(100); // in percentage
   const [showPrintDiscussion, setShowPrintDiscussion] = useState(false);
+  const [printPaperSize, setPrintPaperSize] = useState<'A4' | 'F4' | 'Custom'>('A4');
+  const [customPaperWidth, setCustomPaperWidth] = useState(210); // in mm
+  const [customPaperHeight, setCustomPaperHeight] = useState(297); // in mm
 
   // Prompt Generator State
   const [promptType, setPromptType] = useState('Pilihan Ganda (PILGAN)');
@@ -322,6 +325,16 @@ ATURAN KRITIS
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
 
+  const printDocumentStyle = useMemo(() => {
+    let w = 210, h = 297;
+    if (printPaperSize === 'F4') { w = 215.9; h = 330.2; }
+    else if (printPaperSize === 'Custom') { w = customPaperWidth; h = customPaperHeight; }
+    return {
+      css: `@media print { @page { size: ${w}mm ${h}mm; margin: 15mm; } }`,
+      w, h
+    };
+  }, [printPaperSize, customPaperWidth, customPaperHeight]);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none print:hidden">
@@ -355,9 +368,18 @@ ATURAN KRITIS
       {/* PRINT OVERLAY (Only visible when printing or in print preview) */}
       {showPrintModal && (
         <div className="fixed inset-0 z-50 bg-background flex flex-col print:absolute print:inset-0">
-          <div className="border-b p-4 flex flex-col md:flex-row items-center justify-between bg-card print:hidden shadow-sm gap-4">
-            <h2 className="text-lg font-bold flex items-center gap-2 flex-none"><Printer className="w-5 h-5"/> Print Preview</h2>
-            <div className="flex items-center gap-6 overflow-x-auto w-full md:w-auto px-2">
+          <style>{printDocumentStyle.css}</style>
+          
+          <div className="border-b p-4 flex flex-col items-start gap-4 bg-card print:hidden shadow-sm">
+            <div className="flex items-center justify-between w-full">
+              <h2 className="text-lg font-bold flex items-center gap-2"><Printer className="w-5 h-5"/> Print Settings</h2>
+              <div className="flex items-center gap-3">
+                <Button onClick={() => window.print()} className="whitespace-nowrap">Cetak Sekarang</Button>
+                <Button variant="ghost" onClick={() => setShowPrintModal(false)}>Tutup</Button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-6 w-full">
               <div className="flex items-center gap-4 border-r pr-6 border-muted-foreground/20">
                 <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
                   <input type="radio" name="cols" checked={printColumns === '1'} onChange={() => setPrintColumns('1')} className="h-4 w-4 accent-primary" />
@@ -367,6 +389,26 @@ ATURAN KRITIS
                   <input type="radio" name="cols" checked={printColumns === '2'} onChange={() => setPrintColumns('2')} className="h-4 w-4 accent-primary" />
                   2 Kolom
                 </Label>
+              </div>
+
+              <div className="flex items-center gap-3 border-r pr-6 border-muted-foreground/20">
+                <Label className="text-xs font-semibold whitespace-nowrap">Kertas</Label>
+                <select 
+                  className="h-8 text-sm border rounded px-2"
+                  value={printPaperSize}
+                  onChange={(e) => setPrintPaperSize(e.target.value as any)}
+                >
+                  <option value="A4">A4 (210×297)</option>
+                  <option value="F4">F4 / Folio (215.9×330.2)</option>
+                  <option value="Custom">Custom</option>
+                </select>
+                {printPaperSize === 'Custom' && (
+                  <div className="flex gap-2">
+                    <Input type="number" min={100} max={1000} value={customPaperWidth} onChange={(e) => setCustomPaperWidth(Number(e.target.value))} className="w-16 h-8 text-sm" title="Lebar (mm)" />
+                    <span className="text-muted-foreground text-xs leading-8">x</span>
+                    <Input type="number" min={100} max={1000} value={customPaperHeight} onChange={(e) => setCustomPaperHeight(Number(e.target.value))} className="w-16 h-8 text-sm" title="Tinggi (mm)" />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-4 border-r pr-6 border-muted-foreground/20">
@@ -387,7 +429,7 @@ ATURAN KRITIS
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pl-2 flex-none">
+            <div className="flex items-center gap-3 w-full border-t border-muted-foreground/20 pt-4 mt-2 justify-end">
               <Button onClick={() => window.print()} className="whitespace-nowrap">Cetak Sekarang</Button>
               <Button variant="ghost" onClick={() => setShowPrintModal(false)}>Tutup</Button>
             </div>
@@ -395,23 +437,26 @@ ATURAN KRITIS
 
           <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black print:text-black">
             <div 
-              className={`mx-auto bg-white min-h-[1122px] max-w-[794px] p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-10' : ''}`}
+              className={`mx-auto bg-white p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-10' : ''}`}
               style={{ 
                 fontSize: `${printFontSize}px`,
+                maxWidth: `${printDocumentStyle.w}mm`,
+                minHeight: `${printDocumentStyle.h}mm`,
                 // Passing the graphic scale down using CSS variables. 
-                // Any inner interactive component that respects --print-graphic-scale can utilize it.
                 '--print-graphic-scale': printGraphicScale / 100 
               } as React.CSSProperties}
             >
               <div className="mb-6 pb-2 border-b-2 border-black col-span-full">
-                <h1 className="font-bold uppercase" style={{ fontSize: `${printFontSize * 1.25}px` }}>{examTitle || 'SOAL UJIAN'}</h1>
+                <h1 className="font-bold uppercase leading-tight" style={{ fontSize: `${printFontSize * 1.25}px` }}>{examTitle || 'SOAL UJIAN'}</h1>
                 <p className="mt-1 font-medium" style={{ fontSize: `${printFontSize * 0.9}px` }}>Waktu: {duration} Menit</p>
               </div>
               
               {questions.map((q, idx) => (
-                <div key={q.id} className="mb-6 break-inside-avoid">
-                  <div className="font-bold mb-1">{idx + 1}.</div>
-                  <QuestionRenderer question={q} disabled showDiscussion={showPrintDiscussion} />
+                <div key={q.id} className="mb-4 break-inside-avoid-page relative">
+                  <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                  <div className="pl-6">
+                    <QuestionRenderer question={q} disabled showDiscussion={showPrintDiscussion} printMode={true} />
+                  </div>
                 </div>
               ))}
             </div>
