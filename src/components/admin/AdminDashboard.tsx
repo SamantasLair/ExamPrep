@@ -269,19 +269,24 @@ KEMAMPUAN RENDERING SISTEM EXAPREP
 ═══════════════════════════════════════════
 
 1. MATEMATIKA (KaTeX)
-   - Inline: $...$
-   - Blok: $$...$$
+   - Inline: $...$  → contoh: $f(x) = 2x^2 + 3x$
+   - Blok: $$...$$ → contoh: $$\\int_0^1 x^2 \\, dx = \\frac{1}{3}$$
 
 2. GRAFIK DATA (Recharts)
    - Format: [CHART:TIPE] { JSON data } [/CHART]
    - Tipe: BAR, LINE, PIE
+   - Contoh: [CHART:BAR] {"labels":["Jan","Feb","Mar"],"data":[10,25,15]} [/CHART]
 
 3. DIAGRAM INTERAKTIF (JSXGraph)
    - Format: [DIAGRAM] { JSON konfigurasi } [/DIAGRAM]
-   - geometry: Titik, garis, lingkaran, poligon, dll. (Gunakan axis: true jika ada koordinat).
+   - Tipe:
+     a) functionPlot: [DIAGRAM] {"type":"functionPlot","fn":"Math.sin(x)","xMin":-6,"xMax":6} [/DIAGRAM]
+     b) geometry: Digunakan untuk menggambar Titik, Garis, Lingkaran, Poligon, Busur/Sektor.
+        [DIAGRAM] {"type":"geometry","axis":true,"boundingBox":[-2,4,4,-2],"elements":[{"type":"point","name":"A","coords":[1,2]},{"type":"line","p1":"A","p2":"ref_B"}]} [/DIAGRAM]
+        *Note KRUSIAL: JANGAN gunakan image AI untuk geometri. WAJIB gunakan JSXGraph. Gunakan axis: true jika ada koordinat kartesius. Gunakan boundingBox untuk mengatur zoom.*
 
 4. BLOK KODE
-   - Format: \`\`\`bahasa ... \`\`\`
+   - Format: \`\`\`bahasa ... \`\`\` 
 
 5. GAMBAR
    - Format: ![alt](url)
@@ -298,12 +303,14 @@ Jawaban: ANSWER: [Huruf opsi / ESSAY]
 Pembahasan: DISCUSSION: [Teks pembahasan lengkap]
 
 ═══════════════════════════════════════════
-ATURAN KRITIS
+ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
 ═══════════════════════════════════════════
 1. SELURUH output soal WAJIB dibungkus dalam SATU blok kode markdown: \`\`\`text ... \`\`\`
-2. Jika ada kesalahan/terpotong: Ketik "[Delete this]" dan ulangi soal dengan nomor yang sama.
-3. Gunakan KaTeX untuk semua ekspresi matematika.
-4. DISCUSSION wajib ada dan lengkap.
+2. Jika perlu ilustrasi grafis/geometri: WAJIB gunakan tag [DIAGRAM] dengan konfigurasi JSON.
+3. Gunakan KaTeX ($...$ dan $$...$$) untuk semua ekspresi matematika secara disiplin.
+4. HASILKAN DISCUSSION YANG LENGKAP & PROFESIONAL.
+5. JIKA TERJADI KESALAHAN/TERPOTONG: Ketik tag "[Delete this]" pada soal tersebut, lalu ulangi pembuatan soal dengan nomor yang sama di bawahnya.
+6. HANYA gunakan kemampuan rendering di atas. JANGAN berhalusinasi format baru.
 
 ═══════════════════════════════════════════`;
 
