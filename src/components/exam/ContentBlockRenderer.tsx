@@ -29,13 +29,19 @@ export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
       return <MathRenderer tex={block.content} displayMode />;
     case 'chart':
       return (
-        <div className="my-4 p-4 rounded-xl border bg-card">
+        <div 
+          className="my-4 p-4 rounded-xl border bg-card print:border-none print:p-0 print:my-2"
+          style={{ transform: 'scale(var(--print-graphic-scale, 1))', transformOrigin: 'top left' } as React.CSSProperties}
+        >
           <ChartRenderer block={block} />
         </div>
       );
     case 'diagram':
       return (
-        <div className="my-4 p-4 rounded-xl border bg-card">
+        <div 
+          className="my-4 p-4 rounded-xl border bg-card print:border-none print:p-0 print:my-2"
+          style={{ transform: 'scale(var(--print-graphic-scale, 1))', transformOrigin: 'top left' } as React.CSSProperties}
+        >
           <DiagramRenderer block={block} />
         </div>
       );

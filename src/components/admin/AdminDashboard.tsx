@@ -96,6 +96,9 @@ export function AdminDashboard() {
   // Print State
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printColumns, setPrintColumns] = useState<'1' | '2'>('1');
+  const [printFontSize, setPrintFontSize] = useState(14); // in px
+  const [printGraphicScale, setPrintGraphicScale] = useState(100); // in percentage
+  const [showPrintDiscussion, setShowPrintDiscussion] = useState(false);
 
   // Prompt Generator State
   const [promptType, setPromptType] = useState('Pilihan Ganda (PILGAN)');
@@ -352,33 +355,63 @@ ATURAN KRITIS
       {/* PRINT OVERLAY (Only visible when printing or in print preview) */}
       {showPrintModal && (
         <div className="fixed inset-0 z-50 bg-background flex flex-col print:absolute print:inset-0">
-          <div className="border-b p-4 flex items-center justify-between bg-card print:hidden shadow-sm">
-            <h2 className="text-lg font-bold flex items-center gap-2"><Printer className="w-5 h-5"/> Print Preview</h2>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input type="radio" name="cols" checked={printColumns === '1'} onChange={() => setPrintColumns('1')} className="accent-primary" />
-                1 Kolom (Full Page)
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input type="radio" name="cols" checked={printColumns === '2'} onChange={() => setPrintColumns('2')} className="accent-primary" />
-                2 Kolom Vertikal
-              </label>
-              <Separator orientation="vertical" className="h-6 mx-2" />
-              <Button onClick={() => window.print()}>Cetak Sekarang</Button>
+          <div className="border-b p-4 flex flex-col md:flex-row items-center justify-between bg-card print:hidden shadow-sm gap-4">
+            <h2 className="text-lg font-bold flex items-center gap-2 flex-none"><Printer className="w-5 h-5"/> Print Preview</h2>
+            <div className="flex items-center gap-6 overflow-x-auto w-full md:w-auto px-2">
+              <div className="flex items-center gap-4 border-r pr-6 border-muted-foreground/20">
+                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                  <input type="radio" name="cols" checked={printColumns === '1'} onChange={() => setPrintColumns('1')} className="h-4 w-4 accent-primary" />
+                  1 Kolom
+                </Label>
+                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                  <input type="radio" name="cols" checked={printColumns === '2'} onChange={() => setPrintColumns('2')} className="h-4 w-4 accent-primary" />
+                  2 Kolom
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-4 border-r pr-6 border-muted-foreground/20">
+                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                  <input type="checkbox" checked={showPrintDiscussion} onChange={(e) => setShowPrintDiscussion(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" />
+                  + Pembahasan
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-3 border-r pr-6 border-muted-foreground/20">
+                <Label className="text-xs font-semibold whitespace-nowrap">Teks (px)</Label>
+                <Input type="number" min={10} max={24} value={printFontSize} onChange={(e) => setPrintFontSize(Number(e.target.value))} className="w-16 h-8 text-sm" />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="text-xs font-semibold whitespace-nowrap">Diagram (%)</Label>
+                <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-20 h-8 text-sm" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pl-2 flex-none">
+              <Button onClick={() => window.print()} className="whitespace-nowrap">Cetak Sekarang</Button>
               <Button variant="ghost" onClick={() => setShowPrintModal(false)}>Tutup</Button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black">
-            <div className={`mx-auto bg-white min-h-[1122px] max-w-[794px] p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-8' : ''}`}>
-              <div className="text-center mb-8 col-span-full">
-                <h1 className="text-2xl font-bold uppercase">{examTitle || 'Ujian Tanpa Judul'}</h1>
-                <p className="text-sm mt-1 border-b pb-4">Waktu: {duration} Menit | Lembar Soal Ujian</p>
+
+          <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black print:text-black">
+            <div 
+              className={`mx-auto bg-white min-h-[1122px] max-w-[794px] p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-10' : ''}`}
+              style={{ 
+                fontSize: `${printFontSize}px`,
+                // Passing the graphic scale down using CSS variables. 
+                // Any inner interactive component that respects --print-graphic-scale can utilize it.
+                '--print-graphic-scale': printGraphicScale / 100 
+              } as React.CSSProperties}
+            >
+              <div className="mb-6 pb-2 border-b-2 border-black col-span-full">
+                <h1 className="font-bold uppercase" style={{ fontSize: `${printFontSize * 1.25}px` }}>{examTitle || 'SOAL UJIAN'}</h1>
+                <p className="mt-1 font-medium" style={{ fontSize: `${printFontSize * 0.9}px` }}>Waktu: {duration} Menit</p>
               </div>
               
               {questions.map((q, idx) => (
                 <div key={q.id} className="mb-6 break-inside-avoid">
-                  <div className="font-semibold mb-2">{idx + 1}.</div>
-                  <QuestionRenderer question={q} disabled showDiscussion={false} />
+                  <div className="font-bold mb-1">{idx + 1}.</div>
+                  <QuestionRenderer question={q} disabled showDiscussion={showPrintDiscussion} />
                 </div>
               ))}
             </div>

@@ -37,12 +37,12 @@ export function QuestionRenderer({
 
   return (
     <Card className={cn(
-      'transition-all duration-200',
+      'transition-all duration-200 print:border-none print:shadow-none print:bg-transparent',
       isCorrect && 'border-green-500/50 bg-green-50/30 dark:bg-green-950/10',
       isWrong && 'border-red-500/50 bg-red-50/30 dark:bg-red-950/10',
       isNeutral && answer !== undefined && 'border-muted-foreground/30 bg-muted/20',
     )}>
-      <CardContent className="pt-5 space-y-4">
+      <CardContent className="pt-5 space-y-4 print:p-0">
         {/* Header */}
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
