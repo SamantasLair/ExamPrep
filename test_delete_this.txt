@@ -1,0 +1,31 @@
+# Q1 (PILGAN)
+Siapakah penemu bola lampu pijar?
+[[A]] Thomas Alva Edison
+[[B]] Albert Einstein
+[[C]] Isaac Newton
+[[D]] Nikola Tesla
+[[E]] Alexander Graham Bell
+
+ANSWER: A
+DISCUSSION: Thomas Alva Edison adalah penemu bola lampu pijar yang sukses secara komersial.
+
+# Q2 (PILGAN)
+Siapakah penemu dari pesawat terbang yang pertama kali berhasil [Delete this]
+Maaf, terjadi kesalahan penulisan, saya akan mengulang soal ini.
+
+# Q2 (PILGAN)
+Siapakah tokoh yang dikenal sebagai penemu pesawat terbang bermesin pertama yang berhasil terbang?
+[[A]] Wright Bersaudara
+[[B]] Montgolfier Bersaudara
+[[C]] Leonardo da Vinci
+[[D]] Yuri Gagarin
+[[E]] Neil Armstrong
+
+ANSWER: A
+DISCUSSION: Wright Bersaudara (Orville dan Wilbur Wright) berhasil menerbangkan pesawat bermesin pertama pada tahun 1903.
+
+# Q3 (ESSAY)
+Sebutkan 3 planet terdekat dari Matahari!
+
+ANSWER: ESSAY
+DISCUSSION: Tiga planet terdekat dari Matahari secara berurutan adalah Merkurius, Venus, dan Bumi.

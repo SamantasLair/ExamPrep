@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { HelpCircle, Copy, Printer, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { TestRow } from '@/lib/types';
 
@@ -87,9 +88,23 @@ export function AdminDashboard() {
   const [currentPreviewIdx, setCurrentPreviewIdx] = useState(0);
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
   const prevQuestionsLen = useRef(0);
+  const previousMarkdownRef = useRef(markdown);
 
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+
+  // Print State
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [printColumns, setPrintColumns] = useState<'1' | '2'>('1');
+
+  // Prompt Generator State
+  const [promptType, setPromptType] = useState('Pilihan Ganda (PILGAN)');
+  const [promptCount, setPromptCount] = useState('10');
+  const [promptLang, setPromptLang] = useState('Indonesia');
+  const [promptLevel, setPromptLevel] = useState('SMA');
+  const [promptContext, setPromptContext] = useState('');
+  const [promptOther, setPromptOther] = useState('');
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const questions = useMemo(() => {
     try {
@@ -105,6 +120,22 @@ export function AdminDashboard() {
       prevQuestionsLen.current = questions.length;
     }
   }, [questions]);
+
+  // Auto-Delete Watcher
+  useEffect(() => {
+    if (markdown.includes('[Delete this]') && !previousMarkdownRef.current.includes('[Delete this]')) {
+      // Small timeout to let state settle if pasting
+      setTimeout(() => {
+        const ok = window.confirm('Sistem mendeteksi tag "[Delete this]" (Kesalahan AI) di teks.\n\nApakah Anda ingin sistem menghapus otomatis soal-soal tersebut tanpa mengubah soal lainnya?');
+        if (ok) {
+          const parts = markdown.split(/(?=#\s*Q\d+\s*\((?:PILGAN|ESSAY)\)\s*)/i);
+          const cleanedParts = parts.filter(part => !part.includes('[Delete this]'));
+          setMarkdown(cleanedParts.join('').trimStart());
+        }
+      }, 50);
+    }
+    previousMarkdownRef.current = markdown;
+  }, [markdown]);
 
   const loadTests = async () => {
     const { data } = await supabase.from('tests').select('*').order('created_at', { ascending: false });
@@ -221,9 +252,29 @@ export function AdminDashboard() {
     }
   }, [editId, examTitle, markdown, duration, passingGrade, startAt, endAt, showAnswer, immediateFeedback]);
 
+  // Generators
+  const generatedPrompt = useMemo(() => {
+    const base = `Saya butuh soal ujian baru dengan spesifikasi berikut:\n\n` +
+      `- Tipe Soal: ${promptType}\n` +
+      `- Jumlah Soal: ${promptCount}\n` +
+      `- Bahasa: ${promptLang}\n` +
+      `- Tingkat / Level: ${promptLevel}\n`;
+    
+    let ctx = promptContext.trim() ? `- Konteks Penting:\n  ${promptContext}\n` : '';
+    let oth = promptOther.trim() ? `- Catatan Tambahan:\n  ${promptOther}\n` : '';
+    
+    return base + ctx + oth + `\nPastikan format mengikuti aturan sistem ExaPrep yang telah diberikan sebelumnya.`;
+  }, [promptType, promptCount, promptLang, promptLevel, promptContext, promptOther]);
+
+  const handleCopyPrompt = () => {
+    navigator.clipboard.writeText(generatedPrompt);
+    setCopiedPrompt(true);
+    setTimeout(() => setCopiedPrompt(false), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none print:hidden">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-bold">ExaPrep Admin</h1>
@@ -231,14 +282,18 @@ export function AdminDashboard() {
           </div>
           <div className="flex items-center gap-2">
             {activeTab === 'editor' && (
-              <Button size="sm" variant="outline" onClick={() => setShowSettings((v) => !v)}>
-                {showSettings ? 'Tutup Pengaturan' : 'Pengaturan'}
-              </Button>
-            )}
-            {activeTab === 'editor' && (
-              <Button size="sm" onClick={handleSave} disabled={saving}>
-                {saving ? 'Menyimpan...' : 'Simpan Ujian'}
-              </Button>
+              <>
+                <Button size="sm" variant="secondary" onClick={() => setShowPrintModal(true)}>
+                  <Printer className="w-4 h-4 mr-2" />
+                  Print Ujian
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowSettings((v) => !v)}>
+                  {showSettings ? 'Tutup Pengaturan' : 'Pengaturan'}
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saving}>
+                  {saving ? 'Menyimpan...' : 'Simpan Ujian'}
+                </Button>
+              </>
             )}
             <Button size="sm" variant="ghost" onClick={() => window.location.href = '/'}>
               Keluar
@@ -247,12 +302,50 @@ export function AdminDashboard() {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-6">
+      {/* PRINT OVERLAY (Only visible when printing or in print preview) */}
+      {showPrintModal && (
+        <div className="fixed inset-0 z-50 bg-background flex flex-col print:absolute print:inset-0">
+          <div className="border-b p-4 flex items-center justify-between bg-card print:hidden shadow-sm">
+            <h2 className="text-lg font-bold flex items-center gap-2"><Printer className="w-5 h-5"/> Print Preview</h2>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input type="radio" name="cols" checked={printColumns === '1'} onChange={() => setPrintColumns('1')} className="accent-primary" />
+                1 Kolom (Full Page)
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input type="radio" name="cols" checked={printColumns === '2'} onChange={() => setPrintColumns('2')} className="accent-primary" />
+                2 Kolom Vertikal
+              </label>
+              <Separator orientation="vertical" className="h-6 mx-2" />
+              <Button onClick={() => window.print()}>Cetak Sekarang</Button>
+              <Button variant="ghost" onClick={() => setShowPrintModal(false)}>Tutup</Button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black">
+            <div className={`mx-auto bg-white min-h-[1122px] max-w-[794px] p-10 shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 ${printColumns === '2' ? 'columns-2 gap-8' : ''}`}>
+              <div className="text-center mb-8 col-span-full">
+                <h1 className="text-2xl font-bold uppercase">{examTitle || 'Ujian Tanpa Judul'}</h1>
+                <p className="text-sm mt-1 border-b pb-4">Waktu: {duration} Menit | Lembar Soal Ujian</p>
+              </div>
+              
+              {questions.map((q, idx) => (
+                <div key={q.id} className="mb-6 break-inside-avoid">
+                  <div className="font-semibold mb-2">{idx + 1}.</div>
+                  <QuestionRenderer question={q} disabled showDiscussion={false} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="flex-1 container mx-auto px-4 py-6 print:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-          <TabsList className="mb-6 w-full max-w-md mx-auto grid grid-cols-3">
+          <TabsList className="mb-6 w-full max-w-2xl mx-auto grid grid-cols-4">
             <TabsTrigger value="tests">Daftar Ujian</TabsTrigger>
             <TabsTrigger value="attempts">Hasil Peserta</TabsTrigger>
             <TabsTrigger value="editor">{editId ? 'Edit Ujian' : 'Editor Baru'}</TabsTrigger>
+            <TabsTrigger value="prompt">Prompt Generator</TabsTrigger>
           </TabsList>
 
           {/* TAB: TEKS (DAFTAR UJIAN) */}
@@ -479,6 +572,141 @@ export function AdminDashboard() {
                   )}
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+
+          {/* TAB: PROMPT GENERATOR */}
+          <TabsContent value="prompt" className="flex-1 space-y-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold tracking-tight">AI Prompt Generator</h2>
+                <p className="text-muted-foreground mt-2">Buat prompt spesifik untuk AI Generator sesuai standar format ExaPrep.</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card className="shadow-sm">
+                  <CardHeader className="border-b pb-4">
+                    <CardTitle className="text-lg">Karakteristik Soal</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-5 pt-6">
+                    <div className="space-y-2 relative">
+                      <Label className="flex items-center gap-2">
+                        Tipe Soal 
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-64 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Pilih tipe soal yang akan di-generate oleh AI. Pastikan AI mengetahui format yang diinginkan seperti (PILGAN) atau (ESSAY).
+                          </span>
+                        </span>
+                      </Label>
+                      <select 
+                        className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={promptType} onChange={(e) => setPromptType(e.target.value)}
+                      >
+                        <option value="Pilihan Ganda (PILGAN)">Pilihan Ganda (PILGAN)</option>
+                        <option value="Esai (ESSAY)">Esai (ESSAY)</option>
+                        <option value="Campuran Teks dan Gambar">Campuran (Pilihan Ganda & Esai)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2 relative">
+                      <Label className="flex items-center gap-2">
+                        Jumlah Soal
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Masukkan jumlah total soal. Sangat disarankan membatasi maksimal 15 soal per prompt agar respon AI tidak terpotong.
+                          </span>
+                        </span>
+                      </Label>
+                      <Input placeholder="Cth: 10" value={promptCount} onChange={(e) => setPromptCount(e.target.value)} />
+                    </div>
+
+                    <div className="space-y-2 relative">
+                      <Label className="flex items-center gap-2">
+                        Bahasa
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Bahasa pengantar soal dan pembahasan yang dihasilkan AI.
+                          </span>
+                        </span>
+                      </Label>
+                      <Input placeholder="Cth: Indonesia (Baku)" value={promptLang} onChange={(e) => setPromptLang(e.target.value)} />
+                    </div>
+
+                    <div className="space-y-2 relative">
+                      <Label className="flex items-center gap-2">
+                        Tingkat Soal / Level
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-56 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Level kesulitan, contoh: "SD Kelas 6", "Olimpiade SMP", "UTBK SMA". Semakin spesifik, analisis materinya semakin akurat.
+                          </span>
+                        </span>
+                      </Label>
+                      <Input placeholder="Cth: SD Kelas 6, Olimpiade Matematika" value={promptLevel} onChange={(e) => setPromptLevel(e.target.value)} />
+                    </div>
+
+                    <div className="space-y-2 relative">
+                      <Label className="flex items-center gap-2">
+                        Konteks Penting Topik
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute right-0 bottom-full mb-2 w-72 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Inti teknis soal (contoh: "Gunakan banyak diagram bangun datar, wajib ada grafik Recharts bar chart, fokus ke materi aljabar polinomial").
+                          </span>
+                        </span>
+                      </Label>
+                      <Textarea 
+                        placeholder="Cth: Semua soal wajib berisi Diagram Interaktif (JSXGraph), topik geometri lingkaran, dan ada irisan bangun datar." 
+                        value={promptContext} 
+                        onChange={(e) => setPromptContext(e.target.value)} 
+                        className="h-24 resize-none"
+                      />
+                    </div>
+
+                    <div className="space-y-2 relative">
+                      <Label className="flex items-center gap-2">
+                        Konteks Lainnya (Opsional)
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute right-0 bottom-full mb-2 w-72 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Misal instruksi tambahan seperti "Hindari soal jebakan", atau "Gunakan cerita dalam kehidupan sehari-hari (Word problem)".
+                          </span>
+                        </span>
+                      </Label>
+                      <Textarea 
+                        placeholder="Cth: Hindari soal yang terlalu trivial, beri penjelasan rumus step-by-step yang sangat panjang di bagian pembahasan." 
+                        value={promptOther} 
+                        onChange={(e) => setPromptOther(e.target.value)} 
+                        className="h-24 resize-none"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex flex-col h-full space-y-4">
+                  <Card className="shadow-sm flex-1 flex flex-col">
+                    <CardHeader className="border-b pb-4 bg-muted/30">
+                      <CardTitle className="text-lg flex justify-between items-center">
+                        Hasil Prompt AI
+                        <Button size="sm" onClick={handleCopyPrompt} className="gap-2 transition-colors" variant={copiedPrompt ? 'secondary' : 'default'}>
+                          {copiedPrompt ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                          {copiedPrompt ? 'Salin Berhasil!' : 'Salin Prompt'}
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 flex flex-1 relative min-h-[400px]">
+                      <Textarea
+                        readOnly
+                        value={generatedPrompt}
+                        className="absolute inset-0 h-full w-full font-mono text-sm resize-none border-0 focus-visible:ring-0 rounded-none p-5 text-muted-foreground bg-muted/10 leading-relaxed"
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
