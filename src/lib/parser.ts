@@ -128,15 +128,25 @@ function parseInlineContent(raw: string): ContentBlock[] {
         const chartType = type.toUpperCase() as ChartType;
         try {
           const parsed = JSON.parse(jsonStr);
+          let datasets = parsed.datasets;
+          
+          if (!datasets) {
+            // Find the best candidate for data if not in datasets format
+            const keys = Object.keys(parsed);
+            const arrayKey = keys.find(k => k !== 'labels' && Array.isArray(parsed[k])) || 'data';
+            datasets = [{ 
+              label: parsed.label || parsed.datasetLabel || (arrayKey !== 'data' ? arrayKey : undefined),
+              data: parsed[arrayKey] ?? parsed.data ?? [] 
+            }];
+          }
+
           blocks.push({
             type: 'chart',
             content: jsonStr,
             chartType,
             chartData: {
               labels: parsed.labels ?? [],
-              datasets: parsed.datasets
-                ? parsed.datasets
-                : [{ data: parsed.data ?? [] }],
+              datasets: datasets,
             },
           });
         } catch {

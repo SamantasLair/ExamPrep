@@ -20,11 +20,14 @@ export function ChartRenderer({ block }: ChartRendererProps) {
   const data = labels.map((label, i) => {
     const point: Record<string, string | number> = { name: label };
     datasets.forEach((ds, dsIdx) => {
-      point[ds.label || `series${dsIdx}`] = ds.data[i] ?? 0;
+      const key = ds.label || `Series ${dsIdx + 1}`;
+      point[key] = ds.data[i] ?? 0;
     });
     return point;
   });
-  const seriesKeys = datasets.map((ds, i) => ds.label || `series${i}`);
+  
+  const seriesKeys = datasets.map((ds, i) => ds.label || `Series ${i + 1}`);
+  const showLegend = datasets.length > 1 || (datasets[0]?.label && !['series0', 'data', 'Series 1'].includes(datasets[0].label));
 
   switch (block.chartType) {
     case 'BAR':
@@ -33,9 +36,9 @@ export function ChartRenderer({ block }: ChartRendererProps) {
           <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="name" fontSize={12} />
-            <YAxis fontSize={12} domain={[0, 'dataMax + 10']} />
+            <YAxis fontSize={10} width={40} />
             <Tooltip />
-            <Legend />
+            {showLegend && <Legend verticalAlign="top" height={36} />}
             {seriesKeys.map((key, i) => (
               <Bar key={key} dataKey={key} fill={COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} />
             ))}
@@ -48,9 +51,9 @@ export function ChartRenderer({ block }: ChartRendererProps) {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="name" fontSize={12} />
-            <YAxis fontSize={12} />
+            <YAxis fontSize={10} width={40} />
             <Tooltip />
-            <Legend />
+            {showLegend && <Legend verticalAlign="top" height={36} />}
             {seriesKeys.map((key, i) => (
               <Line key={key} type="monotone" dataKey={key} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 4 }} />
             ))}
@@ -67,7 +70,7 @@ export function ChartRenderer({ block }: ChartRendererProps) {
               ))}
             </Pie>
             <Tooltip />
-            <Legend />
+            {showLegend && <Legend />}
           </PieChart>
         </ResponsiveContainer>
       );
