@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { HelpCircle, Copy, Printer, CheckCircle2 } from 'lucide-react';
+import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { TestRow } from '@/lib/types';
 
@@ -401,46 +401,59 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 w-full">
-              <div className="flex items-center gap-4 border-r pr-6 border-muted-foreground/20">
-                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
-                  <input type="radio" name="cols" checked={printColumns === '1'} onChange={() => setPrintColumns('1')} className="h-4 w-4 accent-primary" />
-                  1 Kolom
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+              {/* Card: Layout */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+                  <Columns className="w-3 h-3 text-primary" /> LAYOUT KOLOM
                 </Label>
-                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
-                  <input type="radio" name="cols" checked={printColumns === '2'} onChange={() => setPrintColumns('2')} className="h-4 w-4 accent-primary" />
-                  2 Kolom
-                </Label>
-              </div>
-
-              <div className="flex items-center gap-3 border-r pr-6 border-muted-foreground/20">
-                <Label className="text-xs font-semibold whitespace-nowrap">Kertas</Label>
-                <select 
-                  className="h-8 text-sm border rounded px-2"
-                  value={printPaperSize}
-                  onChange={(e) => setPrintPaperSize(e.target.value as any)}
-                >
-                  <option value="A4">A4 (210×297)</option>
-                  <option value="F4">F4 / Folio (215.9×330.2)</option>
-                  <option value="Custom">Custom</option>
-                </select>
-                {printPaperSize === 'Custom' && (
-                  <div className="flex gap-2">
-                    <Input type="number" min={100} max={1000} value={customPaperWidth} onChange={(e) => setCustomPaperWidth(Number(e.target.value))} className="w-16 h-8 text-sm" title="Lebar (mm)" />
-                    <span className="text-muted-foreground text-xs leading-8">x</span>
-                    <Input type="number" min={100} max={1000} value={customPaperHeight} onChange={(e) => setCustomPaperHeight(Number(e.target.value))} className="w-16 h-8 text-sm" title="Tinggi (mm)" />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2 border-r pr-6 border-muted-foreground/20">
-                <Label className="text-xs font-bold uppercase text-muted-foreground mb-1">Jawaban</Label>
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-4">
                   <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
-                    <input type="checkbox" checked={showPrintDiscussion} onChange={(e) => setShowPrintDiscussion(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" />
-                    + Pembahasan
+                    <input type="radio" name="cols" checked={printColumns === '1'} onChange={() => setPrintColumns('1')} className="h-4 w-4 accent-primary" />
+                    1 Kolom
                   </Label>
-                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap" title="Soal kiri, Jawaban kanan">
+                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                    <input type="radio" name="cols" checked={printColumns === '2'} onChange={() => setPrintColumns('2')} className="h-4 w-4 accent-primary" />
+                    2 Kolom
+                  </Label>
+                </div>
+              </div>
+
+              {/* Card: Ukuran Kertas */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+                  <FileText className="w-3 h-3 text-primary" /> UKURAN KERTAS
+                </Label>
+                <div className="flex items-center gap-3">
+                  <select 
+                    className="h-8 text-sm border rounded px-2 bg-background flex-1"
+                    value={printPaperSize}
+                    onChange={(e) => setPrintPaperSize(e.target.value as any)}
+                  >
+                    <option value="A4">A4 (210×297)</option>
+                    <option value="F4">F4 / Folio (215.9×330.2)</option>
+                    <option value="Custom">Custom</option>
+                  </select>
+                  {printPaperSize === 'Custom' && (
+                    <div className="flex gap-1">
+                      <Input type="number" min={100} max={1000} value={customPaperWidth} onChange={(e) => setCustomPaperWidth(Number(e.target.value))} className="w-14 h-8 text-xs font-mono px-1" title="Lebar (mm)" />
+                      <Input type="number" min={100} max={1000} value={customPaperHeight} onChange={(e) => setCustomPaperHeight(Number(e.target.value))} className="w-14 h-8 text-xs font-mono px-1" title="Tinggi (mm)" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Card: Mode Jawaban */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+                  <HelpCircle className="w-3 h-3 text-primary" /> MODE JAWABAN
+                </Label>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <Label className="flex items-center gap-1.5 text-xs cursor-pointer whitespace-nowrap">
+                    <input type="checkbox" checked={showPrintDiscussion} onChange={(e) => setShowPrintDiscussion(e.target.checked)} className="h-4 w-4 accent-primary rounded" />
+                    Pembahasan
+                  </Label>
+                  <Label className="flex items-center gap-1.5 text-xs cursor-pointer whitespace-nowrap" title="Soal kiri, Jawaban kanan">
                     <input 
                       type="checkbox" 
                       checked={printSideBySide} 
@@ -453,54 +466,59 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                           setPrintAnswersAtEnd(false);
                         }
                       }} 
-                      className="h-4 w-4 accent-primary rounded border-input" 
+                      className="h-4 w-4 accent-primary rounded" 
                     />
                     Sampingan
                   </Label>
-                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                  <Label className="flex items-center gap-1.5 text-xs cursor-pointer whitespace-nowrap">
                     <input 
                       type="checkbox" 
                       checked={printAnswersAtEnd} 
                       onChange={(e) => {
                         const val = e.target.checked;
                         setPrintAnswersAtEnd(val);
-                        if (val) {
-                          setPrintSideBySide(false);
-                        }
+                        if (val) setPrintSideBySide(false);
                       }} 
-                      className="h-4 w-4 accent-primary rounded border-input" />
-                    Jawaban di Akhir
+                      className="h-4 w-4 accent-primary rounded" />
+                    Di Akhir
                   </Label>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 border-r pr-6 border-muted-foreground/20 min-w-[180px]">
-                <Label className="text-xs font-bold uppercase text-muted-foreground mb-1">Header</Label>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" checked={printShowHeader} onChange={(e) => setPrintShowHeader(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" id="print-header-check" />
-                  <Label htmlFor="print-header-check" className="text-sm cursor-pointer whitespace-nowrap">Aktifkan Kop</Label>
-                </div>
-                {printShowHeader && (
+              {/* Card: Judul Kop (Conditional & Bento-style) */}
+              {printShowHeader && (
+                <div className="col-span-1 md:col-span-2 lg:col-span-4 p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col md:flex-row items-start md:items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                    <Type className="w-3 h-3 text-primary" />
+                    <span className="text-[10px] font-bold uppercase text-primary font-mono">KOP JUDUL KUSTOM</span>
+                  </div>
                   <Input 
-                    placeholder="Judul Khusus (Opsional)" 
+                    placeholder="Contoh: PENILAIAN AKHIR SEMESTER - MATEMATIKA XII IPA" 
                     value={printCustomTitle} 
-                    onChange={(e) => setPrintCustomTitle(e.target.value)}
-                    className="h-8 text-[10px] w-full"
+                    onChange={(e) => setPrintCustomTitle(e.target.value)} 
+                    className="h-9 text-sm font-medium bg-white/50 focus:bg-white transition-all italic"
                   />
-                )}
-              </div>
+                </div>
+              )}
 
-              <div className="flex flex-col gap-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground mb-1">Visual</Label>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-[10px] font-semibold">Teks</Label>
-                    <Input type="number" min={10} max={24} value={printFontSize} onChange={(e) => setPrintFontSize(Number(e.target.value))} className="w-12 h-8 text-xs px-1" />
+              {/* Card: Visual */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+                  <Settings2 className="w-3 h-3 text-primary" /> VISUAL SKALA
+                </Label>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5" title="Font Size">
+                    <span className="text-[10px] font-bold">F</span>
+                    <Input type="number" min={8} max={24} value={printFontSize} onChange={(e) => setPrintFontSize(Number(e.target.value))} className="w-10 h-7 text-xs px-1 text-center" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-[10px] font-semibold">Gfx</Label>
-                    <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-14 h-8 text-xs px-1" />
+                  <div className="flex items-center gap-1.5" title="Graphic Scale">
+                    <span className="text-[10px] font-bold">G</span>
+                    <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-12 h-7 text-xs px-1 text-center" />
                   </div>
+                  <Label className="flex items-center gap-1.5 text-[10px] font-bold cursor-pointer ml-auto border-l pl-2 border-muted-foreground/30">
+                    <input type="checkbox" checked={printShowHeader} onChange={(e) => setPrintShowHeader(e.target.checked)} className="h-3.5 w-3.5 accent-primary" />
+                    Kop 
+                  </Label>
                 </div>
               </div>
             </div>
@@ -721,82 +739,89 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
             )}
             
             {showSettings && (
-              <Card className="shadow-sm">
-                <CardHeader className="py-3 border-b">
-                  <CardTitle className="text-sm font-semibold">Pengaturan Ujian</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="h-[1px] flex-1 bg-border" />
-                      <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Identitas & Waktu</span>
-                      <div className="h-[1px] flex-1 bg-border" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
+                {/* Card 1: Identitas Ujian */}
+                <Card className="shadow-none border border-border/60 bg-muted/20 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
+                  <CardHeader className="py-4 bg-muted/30 border-b border-border/40">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                      <FileText className="w-4 h-4 text-primary" /> Identitas & Materia
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-5 space-y-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="exam-title" className="text-xs font-semibold">Judul Ujian</Label>
+                      <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="bg-background/80" />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <Label htmlFor="exam-title" className="text-xs font-medium">Judul Ujian</Label>
-                        <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} />
+                        <Label htmlFor="duration" className="text-xs font-semibold">Durasi (m)</Label>
+                        <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="bg-background/80" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="duration" className="text-xs font-medium">Durasi (menit)</Label>
-                        <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="kkm" className="text-xs font-medium">KKM</Label>
-                        <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} />
+                        <Label htmlFor="kkm" className="text-xs font-semibold">KKM</Label>
+                        <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} className="bg-background/80" />
                       </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="h-[1px] flex-1 bg-border" />
-                      <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Penjadwalan</span>
-                      <div className="h-[1px] flex-1 bg-border" />
+                {/* Card 2: Akses & Penjadwalan */}
+                <Card className="shadow-none border border-border/60 bg-muted/20 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
+                  <CardHeader className="py-4 bg-muted/30 border-b border-border/40">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                      <Calendar className="w-4 h-4 text-primary" /> Akses & Jadwal
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-5 space-y-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="start-at" className="text-xs font-semibold">Jadwal Mulai</Label>
+                      <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="bg-background/80" />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="start-at" className="text-xs font-medium">Jadwal Mulai</Label>
-                        <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="end-at" className="text-xs font-medium">Jadwal Selesai</Label>
-                        <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} />
-                      </div>
-                      <div className="pt-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                          <span className="text-xs font-medium">Tes Hari Ini</span>
-                        </label>
-                      </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="end-at" className="text-xs font-semibold">Jadwal Selesai</Label>
+                      <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="bg-background/80" />
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="h-[1px] flex-1 bg-border" />
-                      <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Jawaban & Feedback</span>
-                      <div className="h-[1px] flex-1 bg-border" />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer p-2 rounded-md border bg-muted/20 hover:bg-muted/40 transition-colors">
-                        <input type="checkbox" checked={showAnswer} onChange={(e) => setShowAnswer(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
+                    <div className="pt-2">
+                       <label className="flex items-center gap-3 p-2 bg-background/50 rounded-lg border border-dashed border-border cursor-pointer hover:bg-background transition-colors">
+                        <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
                         <div className="flex flex-col">
-                          <span className="text-xs font-medium">Tampilkan Jawaban Benar saat Review</span>
-                          <span className="text-[10px] text-muted-foreground text-balance">Peserta dapat melihat kunci jawaban setelah ujian selesai.</span>
-                        </div>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer p-2 rounded-md border bg-muted/20 hover:bg-muted/40 transition-colors">
-                        <input type="checkbox" checked={immediateFeedback} onChange={(e) => setImmediateFeedback(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                        <div className="flex flex-col">
-                          <span className="text-xs font-medium">Tampilkan Benar/Salah Tiap Jawaban (Langsung)</span>
-                          <span className="text-[10px] text-muted-foreground text-balance">Feedback instan muncul sesaat setelah soal dijawab.</span>
+                          <span className="text-xs font-bold">Ujian Hari Ini</span>
+                          <span className="text-[10px] text-muted-foreground">Aktifkan otomatis untuk hari ini.</span>
                         </div>
                       </label>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Card 3: Jawaban & Feedback */}
+                <Card className="shadow-none border border-border/60 bg-primary/5 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
+                  <CardHeader className="py-4 bg-primary/10 border-b border-primary/20">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide text-primary">
+                      <CheckCircle2 className="w-4 h-4" /> Review & Koreksi
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-5 space-y-4">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border bg-background/80 hover:bg-background hover:shadow-sm transition-all">
+                      <input type="checkbox" checked={showAnswer} onChange={(e) => setShowAnswer(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">Lihat Kunci Jawaban</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Peserta melihat jawaban benar setelah selesai.</span>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border bg-background/80 hover:bg-background hover:shadow-sm transition-all">
+                      <input type="checkbox" checked={immediateFeedback} onChange={(e) => setImmediateFeedback(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">Feedback Instan</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Beritahu benar/salah setiap soal dijawab.</span>
+                      </div>
+                    </label>
+                    <div className="p-2 px-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start gap-2">
+                      <HelpCircle className="w-3.5 h-3.5 text-blue-500 mt-0.5" />
+                      <p className="text-[10px] text-blue-600/80 leading-relaxed italic">Pengaturan ini akan diterapkan pada semua peserta ujian ini.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px] xl:h-[700px]">

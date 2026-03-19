@@ -180,5 +180,16 @@ export function DiagramRenderer({ block }: DiagramRendererProps) {
   if (!block.diagramConfig) {
     return <p className="text-sm text-destructive">Konfigurasi diagram tidak ditemukan.</p>;
   }
-  return <div ref={containerRef} className="w-full aspect-[4/3] min-h-[260px]" />;
+
+  const cfg = block.diagramConfig;
+  const type = (cfg.type as string) ?? block.diagramType ?? 'functionPlot';
+  const aspectRatio = (cfg.aspectRatio as number) || (type === 'geometry' ? 1 : 4/3);
+  
+  return (
+    <div 
+      ref={containerRef} 
+      className="w-full min-h-[260px] mx-auto bg-white" 
+      style={{ aspectRatio: `${aspectRatio}` }} 
+    />
+  );
 }
