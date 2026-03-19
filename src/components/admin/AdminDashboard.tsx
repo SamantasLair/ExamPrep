@@ -107,6 +107,8 @@ export function AdminDashboard() {
   const [printCustomTitle, setPrintCustomTitle] = useState('');
   const [printSideBySide, setPrintSideBySide] = useState(false);
   const [printAnswersAtEnd, setPrintAnswersAtEnd] = useState(false);
+  const [printAnswerStyle, setPrintAnswerStyle] = useState<'solid' | 'outlined' | 'minimalist' | 'boxed'>('solid');
+  const [printCompactLayout, setPrintCompactLayout] = useState(false);
 
   // Prompt Generator State
   const [promptType, setPromptType] = useState('Pilihan Ganda (PILGAN)');
@@ -482,6 +484,20 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                       className="h-4 w-4 accent-primary rounded" />
                     Di Akhir
                   </Label>
+                  {printAnswersAtEnd && (
+                    <div className="flex items-center gap-2 mt-1 w-full border-t border-border/40 pt-2">
+                       <select 
+                        className="h-6 text-[10px] border rounded px-1 flex-1 bg-background"
+                        value={printAnswerStyle}
+                        onChange={(e) => setPrintAnswerStyle(e.target.value as any)}
+                       >
+                        <option value="solid">Sirkel Solid</option>
+                        <option value="outlined">Sirkel Outline</option>
+                        <option value="minimalist">Minimalist</option>
+                        <option value="boxed">Kotak/Boxed</option>
+                       </select>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -502,6 +518,10 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                   <Label className="flex items-center gap-1.5 text-[9px] font-bold cursor-pointer ml-auto border-l pl-2 border-muted-foreground/30">
                     <input type="checkbox" checked={printShowHeader} onChange={(e) => setPrintShowHeader(e.target.checked)} className="h-3.5 w-3.5 accent-primary" />
                     Kop 
+                  </Label>
+                  <Label className="flex items-center gap-1.5 text-[9px] font-bold cursor-pointer border-l pl-2 border-muted-foreground/30 whitespace-nowrap" title="Hemat Kertas?">
+                    <input type="checkbox" checked={printCompactLayout} onChange={(e) => setPrintCompactLayout(e.target.checked)} className="h-3.5 w-3.5 accent-primary rounded-sm" />
+                    Padat
                   </Label>
                 </div>
               </div>
@@ -593,6 +613,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                             disabled 
                             showDiscussion={showPrintDiscussion && !printSideBySide} 
                             printMode={true} 
+                            compactLayout={printCompactLayout}
                           />
                         </div>
                       </div>
@@ -603,6 +624,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                             disabled 
                             showOnlyDiscussion={true} 
                             printMode={true} 
+                            compactLayout={printCompactLayout}
                           />
                         </div>
                       )}
@@ -617,7 +639,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                     <div key={`q-only-${q.id}`} className="mb-4 break-inside-avoid relative">
                       <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
                       <div className="pl-6">
-                        <QuestionRenderer question={q} disabled showDiscussion={false} printMode={true} />
+                        <QuestionRenderer question={q} disabled showDiscussion={false} printMode={true} compactLayout={printCompactLayout} />
                       </div>
                     </div>
                   ))}
@@ -630,10 +652,21 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                     <div className="space-y-6">
                       {questions.map((q, idx) => (
                         <div key={`ans-only-${q.id}`} className="break-inside-avoid">
-                          <div className="flex items-start gap-4">
-                            <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-full">{idx + 1}</span>
-                            <div className="flex-1">
-                              <QuestionRenderer question={q} disabled showOnlyDiscussion={true} printMode={true} />
+                              <div className="flex items-start gap-4">
+                                {printAnswerStyle === 'solid' && (
+                                  <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-full shrink-0">{idx + 1}</span>
+                                )}
+                                {printAnswerStyle === 'outlined' && (
+                                  <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center border-2 border-black text-black rounded-full shrink-0">{idx + 1}</span>
+                                )}
+                                {printAnswerStyle === 'boxed' && (
+                                  <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-md shrink-0">{idx + 1}</span>
+                                )}
+                                {printAnswerStyle === 'minimalist' && (
+                                  <span className="font-bold text-lg min-w-[1.8rem] flex items-center justify-center text-black shrink-0">{idx + 1}.</span>
+                                )}
+                                <div className="flex-1">
+                              <QuestionRenderer question={q} disabled showOnlyDiscussion={true} printMode={true} compactLayout={printCompactLayout} />
                             </div>
                           </div>
                         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import type { ContentBlock } from '@/lib/types';
 import { MathRenderer } from './MathRenderer';
 import { ChartRenderer } from './ChartRenderer';
@@ -9,9 +10,10 @@ import { Button } from '@/components/ui/button';
 
 interface ContentBlockRendererProps {
   block: ContentBlock;
+  compactLayout?: boolean;
 }
 
-export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
+export function ContentBlockRenderer({ block, compactLayout = false }: ContentBlockRendererProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -30,7 +32,10 @@ export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
     case 'chart':
       return (
         <div 
-          className="my-4 p-4 rounded-xl border bg-card print:border-none print:p-0 print:my-2"
+          className={cn(
+            "my-4 p-4 rounded-xl border bg-card print:border-none print:p-0 print:my-2 overflow-hidden",
+            compactLayout && "float-right ml-4 mb-2 w-[250px] clear-right"
+          )}
           style={{ transform: 'scale(var(--print-graphic-scale, 1))', transformOrigin: 'top left' } as React.CSSProperties}
         >
           <ChartRenderer block={block} />
@@ -39,7 +44,10 @@ export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
     case 'diagram':
       return (
         <div 
-          className="my-4 p-4 rounded-xl border bg-card print:border-none print:p-0 print:my-2"
+          className={cn(
+            "my-4 p-4 rounded-xl border bg-card print:border-none print:p-0 print:my-2 overflow-hidden",
+            compactLayout && "float-right ml-4 mb-2 w-[250px] clear-right"
+          )}
           style={{ transform: 'scale(var(--print-graphic-scale, 1))', transformOrigin: 'top left' } as React.CSSProperties}
         >
           <DiagramRenderer block={block} />
@@ -50,7 +58,10 @@ export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
         <img
           src={block.content}
           alt="exam-image"
-          className="my-3 max-w-full rounded-lg border shadow-sm"
+          className={cn(
+            "my-3 max-w-full rounded-lg border shadow-sm",
+            compactLayout && "float-right ml-4 mb-2 max-w-[200px] clear-right"
+          )}
           loading="lazy"
         />
       );
@@ -80,13 +91,14 @@ export function ContentBlockRenderer({ block }: ContentBlockRendererProps) {
 
 interface ContentBlockListProps {
   blocks: ContentBlock[];
+  compactLayout?: boolean;
 }
 
-export function ContentBlockList({ blocks }: ContentBlockListProps) {
+export function ContentBlockList({ blocks, compactLayout = false }: ContentBlockListProps) {
   return (
-    <div className="leading-relaxed">
+    <div className={cn("leading-relaxed", compactLayout && "flow-root")}>
       {blocks.map((block, i) => (
-        <ContentBlockRenderer key={i} block={block} />
+        <ContentBlockRenderer key={i} block={block} compactLayout={compactLayout} />
       ))}
     </div>
   );
