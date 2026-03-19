@@ -105,6 +105,8 @@ export function AdminDashboard() {
   const [customPaperHeight, setCustomPaperHeight] = useState(297); // in mm
   const [printShowHeader, setPrintShowHeader] = useState(true);
   const [printCustomTitle, setPrintCustomTitle] = useState('');
+  const [printSideBySide, setPrintSideBySide] = useState(false);
+  const [printAnswersAtEnd, setPrintAnswersAtEnd] = useState(false);
 
   // Prompt Generator State
   const [promptType, setPromptType] = useState('Pilihan Ganda (PILGAN)');
@@ -419,36 +421,75 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                 )}
               </div>
 
-              <div className="flex items-center gap-4 border-r pr-6 border-muted-foreground/20">
-                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
-                  <input type="checkbox" checked={showPrintDiscussion} onChange={(e) => setShowPrintDiscussion(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" />
-                  + Pembahasan
-                </Label>
+              <div className="flex flex-col gap-2 border-r pr-6 border-muted-foreground/20">
+                <Label className="text-xs font-bold uppercase text-muted-foreground mb-1">Jawaban</Label>
+                <div className="flex flex-wrap items-center gap-4">
+                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                    <input type="checkbox" checked={showPrintDiscussion} onChange={(e) => setShowPrintDiscussion(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" />
+                    + Pembahasan
+                  </Label>
+                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap" title="Soal kiri, Jawaban kanan">
+                    <input 
+                      type="checkbox" 
+                      checked={printSideBySide} 
+                      onChange={(e) => {
+                        const val = e.target.checked;
+                        setPrintSideBySide(val);
+                        if (val) {
+                          setShowPrintDiscussion(true);
+                          setPrintColumns('2');
+                          setPrintAnswersAtEnd(false);
+                        }
+                      }} 
+                      className="h-4 w-4 accent-primary rounded border-input" 
+                    />
+                    Sampingan
+                  </Label>
+                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                    <input 
+                      type="checkbox" 
+                      checked={printAnswersAtEnd} 
+                      onChange={(e) => {
+                        const val = e.target.checked;
+                        setPrintAnswersAtEnd(val);
+                        if (val) {
+                          setPrintSideBySide(false);
+                        }
+                      }} 
+                      className="h-4 w-4 accent-primary rounded border-input" />
+                    Jawaban di Akhir
+                  </Label>
+                </div>
               </div>
-              
-              <div className="flex flex-col gap-2 border-r pr-6 border-muted-foreground/20 min-w-[200px]">
-                <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
-                  <input type="checkbox" checked={printShowHeader} onChange={(e) => setPrintShowHeader(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" />
-                  Kop / Judul Ujian
-                </Label>
+
+              <div className="flex flex-col gap-2 border-r pr-6 border-muted-foreground/20 min-w-[180px]">
+                <Label className="text-xs font-bold uppercase text-muted-foreground mb-1">Header</Label>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={printShowHeader} onChange={(e) => setPrintShowHeader(e.target.checked)} className="h-4 w-4 accent-primary rounded border-input" id="print-header-check" />
+                  <Label htmlFor="print-header-check" className="text-sm cursor-pointer whitespace-nowrap">Aktifkan Kop</Label>
+                </div>
                 {printShowHeader && (
                   <Input 
                     placeholder="Judul Khusus (Opsional)" 
                     value={printCustomTitle} 
                     onChange={(e) => setPrintCustomTitle(e.target.value)}
-                    className="h-8 text-xs w-full"
+                    className="h-8 text-[10px] w-full"
                   />
                 )}
               </div>
 
-              <div className="flex items-center gap-3 border-r pr-6 border-muted-foreground/20">
-                <Label className="text-xs font-semibold whitespace-nowrap">Teks (px)</Label>
-                <Input type="number" min={10} max={24} value={printFontSize} onChange={(e) => setPrintFontSize(Number(e.target.value))} className="w-16 h-8 text-sm" />
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Label className="text-xs font-semibold whitespace-nowrap">Diagram (%)</Label>
-                <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-20 h-8 text-sm" />
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground mb-1">Visual</Label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-[10px] font-semibold">Teks</Label>
+                    <Input type="number" min={10} max={24} value={printFontSize} onChange={(e) => setPrintFontSize(Number(e.target.value))} className="w-12 h-8 text-xs px-1" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-[10px] font-semibold">Gfx</Label>
+                    <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-14 h-8 text-xs px-1" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -505,18 +546,72 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                 </div>
               )}
               
-              {questions.map((q, idx) => (
-                <div key={q.id}>
-                  {/* Rough page break indicator every 5 questions? No, that's bad. 
-                      Let's just provide the container fix first. */}
-                  <div className="mb-4 break-inside-avoid relative">
-                    <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
-                    <div className="pl-6">
-                      <QuestionRenderer question={q} disabled showDiscussion={showPrintDiscussion} printMode={true} />
+              {/* MAIN CONTENT AREA */}
+              {!printAnswersAtEnd ? (
+                /* NORMAL OR SIDE-BY-SIDE MODE */
+                questions.map((q, idx) => (
+                  <div key={q.id}>
+                    <div className={cn(
+                      "mb-4 break-inside-avoid relative",
+                      printSideBySide ? "grid grid-cols-2 gap-4" : ""
+                    )}>
+                      <div className="relative">
+                        <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                        <div className="pl-6">
+                          <QuestionRenderer 
+                            question={q} 
+                            disabled 
+                            showDiscussion={showPrintDiscussion && !printSideBySide} 
+                            printMode={true} 
+                          />
+                        </div>
+                      </div>
+                      {printSideBySide && (
+                        <div className="pl-6 border-l border-dashed border-gray-300">
+                          <QuestionRenderer 
+                            question={q} 
+                            disabled 
+                            showOnlyDiscussion={true} 
+                            printMode={true} 
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                /* ANSWERS AT THE END MODE */
+                <>
+                  {/* Part 1: All Questions */}
+                  {questions.map((q, idx) => (
+                    <div key={`q-only-${q.id}`} className="mb-4 break-inside-avoid relative">
+                      <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                      <div className="pl-6">
+                        <QuestionRenderer question={q} disabled showDiscussion={false} printMode={true} />
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Part 2: Page Break & Answers Title */}
+                  <div className="col-span-full pt-10 pb-6 mt-10 border-t-4 border-black break-before-page">
+                    <h2 className="text-2xl font-bold uppercase text-center border-b-2 border-black pb-2 mb-8">KUNCI JAWABAN & PEMBAHASAN</h2>
+                    
+                    {/* Render answer list in a simpler format if possible, or use the loop again */}
+                    <div className="space-y-6">
+                      {questions.map((q, idx) => (
+                        <div key={`ans-only-${q.id}`} className="break-inside-avoid">
+                          <div className="flex items-start gap-4">
+                            <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-full">{idx + 1}</span>
+                            <div className="flex-1">
+                              <QuestionRenderer question={q} disabled showOnlyDiscussion={true} printMode={true} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
               </div>
             </div>
           </div>
@@ -619,42 +714,72 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                   <CardTitle className="text-sm font-semibold">Pengaturan Ujian</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="exam-title" className="text-xs font-medium">Judul Ujian</Label>
-                      <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} />
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="h-[1px] flex-1 bg-border" />
+                      <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Identitas & Waktu</span>
+                      <div className="h-[1px] flex-1 bg-border" />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="duration" className="text-xs font-medium">Durasi (menit)</Label>
-                      <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="kkm" className="text-xs font-medium">KKM</Label>
-                      <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="exam-title" className="text-xs font-medium">Judul Ujian</Label>
+                        <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="duration" className="text-xs font-medium">Durasi (menit)</Label>
+                        <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="kkm" className="text-xs font-medium">KKM</Label>
+                        <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} />
+                      </div>
                     </div>
                   </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="start-at" className="text-xs font-medium">Jadwal Mulai</Label>
-                      <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} />
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="h-[1px] flex-1 bg-border" />
+                      <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Penjadwalan</span>
+                      <div className="h-[1px] flex-1 bg-border" />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="end-at" className="text-xs font-medium">Jadwal Selesai</Label>
-                      <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="start-at" className="text-xs font-medium">Jadwal Mulai</Label>
+                        <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="end-at" className="text-xs font-medium">Jadwal Selesai</Label>
+                        <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} />
+                      </div>
+                      <div className="pt-6">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
+                          <span className="text-xs font-medium">Tes Hari Ini</span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="space-y-3 pt-1">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                        <span className="text-xs font-medium">Tes Hari Ini</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="h-[1px] flex-1 bg-border" />
+                      <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Jawaban & Feedback</span>
+                      <div className="h-[1px] flex-1 bg-border" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer p-2 rounded-md border bg-muted/20 hover:bg-muted/40 transition-colors">
                         <input type="checkbox" checked={showAnswer} onChange={(e) => setShowAnswer(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                        <span className="text-xs font-medium">Tampilkan Jawaban Benar saat Review</span>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-medium">Tampilkan Jawaban Benar saat Review</span>
+                          <span className="text-[10px] text-muted-foreground text-balance">Peserta dapat melihat kunci jawaban setelah ujian selesai.</span>
+                        </div>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer p-2 rounded-md border bg-muted/20 hover:bg-muted/40 transition-colors">
                         <input type="checkbox" checked={immediateFeedback} onChange={(e) => setImmediateFeedback(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                        <span className="text-xs font-medium">Tampilkan Benar/Salah Tiap Jawaban (Langsung)</span>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-medium">Tampilkan Benar/Salah Tiap Jawaban (Langsung)</span>
+                          <span className="text-[10px] text-muted-foreground text-balance">Feedback instan muncul sesaat setelah soal dijawab.</span>
+                        </div>
                       </label>
                     </div>
                   </div>

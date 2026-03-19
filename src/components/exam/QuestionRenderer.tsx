@@ -16,6 +16,7 @@ interface QuestionRendererProps {
   answer?: string;
   onAnswer?: (questionId: number, answer: string) => void;
   showDiscussion?: boolean;
+  showOnlyDiscussion?: boolean;
   showCorrectAnswer?: boolean;
   feedbackMode?: FeedbackMode;
   disabled?: boolean;
@@ -27,6 +28,7 @@ export function QuestionRenderer({
   answer,
   onAnswer,
   showDiscussion = false,
+  showOnlyDiscussion = false,
   showCorrectAnswer = false,
   feedbackMode = 'graded',
   disabled = false,
@@ -36,6 +38,17 @@ export function QuestionRenderer({
   const isNeutral = showCorrectAnswer && feedbackMode === 'neutral';
   const isCorrect = isGraded && answer === question.correctAnswer;
   const isWrong = isGraded && answer !== undefined && answer !== question.correctAnswer;
+
+  if (showOnlyDiscussion) {
+    return (
+      <div className={cn("p-4 rounded-lg", printMode ? "border-l-4 border-l-black pl-4 py-2 mt-2" : "bg-muted/40 border border-border")}>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Jawaban Q{question.id}</p>
+        <div className={cn(printMode ? "text-[1em]" : "text-sm")}>
+          <ContentBlockList blocks={question.discussion || []} />
+        </div>
+      </div>
+    );
+  }
 
   const innerContent = (
     <div className={cn("space-y-4", printMode ? "" : "pt-5")}>
@@ -138,7 +151,7 @@ export function QuestionRenderer({
         <div className={cn("mt-4 p-4 rounded-lg", printMode ? "border-l-4 border-l-black pl-4 py-2 mt-2" : "bg-muted/40 border border-border")}>
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Jawaban & Pembahasan</p>
           <div className={cn(printMode ? "text-[1em]" : "text-sm")}>
-            <ContentBlockList blocks={question.discussion} />
+            <ContentBlockList blocks={question.discussion || []} />
           </div>
         </div>
       )}
