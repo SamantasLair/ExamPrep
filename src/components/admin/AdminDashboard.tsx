@@ -401,32 +401,32 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-              {/* Card: Layout */}
-              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+              {/* Card 1: Layout */}
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/50 flex flex-col gap-2.5">
+                <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 font-mono">
                   <Columns className="w-3 h-3 text-primary" /> LAYOUT KOLOM
                 </Label>
-                <div className="flex items-center gap-4">
-                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                <div className="flex items-center gap-3">
+                  <Label className="flex items-center gap-2 text-xs cursor-pointer whitespace-nowrap">
                     <input type="radio" name="cols" checked={printColumns === '1'} onChange={() => setPrintColumns('1')} className="h-4 w-4 accent-primary" />
                     1 Kolom
                   </Label>
-                  <Label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                  <Label className="flex items-center gap-2 text-xs cursor-pointer whitespace-nowrap">
                     <input type="radio" name="cols" checked={printColumns === '2'} onChange={() => setPrintColumns('2')} className="h-4 w-4 accent-primary" />
                     2 Kolom
                   </Label>
                 </div>
               </div>
 
-              {/* Card: Ukuran Kertas */}
-              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+              {/* Card 2: Kertas */}
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/50 flex flex-col gap-2.5">
+                <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 font-mono">
                   <FileText className="w-3 h-3 text-primary" /> UKURAN KERTAS
                 </Label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <select 
-                    className="h-8 text-sm border rounded px-2 bg-background flex-1"
+                    className="h-7 text-xs border rounded px-1.5 bg-background flex-1"
                     value={printPaperSize}
                     onChange={(e) => setPrintPaperSize(e.target.value as any)}
                   >
@@ -436,19 +436,19 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                   </select>
                   {printPaperSize === 'Custom' && (
                     <div className="flex gap-1">
-                      <Input type="number" min={100} max={1000} value={customPaperWidth} onChange={(e) => setCustomPaperWidth(Number(e.target.value))} className="w-14 h-8 text-xs font-mono px-1" title="Lebar (mm)" />
-                      <Input type="number" min={100} max={1000} value={customPaperHeight} onChange={(e) => setCustomPaperHeight(Number(e.target.value))} className="w-14 h-8 text-xs font-mono px-1" title="Tinggi (mm)" />
+                      <Input type="number" min={100} max={1000} value={customPaperWidth} onChange={(e) => setCustomPaperWidth(Number(e.target.value))} className="w-10 h-7 text-[10px] px-1" />
+                      <Input type="number" min={100} max={1000} value={customPaperHeight} onChange={(e) => setCustomPaperHeight(Number(e.target.value))} className="w-10 h-7 text-[10px] px-1" />
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Card: Mode Jawaban */}
-              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+              {/* Card 3: Mode Jawaban */}
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/50 flex flex-col gap-2.5">
+                <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 font-mono">
                   <HelpCircle className="w-3 h-3 text-primary" /> MODE JAWABAN
                 </Label>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <Label className="flex items-center gap-1.5 text-xs cursor-pointer whitespace-nowrap">
                     <input type="checkbox" checked={showPrintDiscussion} onChange={(e) => setShowPrintDiscussion(e.target.checked)} className="h-4 w-4 accent-primary rounded" />
                     Pembahasan
@@ -485,42 +485,42 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                 </div>
               </div>
 
-              {/* Card: Judul Kop (Conditional & Bento-style) */}
-              {printShowHeader && (
-                <div className="col-span-1 md:col-span-2 lg:col-span-4 p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col md:flex-row items-start md:items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
-                    <Type className="w-3 h-3 text-primary" />
-                    <span className="text-[10px] font-bold uppercase text-primary font-mono">KOP JUDUL KUSTOM</span>
-                  </div>
-                  <Input 
-                    placeholder="Contoh: PENILAIAN AKHIR SEMESTER - MATEMATIKA XII IPA" 
-                    value={printCustomTitle} 
-                    onChange={(e) => setPrintCustomTitle(e.target.value)} 
-                    className="h-9 text-sm font-medium bg-white/50 focus:bg-white transition-all italic"
-                  />
-                </div>
-              )}
-
-              {/* Card: Visual */}
-              <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex flex-col gap-3">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 font-mono">
+              {/* Card 4: Visual & Header Toggle */}
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/50 flex flex-col gap-2.5">
+                <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 font-mono">
                   <Settings2 className="w-3 h-3 text-primary" /> VISUAL SKALA
                 </Label>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5" title="Font Size">
-                    <span className="text-[10px] font-bold">F</span>
-                    <Input type="number" min={8} max={24} value={printFontSize} onChange={(e) => setPrintFontSize(Number(e.target.value))} className="w-10 h-7 text-xs px-1 text-center" />
+                    <span className="text-[9px] font-bold">F</span>
+                    <Input type="number" min={8} max={24} value={printFontSize} onChange={(e) => setPrintFontSize(Number(e.target.value))} className="w-9 h-6 text-[10px] px-1 text-center" />
                   </div>
                   <div className="flex items-center gap-1.5" title="Graphic Scale">
-                    <span className="text-[10px] font-bold">G</span>
-                    <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-12 h-7 text-xs px-1 text-center" />
+                    <span className="text-[9px] font-bold">G</span>
+                    <Input type="number" min={30} max={200} step={10} value={printGraphicScale} onChange={(e) => setPrintGraphicScale(Number(e.target.value))} className="w-11 h-6 text-[10px] px-1 text-center" />
                   </div>
-                  <Label className="flex items-center gap-1.5 text-[10px] font-bold cursor-pointer ml-auto border-l pl-2 border-muted-foreground/30">
+                  <Label className="flex items-center gap-1.5 text-[9px] font-bold cursor-pointer ml-auto border-l pl-2 border-muted-foreground/30">
                     <input type="checkbox" checked={printShowHeader} onChange={(e) => setPrintShowHeader(e.target.checked)} className="h-3.5 w-3.5 accent-primary" />
                     Kop 
                   </Label>
                 </div>
               </div>
+
+              {/* Full Width Card: Judul Kop (Bottom position for balance) */}
+              {printShowHeader && (
+                <div className="col-span-1 md:col-span-2 lg:col-span-4 p-3 rounded-xl bg-primary/5 border border-primary/20 flex flex-col md:flex-row items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center gap-2 px-2 py-0.5 bg-primary/10 rounded-full shrink-0">
+                    <Type className="w-3 h-3 text-primary" />
+                    <span className="text-[9px] font-bold uppercase text-primary font-mono tracking-tighter">KOP JUDUL KUSTOM</span>
+                  </div>
+                  <Input 
+                    placeholder="Contoh: PENILAIAN AKHIR SEMESTER - MATEMATIKA XII IPA" 
+                    value={printCustomTitle} 
+                    onChange={(e) => setPrintCustomTitle(e.target.value)} 
+                    className="h-8 text-xs font-medium bg-white/50 focus:bg-white transition-all italic border-primary/20"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -647,7 +647,6 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
           </div>
         </div>
       )}
-
       <main className="flex-1 container mx-auto px-4 py-6 print:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
           <TabsList className="mb-6 w-full max-w-2xl mx-auto grid grid-cols-4">
