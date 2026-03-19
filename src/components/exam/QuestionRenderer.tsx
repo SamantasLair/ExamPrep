@@ -22,6 +22,7 @@ interface QuestionRendererProps {
   disabled?: boolean;
   printMode?: boolean; // Nasty UI elements stripped out
   compactLayout?: boolean;
+  answerStyle?: 'solid' | 'outlined' | 'minimalist' | 'boxed' | 'bracket';
 }
 
 export function QuestionRenderer({
@@ -35,6 +36,7 @@ export function QuestionRenderer({
   disabled = false,
   printMode = false,
   compactLayout = false,
+  answerStyle = 'solid',
 }: QuestionRendererProps) {
   const isGraded = showCorrectAnswer && feedbackMode === 'graded';
   const isNeutral = showCorrectAnswer && feedbackMode === 'neutral';
@@ -43,8 +45,18 @@ export function QuestionRenderer({
 
   if (showOnlyDiscussion) {
     return (
-      <div className={cn("p-4 rounded-lg", printMode ? "border-l-4 border-l-black pl-4 py-2 mt-2" : "bg-muted/40 border border-border")}>
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Jawaban Q{question.id}</p>
+      <div className={cn(
+        "p-4 rounded-lg relative overflow-visible", 
+        printMode ? "py-2 mt-2" : "bg-muted/40 border border-border"
+      )}>
+        {printMode && answerStyle === 'bracket' ? (
+          <div className="absolute left-[-10px] top-0 bottom-0 w-[20px] pointer-events-none overflow-hidden">
+             <span className="text-8xl font-light text-black opacity-40 leading-[0.5] select-none">(</span>
+          </div>
+        ) : (
+          printMode && <div className="absolute left-0 top-0 bottom-0 w-1 bg-black" />
+        )}
+        <p className={cn("text-xs uppercase tracking-wider text-muted-foreground mb-2", !printMode && "font-bold")}>Jawaban Q{question.id}</p>
         <div className={cn(printMode ? "text-[1em]" : "text-sm")}>
           <ContentBlockList blocks={question.discussion || []} compactLayout={compactLayout} />
         </div>
@@ -123,7 +135,7 @@ export function QuestionRenderer({
             <div className="space-y-1.5 pl-4">
               {question.options.map((opt) => (
                 <div key={opt.key} className="flex items-start gap-2">
-                  <span className="font-bold">{opt.key}.</span>
+                  <span className="font-medium text-[0.95em]">{opt.key}.</span>
                   <div className="flex-1">
                     <ContentBlockList blocks={opt.body} compactLayout={compactLayout} />
                   </div>
@@ -150,8 +162,18 @@ export function QuestionRenderer({
 
       {/* Discussion */}
       {showDiscussion && question.discussion && question.discussion.length > 0 && (
-        <div className={cn("mt-4 p-4 rounded-lg", printMode ? "border-l-4 border-l-black pl-4 py-2 mt-2" : "bg-muted/40 border border-border")}>
-          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Jawaban & Pembahasan</p>
+        <div className={cn(
+          "mt-4 p-4 rounded-lg relative overflow-visible", 
+          printMode ? "py-2 mt-2" : "bg-muted/40 border border-border"
+        )}>
+          {printMode && answerStyle === 'bracket' ? (
+            <div className="absolute left-[-10px] top-0 bottom-0 w-[20px] pointer-events-none overflow-hidden">
+               <span className="text-8xl font-light text-black opacity-40 leading-[0.5] select-none">(</span>
+            </div>
+          ) : (
+            printMode && <div className="absolute left-0 top-0 bottom-0 w-1 bg-black" />
+          )}
+          <p className={cn("text-xs uppercase tracking-wider text-muted-foreground mb-2", !printMode && "font-bold")}>Jawaban & Pembahasan</p>
           <div className={cn(printMode ? "text-[1em]" : "text-sm")}>
             <ContentBlockList blocks={question.discussion || []} compactLayout={compactLayout} />
           </div>

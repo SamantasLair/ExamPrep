@@ -107,7 +107,7 @@ export function AdminDashboard() {
   const [printCustomTitle, setPrintCustomTitle] = useState('');
   const [printSideBySide, setPrintSideBySide] = useState(false);
   const [printAnswersAtEnd, setPrintAnswersAtEnd] = useState(false);
-  const [printAnswerStyle, setPrintAnswerStyle] = useState<'solid' | 'outlined' | 'minimalist' | 'boxed'>('solid');
+  const [printAnswerStyle, setPrintAnswerStyle] = useState<'solid' | 'outlined' | 'minimalist' | 'boxed' | 'bracket'>('solid');
   const [printCompactLayout, setPrintCompactLayout] = useState(false);
 
   // Prompt Generator State
@@ -495,6 +495,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                         <option value="outlined">Sirkel Outline</option>
                         <option value="minimalist">Minimalist</option>
                         <option value="boxed">Kotak/Boxed</option>
+                        <option value="bracket">Kurung (Bracket)</option>
                        </select>
                     </div>
                   )}
@@ -559,7 +560,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                 fontSize: `${printFontSize}px`,
                 maxWidth: `${printDocumentStyle.w}mm`,
                 padding: '15mm', 
-                minHeight: `${printDocumentStyle.h}mm`,
+                minHeight: typeof window !== 'undefined' && window.matchMedia('print').matches ? 'auto' : `${printDocumentStyle.h}mm`,
                 '--print-graphic-scale': printGraphicScale / 100 
               } as React.CSSProperties}
             >
@@ -606,7 +607,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                       printSideBySide ? "grid grid-cols-2 gap-4" : ""
                     )}>
                       <div className="relative">
-                        <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                        <div className="absolute left-0 text-[1.1em]" style={{ width: '1.5em' }}>{idx + 1}.</div>
                         <div className="pl-6">
                           <QuestionRenderer 
                             question={q} 
@@ -614,6 +615,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                             showDiscussion={showPrintDiscussion && !printSideBySide} 
                             printMode={true} 
                             compactLayout={printCompactLayout}
+                            answerStyle={printAnswerStyle}
                           />
                         </div>
                       </div>
@@ -625,6 +627,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                             showOnlyDiscussion={true} 
                             printMode={true} 
                             compactLayout={printCompactLayout}
+                            answerStyle={printAnswerStyle}
                           />
                         </div>
                       )}
@@ -637,9 +640,9 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                   {/* Part 1: All Questions */}
                   {questions.map((q, idx) => (
                     <div key={`q-only-${q.id}`} className="mb-4 break-inside-avoid relative">
-                      <div className="absolute left-0 font-bold" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                      <div className="absolute left-0 text-[1.1em]" style={{ width: '1.5em' }}>{idx + 1}.</div>
                       <div className="pl-6">
-                        <QuestionRenderer question={q} disabled showDiscussion={false} printMode={true} compactLayout={printCompactLayout} />
+                        <QuestionRenderer question={q} disabled showDiscussion={false} printMode={true} compactLayout={printCompactLayout} answerStyle={printAnswerStyle} />
                       </div>
                     </div>
                   ))}
@@ -654,20 +657,26 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                         <div key={`ans-only-${q.id}`} className="break-inside-avoid">
                               <div className="flex items-start gap-4">
                                 {printAnswerStyle === 'solid' && (
-                                  <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-full shrink-0">{idx + 1}</span>
+                                  <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-full shrink-0">{idx + 1}</span>
                                 )}
                                 {printAnswerStyle === 'outlined' && (
-                                  <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center border-2 border-black text-black rounded-full shrink-0">{idx + 1}</span>
+                                  <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center border-2 border-black text-black rounded-full shrink-0">{idx + 1}</span>
                                 )}
                                 {printAnswerStyle === 'boxed' && (
-                                  <span className="font-bold text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-md shrink-0">{idx + 1}</span>
+                                  <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-md shrink-0">{idx + 1}</span>
                                 )}
                                 {printAnswerStyle === 'minimalist' && (
-                                  <span className="font-bold text-lg min-w-[1.8rem] flex items-center justify-center text-black shrink-0">{idx + 1}.</span>
+                                  <span className="text-lg min-w-[1.8rem] flex items-center justify-center text-black shrink-0">{idx + 1}.</span>
+                                )}
+                                {printAnswerStyle === 'bracket' && (
+                                  <div className="flex items-start gap-1 shrink-0">
+                                    <span className="text-lg text-black">{idx + 1}.</span>
+                                    <span className="text-4xl leading-[0.8] font-light text-black opacity-40 -mt-1 -ml-1">(</span>
+                                  </div>
                                 )}
                                 <div className="flex-1">
-                              <QuestionRenderer question={q} disabled showOnlyDiscussion={true} printMode={true} compactLayout={printCompactLayout} />
-                            </div>
+                                  <QuestionRenderer question={q} disabled showOnlyDiscussion={true} printMode={true} compactLayout={printCompactLayout} answerStyle={printAnswerStyle} />
+                                </div>
                           </div>
                         </div>
                       ))}
