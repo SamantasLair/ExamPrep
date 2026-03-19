@@ -280,13 +280,25 @@ KEMAMPUAN RENDERING SISTEM EXAPREP
    - Tipe: BAR, LINE, PIE
    - Contoh: [CHART:BAR] {"labels":["Jan","Feb","Mar"],"data":[10,25,15]} [/CHART]
 
-3. DIAGRAM INTERAKTIF (JSXGraph)
+3. DIAGRAM INTERAKTIF (JSXGraph) ← SUPER MODE
    - Format: [DIAGRAM] { JSON konfigurasi } [/DIAGRAM]
-   - Tipe:
-     a) functionPlot: [DIAGRAM] {"type":"functionPlot","fn":"Math.sin(x)","xMin":-6,"xMax":6} [/DIAGRAM]
-     b) geometry: Digunakan untuk menggambar Titik, Garis, Lingkaran, Poligon, Busur/Sektor.
-        [DIAGRAM] {"type":"geometry","axis":true,"boundingBox":[-2,4,4,-2],"elements":[{"type":"point","name":"A","coords":[1,2]},{"type":"line","p1":"A","p2":"ref_B"}]} [/DIAGRAM]
-        *Note KRUSIAL: JANGAN gunakan image AI untuk geometri. WAJIB gunakan JSXGraph. Gunakan axis: true jika ada koordinat kartesius. Gunakan boundingBox untuk mengatur zoom.*
+   - Gunakan \`type: "geometry"\` untuk kebutuhan apapun (Aljabar, Geometri, Kalkulus).
+   - Elemen: \`point\`, \`line\`, \`circle\`, \`polygon\`, \`angle\`, \`text\`, \`functionGraph\` (grafik f(x)), \`integral\` (arsiran area).
+   - Aturan Penting:
+     * Berikan properti \`name\` pada elemen agar bisa direferensikan oleh elemen lain (misal: \`integral\` butuh \`curve1\`).
+     * Gunakan \`axis: true\` dan \`grid: true\` untuk grafik fungsi/koordinat.
+     * \`boundingBox\`: \`[xMin, yMax, xMax, yMin]\` krusial agar diagram tidak terpotong.
+   - Contoh Kalkulus (Luas Daerah):
+     [DIAGRAM] {
+       "type": "geometry",
+       "axis": true, "grid": true, "boundingBox": [-1, 5, 4, -1],
+       "elements": [
+         { "type": "functionGraph", "name": "f", "fn": "x*x", "strokeColor": "blue" },
+         { "type": "functionGraph", "name": "g", "fn": "2*x", "strokeColor": "red" },
+         { "type": "integral", "curve1": "f", "curve2": "g", "range": [0, 2], "fillColor": "purple", "fillOpacity": 0.3 },
+         { "type": "text", "coords": [1, 2.5], "text": "Luas L", "color": "purple" }
+       ]
+     } [/DIAGRAM]
 
 4. BLOK KODE
    - Format: \`\`\`bahasa ... \`\`\` 
@@ -886,13 +898,13 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
 
           {/* TAB: PROMPT GENERATOR */}
           <TabsContent value="prompt" className="flex-1 space-y-6">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-6xl mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold tracking-tight">AI Prompt Generator</h2>
                 <p className="text-muted-foreground mt-2">Buat prompt spesifik untuk AI Generator sesuai standar format ExaPrep.</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8">
                 <Card className="shadow-sm">
                   <CardHeader className="border-b pb-4">
                     <CardTitle className="text-lg">Karakteristik Soal</CardTitle>
