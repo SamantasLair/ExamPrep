@@ -354,7 +354,12 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
     if (printPaperSize === 'F4') { w = 215.9; h = 330.2; }
     else if (printPaperSize === 'Custom') { w = customPaperWidth; h = customPaperHeight; }
     return {
-      css: `@media print { @page { size: ${w}mm ${h}mm; margin: 15mm; } }`,
+      css: `@media print { 
+        @page { size: ${w}mm ${h}mm; margin: 15mm; } 
+        html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+        .print-container-root { min-height: 0 !important; height: auto !important; overflow: visible !important; }
+        .print-main-parent { height: auto !important; position: static !important; display: block !important; }
+      }`,
       w, h
     };
   }, [printPaperSize, customPaperWidth, customPaperHeight]);
@@ -391,7 +396,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
 
       {/* PRINT OVERLAY (Only visible when printing or in print preview) */}
       {showPrintModal && (
-        <div className="fixed inset-0 z-50 bg-background flex flex-col print:static print:h-auto print:bg-white print:overflow-visible print:block">
+        <div className="fixed inset-0 z-50 bg-background flex flex-col print:static print:h-auto print:bg-white print:overflow-visible print:block print-main-parent">
           <style>{printDocumentStyle.css}</style>
           
           <div className="border-b p-4 flex flex-col items-start gap-4 bg-card print:hidden shadow-sm">
@@ -553,13 +558,14 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
             */}
             <div 
               className={cn(
-                "mx-auto bg-white shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 print:m-0 print:bg-transparent relative"
+                "mx-auto bg-white shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 print:m-0 print:bg-transparent relative print-container-root",
+                printColumns === '2' ? 'columns-2 gap-10' : ''
               )}
               style={{ 
                 fontSize: `${printFontSize}px`,
                 maxWidth: `${printDocumentStyle.w}mm`,
                 padding: '15mm', 
-                minHeight: typeof window !== 'undefined' && window.matchMedia('print').matches ? 'auto' : `${printDocumentStyle.h}mm`,
+                minHeight: `${printDocumentStyle.h}mm`,
                 '--print-graphic-scale': printGraphicScale / 100 
               } as React.CSSProperties}
             >
