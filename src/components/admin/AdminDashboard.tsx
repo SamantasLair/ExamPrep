@@ -553,8 +553,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
             */}
             <div 
               className={cn(
-                "mx-auto bg-white shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 print:m-0 print:bg-transparent relative",
-                printColumns === '2' ? 'columns-2 gap-10' : ''
+                "mx-auto bg-white shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 print:m-0 print:bg-transparent relative"
               )}
               style={{ 
                 fontSize: `${printFontSize}px`,
@@ -564,7 +563,6 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                 '--print-graphic-scale': printGraphicScale / 100 
               } as React.CSSProperties}
             >
-              {/* PAGE BREAK INDICATORS (Visual only, hidden in print) */}
               <style>{`
                 @media screen {
                   .preview-page-lines {
@@ -588,102 +586,106 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
               
               <div className="preview-page-lines print:hidden" />
               
-              <div className="column-balancing-fix relative z-10 font-serif">
-              
-              {printShowHeader && (
-                <div className="mb-6 pb-2 border-b-2 border-black col-span-full">
-                  <h1 className="font-bold uppercase leading-tight" style={{ fontSize: `${printFontSize * 1.25}px` }}>{printCustomTitle || examTitle || 'SOAL UJIAN'}</h1>
-                  <p className="mt-1 font-medium" style={{ fontSize: `${printFontSize * 0.9}px` }}>Waktu: {duration} Menit</p>
-                </div>
-              )}
-              
-              {/* MAIN CONTENT AREA */}
-              {!printAnswersAtEnd ? (
-                /* NORMAL OR SIDE-BY-SIDE MODE */
-                questions.map((q, idx) => (
-                  <div key={q.id}>
-                    <div className={cn(
-                      "mb-4 break-inside-avoid relative",
-                      printSideBySide ? "grid grid-cols-2 gap-4" : ""
-                    )}>
-                      <div className="relative">
-                        <div className="absolute left-0 text-[1.1em]" style={{ width: '1.5em' }}>{idx + 1}.</div>
-                        <div className="pl-6">
-                          <QuestionRenderer 
-                            question={q} 
-                            disabled 
-                            showDiscussion={showPrintDiscussion && !printSideBySide} 
-                            printMode={true} 
-                            compactLayout={printCompactLayout}
-                            answerStyle={printAnswerStyle}
-                          />
-                        </div>
-                      </div>
-                      {printSideBySide && (
-                        <div className="pl-6 border-l border-dashed border-gray-300">
-                          <QuestionRenderer 
-                            question={q} 
-                            disabled 
-                            showOnlyDiscussion={true} 
-                            printMode={true} 
-                            compactLayout={printCompactLayout}
-                            answerStyle={printAnswerStyle}
-                          />
-                        </div>
-                      )}
-                    </div>
+              <div className="relative z-10 font-serif">
+                {printShowHeader && (
+                  <div className="mb-6 pb-2 border-b-2 border-black">
+                    <h1 className="font-bold uppercase leading-tight" style={{ fontSize: `${printFontSize * 1.25}px` }}>{printCustomTitle || examTitle || 'SOAL UJIAN'}</h1>
+                    <p className="mt-1 font-medium" style={{ fontSize: `${printFontSize * 0.9}px` }}>Waktu: {duration} Menit</p>
                   </div>
-                ))
-              ) : (
-                /* ANSWERS AT THE END MODE */
-                <>
-                  {/* Part 1: All Questions */}
-                  {questions.map((q, idx) => (
-                    <div key={`q-only-${q.id}`} className="mb-4 break-inside-avoid relative">
-                      <div className="absolute left-0 text-[1.1em]" style={{ width: '1.5em' }}>{idx + 1}.</div>
-                      <div className="pl-6">
-                        <QuestionRenderer question={q} disabled showDiscussion={false} printMode={true} compactLayout={printCompactLayout} answerStyle={printAnswerStyle} />
+                )}
+                
+                {/* MAIN CONTENT AREA */}
+                {!printAnswersAtEnd ? (
+                  /* NORMAL OR SIDE-BY-SIDE MODE */
+                  <div className={cn("column-balancing-fix", printColumns === '2' ? 'columns-2 gap-10' : '')}>
+                    {questions.map((q, idx) => (
+                      <div key={q.id}>
+                        <div className={cn(
+                          "mb-4 break-inside-avoid relative",
+                          printSideBySide ? "grid grid-cols-2 gap-4" : ""
+                        )}>
+                          <div className="relative">
+                            <div className="absolute left-0 text-[1.1em]" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                            <div className="pl-6">
+                              <QuestionRenderer 
+                                question={q} 
+                                disabled 
+                                showDiscussion={showPrintDiscussion && !printSideBySide} 
+                                printMode={true} 
+                                compactLayout={printCompactLayout}
+                                answerStyle={printAnswerStyle}
+                              />
+                            </div>
+                          </div>
+                          {printSideBySide && (
+                            <div className="pl-6 border-l border-dashed border-gray-300">
+                              <QuestionRenderer 
+                                question={q} 
+                                disabled 
+                                showOnlyDiscussion={true} 
+                                printMode={true} 
+                                compactLayout={printCompactLayout}
+                                answerStyle={printAnswerStyle}
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-
-                  {/* Part 2: Page Break & Answers Title */}
-                  <div className="col-span-full pt-10 pb-6 mt-10 border-t-4 border-black break-before-page">
-                    <h2 className="text-2xl font-bold uppercase text-center border-b-2 border-black pb-2 mb-8">KUNCI JAWABAN & PEMBAHASAN</h2>
-                    
-                    {/* Render answer list in a simpler format if possible, or use the loop again */}
-                    <div className="space-y-6">
+                    ))}
+                  </div>
+                ) : (
+                  /* ANSWERS AT THE END MODE */
+                  <>
+                    {/* Part 1: All Questions */}
+                    <div className={cn("column-balancing-fix mb-10", printColumns === '2' ? 'columns-2 gap-10' : '')}>
                       {questions.map((q, idx) => (
-                        <div key={`ans-only-${q.id}`} className="break-inside-avoid">
-                              <div className="flex items-start gap-4">
-                                {printAnswerStyle === 'solid' && (
-                                  <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-full shrink-0">{idx + 1}</span>
-                                )}
-                                {printAnswerStyle === 'outlined' && (
-                                  <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center border-2 border-black text-black rounded-full shrink-0">{idx + 1}</span>
-                                )}
-                                {printAnswerStyle === 'boxed' && (
-                                  <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-md shrink-0">{idx + 1}</span>
-                                )}
-                                {printAnswerStyle === 'minimalist' && (
-                                  <span className="text-lg min-w-[1.8rem] flex items-center justify-center text-black shrink-0">{idx + 1}.</span>
-                                )}
-                                {printAnswerStyle === 'bracket' && (
-                                  <div className="flex items-start gap-1 shrink-0">
-                                    <span className="text-lg text-black">{idx + 1}.</span>
-                                    <span className="text-4xl leading-[0.8] font-light text-black opacity-40 -mt-1 -ml-1">(</span>
-                                  </div>
-                                )}
-                                <div className="flex-1">
-                                  <QuestionRenderer question={q} disabled showOnlyDiscussion={true} printMode={true} compactLayout={printCompactLayout} answerStyle={printAnswerStyle} />
-                                </div>
+                        <div key={`q-only-${q.id}`} className="mb-4 break-inside-avoid relative">
+                          <div className="absolute left-0 text-[1.1em]" style={{ width: '1.5em' }}>{idx + 1}.</div>
+                          <div className="pl-6">
+                            <QuestionRenderer question={q} disabled showDiscussion={false} printMode={true} compactLayout={printCompactLayout} answerStyle={printAnswerStyle} />
                           </div>
                         </div>
                       ))}
                     </div>
-                  </div>
-                </>
-              )}
+  
+                    {/* Part 2: Page Break & Answers List */}
+                    <div className={cn(
+                      "pt-10 break-before-page",
+                      printColumns === '2' ? 'column-balancing-fix columns-2 gap-10' : ''
+                    )}>
+                      {/* Removed Answer Key Header as requested */}
+                      <div className="space-y-6">
+                        {questions.map((q, idx) => (
+                          <div key={`ans-only-${q.id}`} className="break-inside-avoid">
+                            <div className="flex items-start gap-4">
+                              {printAnswerStyle === 'solid' && (
+                                <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-full shrink-0">{idx + 1}</span>
+                              )}
+                              {printAnswerStyle === 'outlined' && (
+                                <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center border-2 border-black text-black rounded-full shrink-0">{idx + 1}</span>
+                              )}
+                              {printAnswerStyle === 'boxed' && (
+                                <span className="text-lg min-w-[2.5rem] h-10 w-10 flex items-center justify-center bg-black text-white rounded-md shrink-0">{idx + 1}</span>
+                              )}
+                              {printAnswerStyle === 'minimalist' && (
+                                <span className="text-lg min-w-[1.8rem] flex items-center justify-center text-black shrink-0">{idx + 1}.</span>
+                              )}
+                              {printAnswerStyle === 'bracket' && (
+                                <div className="flex items-start gap-1 shrink-0">
+                                  <span className="text-lg text-black">{idx + 1}.</span>
+                                  <span className="text-4xl leading-[0.8] font-light text-black opacity-40 -mt-1 -ml-1">(</span>
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <QuestionRenderer question={q} disabled showOnlyDiscussion={true} printMode={true} compactLayout={printCompactLayout} answerStyle={printAnswerStyle} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
