@@ -40,3 +40,9 @@ Teks.txt
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# memory
+/_memory/
+
+# doctrine
+/_doctrine/

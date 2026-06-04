@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { parseMarkdown } from '@/lib/parser';
 import { QuestionRenderer } from '@/components/exam/QuestionRenderer';
+import { LabelSelector, type LabelTaxonomy } from '@/components/exam/LabelSelector';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { TestRow } from '@/lib/types';
+import type { TestRow, StudentRow } from '@/lib/types';
 
 const SAMPLE_MARKDOWN = `# Q1 (PILGAN)
 Jika $f(x) = 2x^2 + 3x - 5$, maka nilai $f(2)$ adalah...
@@ -73,6 +74,13 @@ export function AdminDashboard() {
   // Lists
   const [testList, setTestList] = useState<TestRow[]>([]);
   const [attemptList, setAttemptList] = useState<any[]>([]);
+  const [studentList, setStudentList] = useState<StudentRow[]>([]);
+
+  // Generator State
+  const [stuPrefix, setStuPrefix] = useState('SMA-');
+  const [stuCount, setStuCount] = useState('10');
+  const [generatingStu, setGeneratingStu] = useState(false);
+  const [stuMsg, setStuMsg] = useState('');
 
   // Editor State
   const [editId, setEditId] = useState<string | null>(null);
@@ -118,6 +126,7 @@ export function AdminDashboard() {
   const [promptContext, setPromptContext] = useState('');
   const [promptOther, setPromptOther] = useState('');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [promptLabels, setPromptLabels] = useState<LabelTaxonomy>({ difficulty: [], ageRange: [], subject: [] });
 
   const questions = useMemo(() => {
     try {
@@ -163,10 +172,46 @@ export function AdminDashboard() {
     if (data) setAttemptList(data);
   };
 
+  const loadStudents = async () => {
+    const { data } = await supabase.from('students').select('*').order('created_at', { ascending: false });
+    if (data) setStudentList(data);
+  };
+
   useEffect(() => {
     if (activeTab === 'tests') loadTests();
     if (activeTab === 'attempts') loadAttempts();
+    if (activeTab === 'students') loadStudents();
   }, [activeTab]);
+
+  const handleGenerateStudents = async () => {
+    const count = parseInt(stuCount);
+    if (isNaN(count) || count <= 0) return setStuMsg('Jumlah tidak valid');
+    if (!stuPrefix.trim()) return setStuMsg('Prefix tidak boleh kosong');
+    
+    setGeneratingStu(true);
+    setStuMsg('');
+    const newStudents = [];
+    const startIdx = studentList.length + 1;
+    for (let i = 0; i < count; i++) {
+      const num = String(startIdx + i).padStart(3, '0');
+      const id = `${stuPrefix.trim()}${num}`;
+      newStudents.push({
+        id,
+        name: id,
+        birthday: null,
+        avatar_url: null,
+      });
+    }
+
+    const { error } = await supabase.from('students').insert(newStudents);
+    setGeneratingStu(false);
+    if (error) {
+      setStuMsg(error.message);
+    } else {
+      setStuMsg(`Berhasil generate ${count} siswa.`);
+      loadStudents();
+    }
+  };
 
   const handleDailyToggle = useCallback((checked: boolean) => {
     setIsDaily(checked);
@@ -340,8 +385,15 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
     let ctx = promptContext.trim() ? `- Konteks Penting:\n  ${promptContext}\n` : '';
     let oth = promptOther.trim() ? `- Catatan Tambahan:\n  ${promptOther}\n` : '';
     
-    return systemRules + "\n\n" + requestDetails + ctx + oth + `\nSilakan buatkan soal sesuai panduan di atas.`;
-  }, [promptType, promptCount, promptLang, promptLevel, promptContext, promptOther]);
+    const difficultyStr = promptLabels.difficulty.length > 0 ? `[Tingkat Kesulitan: ${promptLabels.difficulty.join(', ')}]` : '';
+    const ageStr = promptLabels.ageRange.length > 0 ? `[Range Umur/Kelas: ${promptLabels.ageRange.join(', ')}]` : '';
+    const subjectStr = promptLabels.subject.length > 0 ? `[Topik: ${promptLabels.subject.join(', ')}]` : '';
+    const labelContext = (difficultyStr || ageStr || subjectStr) 
+      ? `- Label Prioritas (Sertakan di output JSON/Markdown):\n  ${[difficultyStr, ageStr, subjectStr].filter(Boolean).join(' ')}\n` 
+      : '';
+    
+    return systemRules + "\n\n" + requestDetails + labelContext + ctx + oth + `\nSilakan buatkan soal sesuai panduan di atas.`;
+  }, [promptType, promptCount, promptLang, promptLevel, promptContext, promptOther, promptLabels]);
 
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(generatedPrompt);
@@ -699,9 +751,10 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
       )}
       <main className="flex-1 container mx-auto px-4 py-6 print:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-          <TabsList className="mb-6 w-full max-w-2xl mx-auto grid grid-cols-4">
+          <TabsList className="mb-6 w-full max-w-4xl mx-auto grid grid-cols-5">
             <TabsTrigger value="tests">Daftar Ujian</TabsTrigger>
             <TabsTrigger value="attempts">Hasil Peserta</TabsTrigger>
+            <TabsTrigger value="students">Data Siswa</TabsTrigger>
             <TabsTrigger value="editor">{editId ? 'Edit Ujian' : 'Editor Baru'}</TabsTrigger>
             <TabsTrigger value="prompt">Prompt Generator</TabsTrigger>
           </TabsList>
@@ -772,6 +825,64 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                         {att.finished_at ? new Date(att.finished_at).toLocaleString('id-ID') : '-'}
                       </div>
                       <div className="text-right font-bold text-lg">{att.score}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* TAB: DATA SISWA */}
+          <TabsContent value="students" className="flex-1 space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Manajemen Data Siswa</h2>
+                <p className="text-sm text-muted-foreground mt-1">Buat ID Siswa (Manual / Otomatis) untuk login ujian.</p>
+              </div>
+              <Button variant="outline" onClick={loadStudents}>Segarkan Data</Button>
+            </div>
+
+            <Card className="shadow-sm">
+              <CardHeader className="bg-muted/30 border-b pb-4">
+                <CardTitle className="text-sm font-bold">Generate ID Siswa Otomatis</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex flex-wrap items-end gap-4">
+                  <div className="space-y-2">
+                    <Label>Prefix Kustom (Teks depan)</Label>
+                    <Input placeholder="SMA-" value={stuPrefix} onChange={e => setStuPrefix(e.target.value)} className="w-48" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Jumlah ID</Label>
+                    <Input type="number" placeholder="10" value={stuCount} onChange={e => setStuCount(e.target.value)} className="w-32" />
+                  </div>
+                  <Button onClick={handleGenerateStudents} disabled={generatingStu}>
+                    {generatingStu ? 'Memproses...' : 'Generate ID'}
+                  </Button>
+                </div>
+                {stuMsg && <p className="text-sm font-medium text-primary mt-2">{stuMsg}</p>}
+              </CardContent>
+            </Card>
+
+            <div className="rounded-md border bg-card overflow-hidden">
+              <div className="grid grid-cols-4 gap-4 p-4 border-b bg-muted/30 font-semibold text-sm">
+                <div>ID Siswa</div>
+                <div>Nama Lengkap</div>
+                <div>Terdaftar Pada</div>
+                <div className="text-right">Aksi</div>
+              </div>
+              {studentList.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">Belum ada siswa yang terdaftar.</div>
+              ) : (
+                <div className="divide-y max-h-[500px] overflow-y-auto">
+                  {studentList.map((stu) => (
+                    <div key={stu.id} className="grid grid-cols-4 gap-4 p-4 items-center text-sm hover:bg-muted/50 transition-colors">
+                      <div className="font-mono font-medium">{stu.id}</div>
+                      <div className="truncate">{stu.name}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(stu.created_at).toLocaleString('id-ID')}</div>
+                      <div className="text-right">
+                        <Button size="sm" variant="ghost" className="text-xs">Edit</Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1077,6 +1188,19 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                         onChange={(e) => setPromptOther(e.target.value)} 
                         className="h-24 resize-none"
                       />
+                    </div>
+                    
+                    <div className="space-y-2 relative pt-2 border-t mt-4">
+                      <Label className="flex items-center gap-2 mb-3">
+                        Taxonomi & Label Soal
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-64 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Pilih label-label ini agar AI melabeli soal-soal tersebut sesuai taksonominya.
+                          </span>
+                        </span>
+                      </Label>
+                      <LabelSelector selectedLabels={promptLabels} onChange={setPromptLabels} />
                     </div>
                   </CardContent>
                 </Card>

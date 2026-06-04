@@ -7,14 +7,31 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import type { TestRow } from '@/lib/types';
+import type { TestRow, StudentRow } from '@/lib/types';
+import { StudentLogin } from '@/components/auth/StudentLogin';
+import { WelcomeAnimation } from '@/components/ui/WelcomeAnimation';
+import { UserCircle2, LogOut } from 'lucide-react';
 
 export default function HomePage() {
   const [tests, setTests] = useState<TestRow[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Auth State
+  const [student, setStudent] = useState<StudentRow | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    async function load() {
+    async function loadAuthAndTests() {
+      // Check auth first
+      const savedStudentStr = localStorage.getItem('exaprep_student');
+      if (savedStudentStr) {
+        try {
+          const parsed = JSON.parse(savedStudentStr);
+          setStudent(parsed);
+        } catch { /* ignore */ }
+      }
+
+      // Load tests
       const { data } = await supabase
         .from('tests')
         .select('*')
@@ -22,8 +39,19 @@ export default function HomePage() {
       if (data) setTests(data as TestRow[]);
       setLoading(false);
     }
-    load();
+    loadAuthAndTests();
   }, []);
+
+  const handleLogin = (s: StudentRow) => {
+    localStorage.setItem('exaprep_student', JSON.stringify(s));
+    setStudent(s);
+    setShowWelcome(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('exaprep_student');
+    setStudent(null);
+  };
 
   const categorized = useMemo(() => {
     const now = new Date();
@@ -106,23 +134,54 @@ export default function HomePage() {
     );
   }
 
+  if (!loading && !student) {
+    return <StudentLogin onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {showWelcome && student && (
+        <WelcomeAnimation name={student.name} onComplete={() => setShowWelcome(false)} />
+      )}
       {/* Hero */}
       <header className="relative overflow-hidden border-b bg-card">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-transparent" />
         <div className="container mx-auto px-4 py-16 relative">
-          <div className="max-w-2xl space-y-4 animate-fade-in">
-            <Badge variant="secondary" className="text-xs font-medium">
-              Exam Engine
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
-              ExaPrep
-            </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Platform persiapan ujian minimalis berkinerja tinggi.
-              Mendukung parsing cerdas untuk soal pilihan ganda dan esai.
-            </p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-2xl space-y-4 animate-fade-in">
+              <Badge variant="secondary" className="text-xs font-medium">
+                Student Portal
+              </Badge>
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
+                ExaPrep
+              </h1>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Platform persiapan ujian minimalis berkinerja tinggi.
+                Pilih paket ujian yang tersedia di bawah ini untuk memulai.
+              </p>
+            </div>
+            
+            {student && (
+              <Card className="shadow-sm border-primary/20 bg-card/80 backdrop-blur w-full md:w-auto">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    {student.avatar_url ? (
+                      <img src={student.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <UserCircle2 className="w-8 h-8" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground font-medium">Siswa Aktif</p>
+                    <p className="font-bold text-lg leading-tight">{student.name}</p>
+                    <p className="text-xs font-mono text-muted-foreground">{student.id}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={handleLogout} title="Keluar">
+                    <LogOut className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </header>

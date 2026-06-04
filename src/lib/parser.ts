@@ -1,4 +1,8 @@
 import type { ContentBlock, Option, Question, ChartType } from './types';
+import { z } from 'zod';
+
+const DiagramConfigSchema = z.record(z.string(), z.unknown());
+const ChartConfigSchema = z.record(z.string(), z.unknown());
 
 /**
  * Smart-Parser: Transforms a single Markdown string into a Question[] array.
@@ -60,15 +64,21 @@ function parseInlineContent(raw: string): ContentBlock[] {
         const closingMatch = afterJson.match(/^\s*\[\/DIAGRAM\]/i);
         if (closingMatch) endOfDiagram += closingMatch[0].length;
         try {
-          const parsed = JSON.parse(jsonStr);
-          blocks.push({
-            type: 'diagram',
-            content: jsonStr,
-            diagramType: parsed.type ?? 'functionPlot',
-            diagramConfig: parsed,
-          });
+          const rawParsed = JSON.parse(jsonStr);
+          const validated = DiagramConfigSchema.safeParse(rawParsed);
+          if (validated.success) {
+            const parsed = validated.data as Record<string, unknown>;
+            blocks.push({
+              type: 'diagram',
+              content: jsonStr,
+              diagramType: (parsed.type as any) ?? 'functionPlot',
+              diagramConfig: parsed,
+            });
+          } else {
+            blocks.push({ type: 'text', content: `Skema diagram tidak valid: ${validated.error.message.slice(0, 60)}` });
+          }
         } catch {
-          blocks.push({ type: 'text', content: `Konfigurasi diagram tidak valid: ${jsonStr.slice(0, 60)}` });
+          blocks.push({ type: 'text', content: `Konfigurasi diagram bukan JSON valid: ${jsonStr.slice(0, 60)}` });
         }
         newRemaining += '\u0000DIAGRAM\u0000';
         lastIndex = endOfDiagram;
@@ -127,30 +137,37 @@ function parseInlineContent(raw: string): ContentBlock[] {
 
         const chartType = type.toUpperCase() as ChartType;
         try {
-          const parsed = JSON.parse(jsonStr);
-          let datasets = parsed.datasets;
+          const rawParsed = JSON.parse(jsonStr);
+          const validated = ChartConfigSchema.safeParse(rawParsed);
           
-          if (!datasets) {
-            // Find the best candidate for data if not in datasets format
-            const keys = Object.keys(parsed);
-            const arrayKey = keys.find(k => k !== 'labels' && Array.isArray(parsed[k])) || 'data';
-            datasets = [{ 
-              label: parsed.label || parsed.datasetLabel || (arrayKey !== 'data' ? arrayKey : undefined),
-              data: parsed[arrayKey] ?? parsed.data ?? [] 
-            }];
-          }
+          if (!validated.success) {
+             blocks.push({ type: 'text', content: `Skema grafik tidak valid: ${validated.error.message.slice(0, 60)}` });
+          } else {
+            const parsed = validated.data as Record<string, any>;
+            let datasets = parsed.datasets;
+            
+            if (!datasets) {
+              // Find the best candidate for data if not in datasets format
+              const keys = Object.keys(parsed);
+              const arrayKey = keys.find(k => k !== 'labels' && Array.isArray(parsed[k])) || 'data';
+              datasets = [{ 
+                label: parsed.label || parsed.datasetLabel || (arrayKey !== 'data' ? arrayKey : undefined),
+                data: parsed[arrayKey] ?? parsed.data ?? [] 
+              }];
+            }
 
-          blocks.push({
-            type: 'chart',
-            content: jsonStr,
-            chartType,
-            chartData: {
-              labels: parsed.labels ?? [],
-              datasets: datasets,
-            },
-          });
+            blocks.push({
+              type: 'chart',
+              content: jsonStr,
+              chartType,
+              chartData: {
+                labels: parsed.labels ?? [],
+                datasets: datasets,
+              },
+            });
+          }
         } catch {
-          blocks.push({ type: 'text', content: `Data grafik tidak valid: ${jsonStr.slice(0, 60)}` });
+          blocks.push({ type: 'text', content: `Data grafik bukan JSON valid: ${jsonStr.slice(0, 60)}` });
         }
         
         newRemaining += '\u0000CHART\u0000';

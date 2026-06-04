@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Question } from '@/lib/types';
 import { QuestionRenderer } from './QuestionRenderer';
+import { StimulusRenderer } from './StimulusRenderer';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface ExamRunnerProps {
   questions: Question[];
@@ -32,13 +34,45 @@ function formatTime(seconds: number): string {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+type RenderItem = 
+  | { type: 'question'; question: Question }
+  | { type: 'stimulus_group'; stimulus_id: string; content: string; questions: Question[] };
+
 export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immediateFeedback = false }: ExamRunnerProps) {
-  const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
   const [showConfirm, setShowConfirm] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const submitRef = useRef<() => void>(() => {});
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Group consecutive questions with the same stimulus_id
+  const renderItems = useMemo(() => {
+    const items: RenderItem[] = [];
+    let currentGroup: { type: 'stimulus_group'; stimulus_id: string; content: string; questions: Question[] } | null = null;
+
+    for (const q of questions) {
+      if (q.stimulus_id && q.stimulus_content) {
+        if (currentGroup && currentGroup.stimulus_id === q.stimulus_id) {
+          currentGroup.questions.push(q);
+        } else {
+          currentGroup = { type: 'stimulus_group', stimulus_id: q.stimulus_id, content: q.stimulus_content, questions: [q] };
+          items.push(currentGroup);
+        }
+      } else {
+        currentGroup = null;
+        items.push({ type: 'question', question: q });
+      }
+    }
+    return items;
+  }, [questions]);
+
+  const virtualizer = useVirtualizer({
+    count: renderItems.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 300, // Estimated pixel height per item
+    overscan: 3, // Render a few items outside viewport to prevent flickering
+  });
 
   const calculateScore = useCallback(() => {
     const mcqs = questions.filter((q) => q.type === 'MCQ');
@@ -54,34 +88,25 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
     onSubmit(answers, score);
   }, [answers, calculateScore, examId, onSubmit]);
 
-  // Keep ref in sync with latest handleSubmit
-  useEffect(() => {
-    submitRef.current = handleSubmit;
-  }, [handleSubmit]);
+  useEffect(() => { submitRef.current = handleSubmit; }, [handleSubmit]);
 
-  // Restore from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(getStorageKey(examId));
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.answers) setAnswers(parsed.answers);
-        if (parsed.currentIdx !== undefined) setCurrentIdx(parsed.currentIdx);
         if (parsed.timeLeft !== undefined) setTimeLeft(parsed.timeLeft);
       }
-    } catch { /* ignore corrupted data */ }
+    } catch { /* ignore */ }
   }, [examId]);
 
-  // Persist to localStorage on changes
   useEffect(() => {
     try {
-      localStorage.setItem(getStorageKey(examId), JSON.stringify({
-        answers, currentIdx, timeLeft,
-      }));
+      localStorage.setItem(getStorageKey(examId), JSON.stringify({ answers, timeLeft }));
     } catch { /* storage full, ignore */ }
-  }, [answers, currentIdx, timeLeft, examId]);
+  }, [answers, timeLeft, examId]);
 
-  // Timer (stable: no dependency on handleSubmit thanks to ref)
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
@@ -96,7 +121,7 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  const handleAnswer = useCallback((qId: number, val: string) => {
+  const handleAnswer = useCallback((qId: number | string, val: string) => {
     setAnswers((prev) => ({ ...prev, [qId]: val }));
   }, []);
 
@@ -105,95 +130,107 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
   const isTimeLow = timeLeft < 60;
 
   return (
-    <div className="space-y-4">
-      {/* Top Bar */}
-      <Card>
-        <CardContent className="py-3 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Badge variant={isTimeLow ? 'destructive' : 'secondary'} className="font-mono text-sm px-3 py-1">
-              Waktu: {formatTime(timeLeft)}
-            </Badge>
-            <span className="text-sm text-muted-foreground">
-              {answeredCount}/{questions.length} terjawab
-            </span>
-          </div>
-          <div className="flex-1 max-w-xs">
-            <Progress value={progressPct} className="h-2" />
-          </div>
-          <Button variant="destructive" size="sm" onClick={() => setShowConfirm(true)}>
-            Kumpulkan
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="h-full flex flex-col space-y-4">
+      {/* Top Bar (Sticky) */}
+      <div className="flex-none z-10 sticky top-0 bg-background pt-2 pb-2">
+        <Card className="shadow-sm border-primary/20">
+          <CardContent className="py-3 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <Badge variant={isTimeLow ? 'destructive' : 'secondary'} className="font-mono text-sm px-3 py-1">
+                Waktu: {formatTime(timeLeft)}
+              </Badge>
+              <span className="text-sm font-semibold">
+                {answeredCount}/{questions.length} Terjawab
+              </span>
+            </div>
+            <div className="flex-1 max-w-md hidden md:block">
+              <Progress value={progressPct} className="h-2.5" />
+            </div>
+            <Button variant="destructive" size="sm" onClick={() => setShowConfirm(true)}>
+              Kumpulkan Ujian
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Question Navigation */}
-      <Card>
-        <CardHeader className="py-3">
-          <CardTitle className="text-sm font-medium">Navigasi Soal</CardTitle>
-        </CardHeader>
-        <CardContent className="pb-3">
-          <div className="flex flex-wrap gap-1.5">
-            {questions.map((q, idx) => (
-              <Button
-                key={q.id}
-                variant={idx === currentIdx ? 'default' : answers[q.id] ? 'secondary' : 'outline'}
-                size="sm"
-                className="w-9 h-9 p-0 text-xs font-mono"
-                onClick={() => setCurrentIdx(idx)}
+      {/* Virtualized List Container */}
+      <div 
+        ref={scrollRef} 
+        className="flex-1 overflow-y-auto pr-2 custom-scrollbar"
+        style={{ minHeight: '500px', maxHeight: '80vh' }}
+      >
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const item = renderItems[virtualItem.index];
+            return (
+              <div
+                key={virtualItem.key}
+                data-index={virtualItem.index}
+                ref={virtualizer.measureElement}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualItem.start}px)`,
+                  paddingBottom: '24px',
+                }}
               >
-                {q.id}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Current Question */}
-      {questions[currentIdx] && (
-        <QuestionRenderer
-          question={questions[currentIdx]}
-          answer={answers[questions[currentIdx].id]}
-          onAnswer={handleAnswer}
-          showCorrectAnswer={immediateFeedback && answers[questions[currentIdx].id] !== undefined}
-          feedbackMode={immediateFeedback ? 'graded' : 'neutral'}
-        />
-      )}
-
-      {/* Prev / Next Buttons */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentIdx((p) => Math.max(0, p - 1))}
-          disabled={currentIdx === 0}
-        >
-          Sebelumnya
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => setCurrentIdx((p) => Math.min(questions.length - 1, p + 1))}
-          disabled={currentIdx === questions.length - 1}
-        >
-          Selanjutnya
-        </Button>
+                {item.type === 'question' ? (
+                  <div className="bg-card border rounded-xl shadow-sm p-1">
+                    <QuestionRenderer
+                      question={item.question}
+                      answer={answers[item.question.id]}
+                      onAnswer={(id, val) => handleAnswer(id, val)}
+                      showCorrectAnswer={immediateFeedback && answers[item.question.id] !== undefined}
+                      feedbackMode={immediateFeedback ? 'graded' : 'neutral'}
+                    />
+                  </div>
+                ) : (
+                  <StimulusRenderer content={item.content}>
+                    <div className="space-y-4">
+                      {item.questions.map(q => (
+                        <div key={q.id} className="bg-card border rounded-xl shadow-sm p-1">
+                          <QuestionRenderer
+                            question={q}
+                            answer={answers[q.id]}
+                            onAnswer={(id, val) => handleAnswer(id, val)}
+                            showCorrectAnswer={immediateFeedback && answers[q.id] !== undefined}
+                            feedbackMode={immediateFeedback ? 'graded' : 'neutral'}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </StimulusRenderer>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Kumpulkan Ujian?</DialogTitle>
+            <DialogTitle>Konfirmasi Pengumpulan</DialogTitle>
             <DialogDescription>
-              Kamu sudah menjawab {answeredCount} dari {questions.length} soal.
-              {answeredCount < questions.length && ' Masih ada soal yang belum dijawab.'}
+              Anda telah menjawab {answeredCount} dari {questions.length} soal.
+              {answeredCount < questions.length && <strong className="block mt-2 text-destructive">Peringatan: Masih ada {questions.length - answeredCount} soal kosong!</strong>}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirm(false)}>Batal</Button>
-            <Button variant="destructive" onClick={handleSubmit}>Ya, Kumpulkan</Button>
+            <Button variant="outline" onClick={() => setShowConfirm(false)}>Batal, Lanjut Mengerjakan</Button>
+            <Button variant="destructive" onClick={handleSubmit}>Ya, Kumpulkan Sekarang</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
