@@ -1,76 +1,24 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { parseMarkdown } from '@/lib/parser';
+import { useParams } from 'next/navigation';
 import { ExamRunner } from '@/components/exam/ExamRunner';
 import type { Question, TestRow } from '@/lib/types';
 import { motion } from 'framer-motion';
+import { useExamPageVM } from '@/viewmodels/useExamPageVM';
 
 export default function ExamPage() {
   const params = useParams();
-  const router = useRouter();
   const examId = params.id as string;
-  const [test, setTest] = useState<TestRow | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [finalScore, setFinalScore] = useState(0);
-
-  useEffect(() => {
-    async function loadExam() {
-      const { data, error: fetchErr } = await supabase
-        .from('tests')
-        .select('*')
-        .eq('id', examId)
-        .single();
-      if (fetchErr || !data) {
-        setError('Ujian tidak ditemukan.');
-        setLoading(false);
-        return;
-      }
-      setTest(data as TestRow);
-      try {
-        setQuestions(parseMarkdown(data.raw_markdown));
-      } catch {
-        setError('Gagal mem-parsing soal ujian.');
-      }
-      setLoading(false);
-    }
-    loadExam();
-  }, [examId]);
-
-  const handleSubmit = useCallback(async (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>) => {
-    let studentId = null;
-    try {
-      const savedStudentStr = localStorage.getItem('exaprep_student');
-      if (savedStudentStr) studentId = JSON.parse(savedStudentStr).id;
-    } catch { /* ignore */ }
-
-    const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert({
-      test_id: examId,
-      student_id: studentId,
-      responses: answers,
-      tips_used: tipsUsedData,
-      score,
-      status: 'finished',
-      finished_at: new Date().toISOString(),
-    }).select().single();
-
-    if (attemptError || !attemptData) {
-      alert('Gagal Mengirim Ujian: RLS Supabase memblokir INSERT data ujian. Hubungi administrator (buat Policy INSERT untuk tabel attempts di Supabase).');
-      return; // Halt submission so they don't lose progress
-    }
-
-    setFinalScore(score);
-    setSubmitted(true);
-    
-    try {
-      localStorage.setItem(`exaprep_finished_${examId}`, attemptData.id);
-    } catch { /* ignore */ }
-  }, [examId]);
+  const {
+    test,
+    questions,
+    loading,
+    error,
+    submitted,
+    finalScore,
+    handleSubmit,
+    router
+  } = useExamPageVM(examId);
 
   if (loading) {
     return (
