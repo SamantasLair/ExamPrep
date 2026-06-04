@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { parseMarkdown } from '@/lib/parser';
 import { ExamRunner } from '@/components/exam/ExamRunner';
 import type { Question, TestRow } from '@/lib/types';
+import { motion } from 'framer-motion';
 
 export default function ExamPage() {
   const params = useParams();
@@ -117,7 +118,12 @@ export default function ExamPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+      className="min-h-screen bg-background"
+    >
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
           <h1 className="text-lg font-bold">{test?.title ?? 'Ujian'}</h1>
@@ -135,6 +141,6 @@ export default function ExamPage() {
           penaltyPracticeConfig={test?.penalty_practice_config ?? '15, 20, 25, ...'}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }

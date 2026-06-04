@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { TestRow, StudentRow } from '@/lib/types';
+import { motion } from 'framer-motion';
 
 const SAMPLE_MARKDOWN = `# Q1 (PILGAN)
 Jika $f(x) = 2x^2 + 3x - 5$, maka nilai $f(2)$ adalah...
@@ -468,7 +469,12 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
   }, [printPaperSize, customPaperWidth, customPaperHeight]);
 
   return (
-    <div className="h-screen print:h-auto bg-background text-foreground flex flex-col">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+      className="h-screen print:h-auto bg-background text-foreground flex flex-col"
+    >
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none print:hidden">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -1364,7 +1370,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
         </Tabs>
       </main>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

@@ -11,7 +11,7 @@ export interface LabelTaxonomy {
 
 export const PREDEFINED_LABELS: Record<keyof LabelTaxonomy, string[]> = {
   difficulty: ['Olimpiade Internasional', 'OSN', 'Sulit', 'Sedang', 'Mudah'],
-  ageRange: ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6', 'Kelas 7', 'Kelas 8', 'Kelas 9', 'SMA', 'S1'],
+  ageRange: ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6', 'Kelas 7', 'Kelas 8', 'Kelas 9', 'Kelas 10', 'Kelas 11', 'Kelas 12', 'S1'],
   subject: [
     'Matematika', 'Fisika', 'Biologi', 'Kimia', 'Ekonomi Makro', 'Ekonomi Mikro',
     'Bahasa Inggris', 'Bahasa Indonesia', 'Sejarah', 'Geografi', 'Sosiologi', 

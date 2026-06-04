@@ -11,6 +11,7 @@ import type { TestRow, StudentRow } from '@/lib/types';
 import { StudentLogin } from '@/components/auth/StudentLogin';
 import { WelcomeAnimation } from '@/components/ui/WelcomeAnimation';
 import { UserCircle2, LogOut } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function HomePage() {
   const [tests, setTests] = useState<TestRow[]>([]);
@@ -143,7 +144,12 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+      className="min-h-screen bg-background"
+    >
       {showWelcome && student && (
         <WelcomeAnimation name={student.name} onComplete={() => setShowWelcome(false)} />
       )}
@@ -228,6 +234,6 @@ export default function HomePage() {
           ExaPrep Exam Engine © {new Date().getFullYear()}
         </div>
       </footer>
-    </div>
+    </motion.div>
   );
 }
