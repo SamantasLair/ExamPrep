@@ -95,32 +95,36 @@ export default function HomePage() {
             {emptyText}
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {items.map((test) => (
-              <Card key={test.id} className="group hover:shadow-md transition-shadow duration-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base leading-snug">{test.title}</CardTitle>
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {items.map((test, idx) => (
+              <Card 
+                key={test.id} 
+                className="group hover:border-primary/40 hover:shadow-lg transition-all duration-300 animate-in fade-in zoom-in-95 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
+                style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
+              >
+                <CardHeader className="p-4 pb-2 border-b border-border/40 bg-muted/20">
+                  <CardTitle className="text-sm leading-snug font-bold truncate">{test.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-4 space-y-3">
                   {test.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{test.description}</p>
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{test.description}</p>
                   )}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="secondary" className="text-xs">
-                      {test.duration_minutes} menit
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-medium">
+                      {test.duration_minutes}m
                     </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      KKM: {test.passing_grade}
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium border-primary/20 text-primary">
+                      KKM {test.passing_grade}
                     </Badge>
                   </div>
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex gap-2 pt-2 border-t border-border/40">
                     <Link href={`/exam/${test.id}`} className="flex-1">
-                      <Button variant="default" size="sm" className="w-full text-xs">
+                      <Button variant="default" size="sm" className="w-full h-8 text-[11px] font-bold shadow-sm transition-transform active:scale-[0.98]">
                         Mulai
                       </Button>
                     </Link>
-                    <Link href={`/exam/${test.id}/review`}>
-                      <Button variant="outline" size="sm" className="text-xs">
+                    <Link href={`/exam/${test.id}/review`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full h-8 text-[11px] font-bold transition-transform active:scale-[0.98]">
                         Review
                       </Button>
                     </Link>

@@ -768,18 +768,42 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
           </div>
         </div>
       )}
-      <main className="flex-1 container mx-auto px-4 py-6 print:hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-          <TabsList className="mb-6 w-full max-w-4xl mx-auto grid grid-cols-5">
-            <TabsTrigger value="tests">Daftar Ujian</TabsTrigger>
-            <TabsTrigger value="attempts">Hasil Peserta</TabsTrigger>
-            <TabsTrigger value="students">Data Siswa</TabsTrigger>
-            <TabsTrigger value="editor">{editId ? 'Edit Ujian' : 'Editor Baru'}</TabsTrigger>
-            <TabsTrigger value="prompt">Prompt Generator</TabsTrigger>
-          </TabsList>
+      <div className="flex-1 flex overflow-hidden print:hidden relative">
+        <aside className="w-16 md:w-64 border-r bg-card flex flex-col shrink-0 transition-all duration-300 relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+           <div className="p-4 border-b hidden md:block">
+             <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Menu Navigasi</h2>
+           </div>
+           <nav className="p-3 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+             <Button variant={activeTab === 'tests' ? 'default' : 'ghost'} onClick={() => setActiveTab('tests')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+               <FileText className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Daftar Ujian</span>
+             </Button>
+             <Button variant={activeTab === 'attempts' ? 'default' : 'ghost'} onClick={() => setActiveTab('attempts')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+               <CheckCircle2 className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Hasil Peserta</span>
+             </Button>
+             <Button variant={activeTab === 'students' ? 'default' : 'ghost'} onClick={() => setActiveTab('students')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+               <User className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Data Siswa</span>
+             </Button>
+             <Button variant={activeTab === 'editor' ? 'default' : 'ghost'} onClick={() => setActiveTab('editor')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+               <Settings2 className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">{editId ? 'Edit Ujian' : 'Editor Baru'}</span>
+             </Button>
+             <Button variant={activeTab === 'prompt' ? 'default' : 'ghost'} onClick={() => setActiveTab('prompt')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+               <Type className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Prompt Generator</span>
+             </Button>
+           </nav>
+        </aside>
+
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-muted/10 custom-scrollbar relative z-10">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="hidden">
+              <TabsTrigger value="tests">1</TabsTrigger>
+              <TabsTrigger value="attempts">2</TabsTrigger>
+              <TabsTrigger value="students">3</TabsTrigger>
+              <TabsTrigger value="editor">4</TabsTrigger>
+              <TabsTrigger value="prompt">5</TabsTrigger>
+            </TabsList>
 
           {/* TAB: TEKS (DAFTAR UJIAN) */}
-          <TabsContent value="tests" className="flex-1">
+          <TabsContent value="tests" className="flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Daftar Ujian Aktif</h2>
               <Button onClick={handleCreateNew}>Buat Ujian Baru</Button>
@@ -814,7 +838,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
           </TabsContent>
 
           {/* TAB: ATTEMPTS (HASIL PESERTA) */}
-          <TabsContent value="attempts" className="flex-1">
+          <TabsContent value="attempts" className="flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Riwayat Pengerjaan</h2>
               <Button variant="outline" onClick={loadAttempts}>Segarkan Data</Button>
@@ -852,7 +876,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
           </TabsContent>
 
           {/* TAB: DATA SISWA */}
-          <TabsContent value="students" className="flex-1 space-y-6">
+          <TabsContent value="students" className="flex-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-semibold">Manajemen Data Siswa</h2>
@@ -861,27 +885,65 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
               <Button variant="outline" onClick={loadStudents}>Segarkan Data</Button>
             </div>
 
-            <Card className="shadow-sm">
-              <CardHeader className="bg-muted/30 border-b pb-4">
-                <CardTitle className="text-sm font-bold">Generate ID Siswa Otomatis</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex flex-wrap items-end gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Buat Manual */}
+              <details className="group border rounded-xl bg-card overflow-hidden shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors font-bold text-sm">
+                  <div className="flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Buat ID Siswa Manual</div>
+                  <HelpCircle className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="p-4 border-t space-y-4 bg-background">
                   <div className="space-y-2">
-                    <Label>Prefix Kustom (Teks depan)</Label>
-                    <Input placeholder="SMA-" value={stuPrefix} onChange={e => setStuPrefix(e.target.value)} className="w-48" />
+                    <Label>ID Spesifik (Contoh: Budi-2024)</Label>
+                    <Input placeholder="ID Siswa" id="manual-id" className="w-full" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Jumlah ID</Label>
-                    <Input type="number" placeholder="10" value={stuCount} onChange={e => setStuCount(e.target.value)} className="w-32" />
+                    <Label>Nama Lengkap</Label>
+                    <Input placeholder="Nama Siswa" id="manual-name" className="w-full" />
                   </div>
-                  <Button onClick={handleGenerateStudents} disabled={generatingStu}>
-                    {generatingStu ? 'Memproses...' : 'Generate ID'}
+                  <Button 
+                    onClick={async () => {
+                       const idVal = (document.getElementById('manual-id') as HTMLInputElement).value.trim();
+                       const nameVal = (document.getElementById('manual-name') as HTMLInputElement).value.trim();
+                       if (!idVal || !nameVal) return setStuMsg('ID dan Nama wajib diisi.');
+                       setGeneratingStu(true);
+                       const { error } = await supabase.from('students').insert([{ id: idVal, name: nameVal }]);
+                       setGeneratingStu(false);
+                       if (error) setStuMsg(error.message);
+                       else { setStuMsg(`Siswa ${nameVal} berhasil ditambahkan.`); loadStudents(); }
+                    }} 
+                    disabled={generatingStu}
+                    className="w-full"
+                  >
+                    {generatingStu ? 'Menyimpan...' : 'Simpan Siswa'}
                   </Button>
                 </div>
-                {stuMsg && <p className="text-sm font-medium text-primary mt-2">{stuMsg}</p>}
-              </CardContent>
-            </Card>
+              </details>
+
+              {/* Generate Auto */}
+              <details className="group border rounded-xl bg-card overflow-hidden shadow-sm [&_summary::-webkit-details-marker]:hidden" open>
+                <summary className="flex cursor-pointer items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors font-bold text-sm">
+                  <div className="flex items-center gap-2"><Settings2 className="w-4 h-4 text-primary" /> Generate ID Massal</div>
+                  <HelpCircle className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="p-4 border-t space-y-4 bg-background">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Prefix (Teks depan)</Label>
+                      <Input placeholder="SMA-" value={stuPrefix} onChange={e => setStuPrefix(e.target.value)} className="w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Jumlah ID</Label>
+                      <Input type="number" placeholder="10" value={stuCount} onChange={e => setStuCount(e.target.value)} className="w-full" />
+                    </div>
+                  </div>
+                  <Button onClick={handleGenerateStudents} disabled={generatingStu} className="w-full">
+                    {generatingStu ? 'Memproses...' : 'Generate Massal'}
+                  </Button>
+                </div>
+              </details>
+            </div>
+            {stuMsg && <p className="text-sm font-medium text-primary mt-2 p-3 bg-primary/10 border border-primary/20 rounded-md text-center">{stuMsg}</p>}
 
             <div className="rounded-md border bg-card overflow-hidden">
               <div className="grid grid-cols-4 gap-4 p-4 border-b bg-muted/30 font-semibold text-sm">
@@ -910,7 +972,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
           </TabsContent>
 
           {/* TAB: EDITOR */}
-          <TabsContent value="editor" className="flex-1 space-y-4">
+          <TabsContent value="editor" className="flex-1 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {saveMsg && (
               <div className="p-3 bg-primary/10 text-primary border border-primary/20 rounded-md text-sm font-medium">
                 {saveMsg}
@@ -918,115 +980,88 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
             )}
             
             {showSettings && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
-                {/* Card 1: Identitas Ujian */}
-                <Card className="shadow-none border border-border/60 bg-muted/20 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
-                  <CardHeader className="py-4 bg-muted/30 border-b border-border/40">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
-                      <FileText className="w-4 h-4 text-primary" /> Identitas & Materia
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5 space-y-4">
+              <details className="group border border-border/80 rounded-2xl bg-muted/10 overflow-hidden shadow-sm mb-6 animate-in fade-in slide-in-from-top-4 duration-500 [&_summary::-webkit-details-marker]:hidden" open>
+                <summary className="flex cursor-pointer items-center justify-between p-4 bg-muted/40 hover:bg-muted/60 transition-colors font-bold text-sm">
+                  <div className="flex items-center gap-2"><Settings2 className="w-4 h-4 text-primary" /> Pengaturan Ujian Lanjutan</div>
+                  <span className="text-xs text-muted-foreground group-open:hidden">Klik untuk melihat pengaturan...</span>
+                </summary>
+                <div className="p-6 border-t border-border/40 space-y-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-background/50">
+                  {/* Card 1: Identitas Ujian */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><FileText className="w-3.5 h-3.5" /> Identitas</h3>
                     <div className="space-y-1.5">
-                      <Label htmlFor="exam-title" className="text-xs font-semibold">Judul Ujian</Label>
-                      <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="bg-background/80" />
+                      <Label htmlFor="exam-title" className="text-[11px] font-semibold">Judul Ujian</Label>
+                      <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="h-8 text-xs bg-background" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <Label htmlFor="duration" className="text-xs font-semibold">Durasi (m)</Label>
-                        <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="bg-background/80" />
+                        <Label htmlFor="duration" className="text-[11px] font-semibold">Durasi (m)</Label>
+                        <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="h-8 text-xs bg-background" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="kkm" className="text-xs font-semibold">KKM</Label>
-                        <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} className="bg-background/80" />
+                        <Label htmlFor="kkm" className="text-[11px] font-semibold">KKM</Label>
+                        <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} className="h-8 text-xs bg-background" />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
 
-                {/* Card 2: Akses & Penjadwalan */}
-                <Card className="shadow-none border border-border/60 bg-muted/20 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
-                  <CardHeader className="py-4 bg-muted/30 border-b border-border/40">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
-                      <Calendar className="w-4 h-4 text-primary" /> Akses & Jadwal
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5 space-y-4">
+                  {/* Card 2: Akses & Penjadwalan */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><Calendar className="w-3.5 h-3.5" /> Penjadwalan</h3>
                     <div className="space-y-1.5">
-                      <Label htmlFor="start-at" className="text-xs font-semibold">Jadwal Mulai</Label>
-                      <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="bg-background/80" />
+                      <Label htmlFor="start-at" className="text-[11px] font-semibold">Waktu Mulai</Label>
+                      <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="h-8 text-xs bg-background" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="end-at" className="text-xs font-semibold">Jadwal Selesai</Label>
-                      <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="bg-background/80" />
+                      <Label htmlFor="end-at" className="text-[11px] font-semibold">Waktu Selesai</Label>
+                      <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="h-8 text-xs bg-background" />
                     </div>
-                    <div className="pt-2">
-                       <label className="flex items-center gap-3 p-2 bg-background/50 rounded-lg border border-dashed border-border cursor-pointer hover:bg-background transition-colors">
-                        <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold">Ujian Hari Ini</span>
-                          <span className="text-[10px] text-muted-foreground">Aktifkan otomatis untuk hari ini.</span>
-                        </div>
-                      </label>
-                    </div>
-                  </CardContent>
-                </Card>
+                    <label className="flex items-center gap-2 p-2 bg-background/50 rounded-lg border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors mt-2">
+                      <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-3.5 w-3.5 rounded border-input accent-primary" />
+                      <span className="text-[11px] font-bold">Setel Hari Ini Otomatis</span>
+                    </label>
+                  </div>
 
-                {/* Card 3: Jawaban & Feedback */}
-                <Card className="shadow-none border border-border/60 bg-primary/5 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
-                  <CardHeader className="py-4 bg-primary/10 border-b border-primary/20">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide text-primary">
-                      <CheckCircle2 className="w-4 h-4" /> Review & Koreksi
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5 space-y-4">
-                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border bg-background/80 hover:bg-background hover:shadow-sm transition-all">
+                  {/* Card 3: Jawaban & Feedback */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><CheckCircle2 className="w-3.5 h-3.5" /> Feedback Ujian</h3>
+                    <label className="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg border bg-background hover:bg-muted/50 transition-all">
                       <input type="checkbox" checked={showAnswer} onChange={(e) => setShowAnswer(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold">Lihat Kunci Jawaban</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Peserta melihat jawaban benar setelah selesai.</span>
+                        <span className="text-xs font-bold">Kunci Jawaban</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Tampilkan di akhir ujian.</span>
                       </div>
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border bg-background/80 hover:bg-background hover:shadow-sm transition-all">
+                    <label className="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg border bg-background hover:bg-muted/50 transition-all">
                       <input type="checkbox" checked={immediateFeedback} onChange={(e) => setImmediateFeedback(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
                       <div className="flex flex-col">
                         <span className="text-xs font-bold">Feedback Instan</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Beritahu benar/salah setiap soal dijawab.</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Langsung cek benar/salah.</span>
                       </div>
                     </label>
-                    <div className="p-2 px-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start gap-2">
-                      <HelpCircle className="w-3.5 h-3.5 text-blue-500 mt-0.5" />
-                      <p className="text-[10px] text-blue-600/80 leading-relaxed italic">Pengaturan ini akan diterapkan pada semua peserta ujian ini.</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
 
-                {/* Card 4: Pengaturan Bantuan Tips (AI) */}
-                <Card className="shadow-none border border-border/60 bg-muted/20 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
-                  <CardHeader className="py-4 bg-muted/30 border-b border-border/40">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
-                      <HelpCircle className="w-4 h-4 text-primary" /> Penalti Tips AI
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5 space-y-4">
-                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border bg-background/80 hover:bg-background hover:shadow-sm transition-all">
+                  {/* Card 4: Pengaturan Bantuan Tips (AI) */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><HelpCircle className="w-3.5 h-3.5" /> Bantuan Tips AI</h3>
+                    <label className="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg border bg-background hover:bg-muted/50 transition-all">
                       <input type="checkbox" checked={enableTipPenalty} onChange={(e) => setEnableTipPenalty(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold">Penurunan Nilai</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Kurangi nilai soal jika tips digunakan.</span>
+                        <span className="text-xs font-bold">Kurangi Nilai</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Berikan penalti jika tips dipakai.</span>
                       </div>
                     </label>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">Skema Penalti Tips Teori (%)</Label>
-                      <Input value={penaltyTheoryConfig} onChange={(e) => setPenaltyTheoryConfig(e.target.value)} placeholder="10, 15, 20, ..." className="bg-background/80 text-xs" disabled={!enableTipPenalty}/>
+                      <Label className="text-[10px] font-semibold text-muted-foreground">Teori (%)</Label>
+                      <Input value={penaltyTheoryConfig} onChange={(e) => setPenaltyTheoryConfig(e.target.value)} placeholder="10, 15, ..." className="h-7 text-xs bg-background" disabled={!enableTipPenalty}/>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">Skema Penalti Tips Praktik (%)</Label>
-                      <Input value={penaltyPracticeConfig} onChange={(e) => setPenaltyPracticeConfig(e.target.value)} placeholder="15, 20, 25, ..." className="bg-background/80 text-xs" disabled={!enableTipPenalty}/>
+                      <Label className="text-[10px] font-semibold text-muted-foreground">Praktik (%)</Label>
+                      <Input value={penaltyPracticeConfig} onChange={(e) => setPenaltyPracticeConfig(e.target.value)} placeholder="15, 20, ..." className="h-7 text-xs bg-background" disabled={!enableTipPenalty}/>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </div>
+              </details>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px] xl:h-[700px]">
@@ -1127,7 +1162,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
           </TabsContent>
 
           {/* TAB: PROMPT GENERATOR */}
-          <TabsContent value="prompt" className="flex-1 space-y-6">
+          <TabsContent value="prompt" className="flex-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold tracking-tight">AI Prompt Generator</h2>
@@ -1296,6 +1331,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
           </TabsContent>
         </Tabs>
       </main>
+      </div>
     </div>
   );
 }

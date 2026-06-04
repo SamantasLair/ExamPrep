@@ -14,6 +14,8 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { Menu, X, CheckSquare, Square, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ExamRunnerProps {
   questions: Question[];
@@ -50,6 +52,7 @@ export function ExamRunner({
   const [tipsUsed, setTipsUsed] = useState<Record<string, number[]>>({});
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false); // Retractable Nav Drawer
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const submitRef = useRef<() => void>(() => {});
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -185,61 +188,79 @@ export function ExamRunner({
   const progressPct = (answeredCount / questions.length) * 100;
   const isTimeLow = timeLeft < 60;
 
+  // Jump to question logic
+  const jumpToQuestion = useCallback((qId: string) => {
+    // Find index in renderItems
+    const index = renderItems.findIndex(item => {
+      if (item.type === 'question') return item.question.id.toString() === qId;
+      if (item.type === 'stimulus_group') return item.questions.some(q => q.id.toString() === qId);
+      return false;
+    });
+    if (index !== -1) {
+      virtualizer.scrollToIndex(index, { align: 'start' });
+      if (window.innerWidth < 768) setIsDrawerOpen(false); // auto close on mobile
+    }
+  }, [renderItems, virtualizer]);
+
   return (
-    <div className="h-full flex flex-col space-y-4">
-      {/* Top Bar (Sticky) */}
-      <div className="flex-none z-10 sticky top-0 bg-background pt-2 pb-2">
-        <Card className="shadow-sm border-primary/20">
-          <CardContent className="py-3 flex items-center justify-between gap-4 flex-wrap">
+    <div className="h-full flex overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-muted/10 relative transition-all duration-300">
+        {/* Top Bar (Sticky, Denser) */}
+        <div className="flex-none z-10 sticky top-0 bg-background/90 backdrop-blur border-b shadow-sm">
+          <div className="py-2 px-3 md:px-6 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
-              <Badge variant={isTimeLow ? 'destructive' : 'secondary'} className="font-mono text-sm px-3 py-1">
+              <Button variant="ghost" size="icon" onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="shrink-0 rounded-full h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors">
+                <Menu className="w-4 h-4" />
+              </Button>
+              <Badge variant={isTimeLow ? 'destructive' : 'secondary'} className="font-mono text-xs px-2.5 py-0.5 rounded-full shadow-sm">
                 Waktu: {formatTime(timeLeft)}
               </Badge>
-              <span className="text-sm font-semibold">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground hidden sm:inline-block">
                 {answeredCount}/{questions.length} Terjawab
               </span>
             </div>
-            <div className="flex-1 max-w-md hidden md:block">
-              <Progress value={progressPct} className="h-2.5" />
+            <div className="flex-1 max-w-sm hidden lg:block px-4">
+              <Progress value={progressPct} className="h-1.5" />
             </div>
-            <Button variant="destructive" size="sm" onClick={() => setShowConfirm(true)}>
-              Kumpulkan Ujian
+            <Button variant="destructive" size="sm" onClick={() => setShowConfirm(true)} className="h-8 text-[11px] font-bold shadow-sm hover:scale-[1.02] transition-transform">
+              Kumpulkan
             </Button>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Virtualized List Container */}
-      <div 
-        ref={scrollRef} 
-        className="flex-1 overflow-y-auto pr-2 custom-scrollbar"
-        style={{ minHeight: '500px', maxHeight: '80vh' }}
-      >
-        <div
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
+        {/* Virtualized List Container */}
+        <div 
+          ref={scrollRef} 
+          className="flex-1 overflow-y-auto px-2 md:px-6 py-4 custom-scrollbar"
+          style={{ minHeight: '500px' }}
         >
-          {virtualizer.getVirtualItems().map((virtualItem) => {
-            const item = renderItems[virtualItem.index];
-            return (
-              <div
-                key={virtualItem.key}
-                data-index={virtualItem.index}
-                ref={virtualizer.measureElement}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: `translateY(${virtualItem.start}px)`,
-                  paddingBottom: '24px',
-                }}
-              >
-                {item.type === 'question' ? (
-                  <div className="bg-card border rounded-xl shadow-sm p-1">
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const item = renderItems[virtualItem.index];
+              return (
+                <div
+                  key={virtualItem.key}
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualItem.start}px)`,
+                    paddingBottom: '20px',
+                  }}
+                  className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+                >
+                  {item.type === 'question' ? (
+                  <div className="group">
                     <QuestionRenderer
                       question={item.question}
                       answer={answers[item.question.id]}
@@ -254,10 +275,10 @@ export function ExamRunner({
                     />
                   </div>
                 ) : (
-                  <StimulusRenderer content={item.content}>
-                    <div className="space-y-4">
-                      {item.questions.map(q => (
-                        <div key={q.id} className="bg-card border rounded-xl shadow-sm p-1">
+                    <StimulusRenderer content={item.content}>
+                      <div className="space-y-4">
+                        {item.questions.map(q => (
+                        <div key={q.id} className="group">
                           <QuestionRenderer
                             question={q}
                             answer={answers[q.id]}
@@ -272,14 +293,55 @@ export function ExamRunner({
                           />
                         </div>
                       ))}
-                    </div>
-                  </StimulusRenderer>
-                )}
-              </div>
-            );
-          })}
+                      </div>
+                    </StimulusRenderer>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      {/* Retractable Right Drawer for Navigation */}
+      <aside 
+        className={cn(
+          "w-64 border-l bg-card flex flex-col shrink-0 transition-all duration-300 z-20 absolute md:relative right-0 top-0 bottom-0 shadow-[-4px_0_24px_rgba(0,0,0,0.02)]",
+          isDrawerOpen ? "translate-x-0" : "translate-x-full md:translate-x-0 md:w-0 md:border-l-0 overflow-hidden"
+        )}
+      >
+        <div className="p-3 border-b flex items-center justify-between bg-muted/20">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Navigasi Soal</h3>
+          <Button variant="ghost" size="icon" onClick={() => setIsDrawerOpen(false)} className="h-6 w-6 rounded-full md:hidden">
+            <X className="w-3 h-3" />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-background/50">
+          <div className="grid grid-cols-5 gap-2">
+            {questions.map((q, idx) => {
+              const isAnswered = !!answers[q.id];
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => jumpToQuestion(q.id.toString())}
+                  className={cn(
+                    "h-8 w-8 text-[11px] font-mono font-bold rounded-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm",
+                    isAnswered 
+                      ? "bg-primary text-primary-foreground border-transparent" 
+                      : "bg-background border border-border/60 text-muted-foreground hover:border-primary/50 hover:text-primary"
+                  )}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="p-4 border-t bg-muted/10 text-[10px] text-muted-foreground space-y-2">
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-primary border"></div> Sudah Dijawab</div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-background border"></div> Belum Dijawab</div>
+        </div>
+      </aside>
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>

@@ -135,7 +135,7 @@ export function QuestionRenderer({
                   >
                     <RadioGroupItem value={opt.key} id={`q${question.id}-${opt.key}`} className="mt-0.5" />
                     <span className="font-semibold mr-1">{opt.key}.</span>
-                    <span className="flex-1 text-sm">
+                    <span className="flex-1 text-[13px] md:text-sm">
                       <ContentBlockList blocks={opt.body} compactLayout={compactLayout} />
                     </span>
                   </Label>
@@ -253,12 +253,12 @@ export function QuestionRenderer({
     </div>
   ) : (
     <Card className={cn(
-      'transition-all duration-200',
+      'transition-all duration-300 shadow-sm border-border/60 hover:border-primary/40 hover:shadow-md bg-card/90 backdrop-blur-sm',
       isCorrect && 'border-green-500/50 bg-green-50/30 dark:bg-green-950/10',
       isWrong && 'border-red-500/50 bg-red-50/30 dark:bg-red-950/10',
       isNeutral && answer !== undefined && 'border-muted-foreground/30 bg-muted/20',
     )}>
-      <CardContent className="pt-5 space-y-4">
+      <CardContent className="p-4 md:p-5 space-y-3">
         {innerContent}
       </CardContent>
     </Card>
