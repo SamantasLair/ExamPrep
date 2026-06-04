@@ -405,7 +405,39 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
     let oth = promptOther.trim() ? `- Catatan Tambahan:\n  ${promptOther}\n` : '';
     
     const difficultyStr = promptLabels.difficulty.length > 0 ? `[Tingkat Kesulitan: ${promptLabels.difficulty.join(', ')}]` : '';
-    const ageStr = promptLabels.ageRange.length > 0 ? `[Range Umur/Kelas: ${promptLabels.ageRange.join(', ')}]` : '';
+    
+    // Group consecutive "Kelas X"
+    const formatAgeRange = (selected: string[]) => {
+       const nums: number[] = [];
+       const others: string[] = [];
+       for (const val of selected) {
+          if (val.startsWith("Kelas ")) {
+             const n = parseInt(val.replace("Kelas ", ""), 10);
+             if (!isNaN(n)) nums.push(n);
+             else others.push(val);
+          } else {
+             others.push(val);
+          }
+       }
+       nums.sort((a,b) => a-b);
+       const ranges: string[] = [];
+       if (nums.length > 0) {
+          let start = nums[0];
+          let prev = nums[0];
+          for (let i = 1; i <= nums.length; i++) {
+             if (nums[i] === prev + 1) {
+                prev = nums[i];
+             } else {
+                if (start === prev) ranges.push(`Kelas ${start}`);
+                else ranges.push(`Kelas ${start}-${prev}`);
+                if (i < nums.length) { start = nums[i]; prev = nums[i]; }
+             }
+          }
+       }
+       return [...ranges, ...others].join(', ');
+    };
+
+    const ageStr = promptLabels.ageRange.length > 0 ? `[Range Umur/Kelas: ${formatAgeRange(promptLabels.ageRange)}]` : '';
     const subjectStr = promptLabels.subject.length > 0 ? `[Topik: ${promptLabels.subject.join(', ')}]` : '';
     const labelContext = (difficultyStr || ageStr || subjectStr) 
       ? `- Label Prioritas (Sertakan di output JSON/Markdown):\n  ${[difficultyStr, ageStr, subjectStr].filter(Boolean).join(' ')}\n` 
@@ -436,7 +468,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
   }, [printPaperSize, customPaperWidth, customPaperHeight]);
 
   return (
-    <div className="min-h-screen print:min-h-0 bg-background text-foreground flex flex-col">
+    <div className="h-screen print:h-auto bg-background text-foreground flex flex-col">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none print:hidden">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
