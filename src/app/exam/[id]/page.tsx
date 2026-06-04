@@ -41,10 +41,18 @@ export default function ExamPage() {
     loadExam();
   }, [examId]);
 
-  const handleSubmit = useCallback(async (answers: Record<string, string>, score: number) => {
+  const handleSubmit = useCallback(async (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>) => {
+    let studentId = null;
+    try {
+      const savedStudentStr = localStorage.getItem('exaprep_student');
+      if (savedStudentStr) studentId = JSON.parse(savedStudentStr).id;
+    } catch { /* ignore */ }
+
     const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert({
       test_id: examId,
+      student_id: studentId,
       responses: answers,
+      tips_used: tipsUsedData,
       score,
       status: 'finished',
       finished_at: new Date().toISOString(),
@@ -122,6 +130,9 @@ export default function ExamPage() {
           examId={examId}
           onSubmit={handleSubmit}
           immediateFeedback={test?.immediate_feedback ?? false}
+          enableTipPenalty={test?.enable_tip_penalty ?? false}
+          penaltyTheoryConfig={test?.penalty_theory_config ?? '10, 15, 20, ...'}
+          penaltyPracticeConfig={test?.penalty_practice_config ?? '15, 20, 25, ...'}
         />
       </div>
     </div>

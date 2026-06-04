@@ -17,6 +17,11 @@ export interface Option {
   body: ContentBlock[];
 }
 
+export interface Tip {
+  type: 'THEORY' | 'PRACTICE';
+  content: ContentBlock[];
+}
+
 export interface Question {
   id: string | number; // Updated to support UUIDs from DB
   stimulus_id?: string; // Links to Case Study
@@ -28,6 +33,7 @@ export interface Question {
   options?: Option[];
   correctAnswer?: string;
   discussion?: ContentBlock[];
+  tips?: Tip[];
 }
 
 /* ── Database Row Types ── */
@@ -43,6 +49,9 @@ export interface TestRow {
   passing_grade: number;
   show_answer: boolean;
   immediate_feedback?: boolean;
+  enable_tip_penalty?: boolean;
+  penalty_theory_config?: string;
+  penalty_practice_config?: string;
   created_by: string | null;
   created_at: string;
 }
@@ -73,6 +82,7 @@ export interface AttemptRow {
   test_id: string;
   user_id: string;
   responses: Record<string, string>;
+  tips_used?: Record<string, { theory: number; practice: number }>;
   score: number;
   status: 'ongoing' | 'finished';
   started_at: string;

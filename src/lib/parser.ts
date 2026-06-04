@@ -21,6 +21,8 @@ const QUESTION_HEADER_RE = /^#\s*Q(\d+)\s*\((PILGAN|ESSAY)\)\s*$/i;
 const OPTION_RE = /^\[\[([A-E])\]\]\s*(.*)/;
 const ANSWER_RE = /^(?:Jawaban:\s*)?ANSWER:\s*(.+)$/i;
 const DISCUSSION_RE = /^(?:Pembahasan:\s*)?DISCUSSION:\s*([\s\S]*)$/i;
+const TIPS_THEORY_RE = /^TIPS_THEORY:\s*([\s\S]*)$/i;
+const TIPS_PRACTICE_RE = /^TIPS_PRACTICE:\s*([\s\S]*)$/i;
 
 /* ── Inline content parsers ── */
 
@@ -260,8 +262,9 @@ export function parseMarkdown(markdown: string): Question[] {
     options: { key: string; textLines: string[] }[];
     answerRaw: string;
     discussionLines: string[];
+    tipsList: { type: 'THEORY' | 'PRACTICE'; lines: string[] }[];
   } | null = null;
-  let section: 'body' | 'options' | 'discussion' = 'body';
+  let section: 'body' | 'options' | 'discussion' | 'tip_theory' | 'tip_practice' = 'body';
 
   function flushQuestion() {
     if (!current) return;
@@ -273,6 +276,12 @@ export function parseMarkdown(markdown: string): Question[] {
       body: parseInlineContent(o.textLines.join('\n')),
     }));
     const discussionText = current.discussionLines.join('\n').trim();
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tips: any[] = current.tipsList.map(t => ({
+      type: t.type,
+      content: parseInlineContent(t.lines.join('\n').trim()),
+    })).filter(t => t.content.length > 0);
 
     questions.push({
       id: current.id,
@@ -281,6 +290,7 @@ export function parseMarkdown(markdown: string): Question[] {
       options: current.type === 'MCQ' ? options : undefined,
       correctAnswer: current.answerRaw || undefined,
       discussion: discussionText ? parseInlineContent(discussionText) : undefined,
+      tips: tips.length > 0 ? tips : undefined,
     });
     current = null;
   }
@@ -297,6 +307,7 @@ export function parseMarkdown(markdown: string): Question[] {
         options: [],
         answerRaw: '',
         discussionLines: [],
+        tipsList: [],
       };
       section = 'body';
       continue;
@@ -320,8 +331,31 @@ export function parseMarkdown(markdown: string): Question[] {
       continue;
     }
 
+    const tipsTheoryMatch = line.match(TIPS_THEORY_RE);
+    if (tipsTheoryMatch) {
+      section = 'tip_theory';
+      current.tipsList.push({ type: 'THEORY', lines: [] });
+      const initialContent = tipsTheoryMatch[1].trim();
+      if (initialContent) current.tipsList[current.tipsList.length - 1].lines.push(initialContent);
+      continue;
+    }
+
+    const tipsPracticeMatch = line.match(TIPS_PRACTICE_RE);
+    if (tipsPracticeMatch) {
+      section = 'tip_practice';
+      current.tipsList.push({ type: 'PRACTICE', lines: [] });
+      const initialContent = tipsPracticeMatch[1].trim();
+      if (initialContent) current.tipsList[current.tipsList.length - 1].lines.push(initialContent);
+      continue;
+    }
+
     if (section === 'discussion') {
       current.discussionLines.push(line);
+      continue;
+    }
+
+    if (section === 'tip_theory' || section === 'tip_practice') {
+      current.tipsList[current.tipsList.length - 1].lines.push(line);
       continue;
     }
 
@@ -345,4 +379,41 @@ export function parseMarkdown(markdown: string): Question[] {
 
   flushQuestion();
   return questions;
+}
+
+/**
+ * Parses a penalty config string like "10, 15, 20, ..." or "10, 15"
+ * Returns the penalty for the N-th tip (1-indexed).
+ */
+export function getPenaltyForTip(configStr: string, tipIndex: number): number {
+  if (!configStr || !configStr.trim() || tipIndex <= 0) return 0;
+  
+  const parts = configStr.split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length === 0) return 0;
+
+  const hasEllipsis = parts[parts.length - 1] === '...';
+  const numParts = hasEllipsis ? parts.slice(0, -1) : parts;
+  
+  const numbers = numParts.map(s => parseFloat(s)).filter(n => !isNaN(n));
+  if (numbers.length === 0) return 0;
+
+  if (tipIndex <= numbers.length) {
+    return numbers[tipIndex - 1];
+  }
+
+  if (!hasEllipsis) {
+    return 0; // No penalty after the last one if no ellipsis
+  }
+
+  // Extrapolate
+  if (numbers.length === 1) {
+    return numbers[0]; // Constant if only 1 number
+  }
+
+  const lastNum = numbers[numbers.length - 1];
+  const prevNum = numbers[numbers.length - 2];
+  const diff = lastNum - prevNum;
+
+  const extraSteps = tipIndex - numbers.length;
+  return lastNum + (diff * extraSteps);
 }

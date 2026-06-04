@@ -8,13 +8,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Lightbulb, Wrench, AlertTriangle } from 'lucide-react';
+import { getPenaltyForTip } from '@/lib/parser';
 
 type FeedbackMode = 'graded' | 'neutral';
 
 interface QuestionRendererProps {
   question: Question;
   answer?: string;
-  onAnswer?: (questionId: number, answer: string) => void;
+  onAnswer?: (questionId: string | number, answer: string) => void;
   showDiscussion?: boolean;
   showOnlyDiscussion?: boolean;
   showCorrectAnswer?: boolean;
@@ -23,6 +25,11 @@ interface QuestionRendererProps {
   printMode?: boolean; // Nasty UI elements stripped out
   compactLayout?: boolean;
   answerStyle?: 'solid' | 'outlined' | 'minimalist' | 'boxed' | 'bracket';
+  onUseTip?: (questionId: string | number, tipIndex: number, type: 'THEORY' | 'PRACTICE') => void;
+  usedTips?: number[];
+  enableTipPenalty?: boolean;
+  tipPenaltyTheory?: string;
+  tipPenaltyPractice?: string;
 }
 
 export function QuestionRenderer({
@@ -37,6 +44,11 @@ export function QuestionRenderer({
   printMode = false,
   compactLayout = false,
   answerStyle = 'solid',
+  onUseTip,
+  usedTips = [],
+  enableTipPenalty = false,
+  tipPenaltyTheory = '',
+  tipPenaltyPractice = '',
 }: QuestionRendererProps) {
   const isGraded = showCorrectAnswer && feedbackMode === 'graded';
   const isNeutral = showCorrectAnswer && feedbackMode === 'neutral';
@@ -177,6 +189,59 @@ export function QuestionRenderer({
           <div className={cn(printMode ? "text-[1em]" : "text-sm")}>
             <ContentBlockList blocks={question.discussion || []} compactLayout={compactLayout} />
           </div>
+        </div>
+      )}
+
+      {/* Tips Section */}
+      {question.tips && question.tips.length > 0 && !printMode && (
+        <div className="mt-4 space-y-2">
+          {question.tips.map((tip, idx) => {
+            const isTheory = tip.type === 'THEORY';
+            const isUsed = usedTips.includes(idx);
+            
+            const sameTypeTips = question.tips!.filter(t => t.type === tip.type);
+            const myTypeIndex = sameTypeTips.indexOf(tip) + 1; 
+            const penaltyVal = enableTipPenalty 
+               ? getPenaltyForTip(isTheory ? tipPenaltyTheory : tipPenaltyPractice, myTypeIndex)
+               : 0;
+
+            if (isUsed || disabled) {
+               return (
+                 <div key={idx} className={cn("p-3 rounded-lg border", isTheory ? "bg-blue-50/50 border-blue-200 dark:bg-blue-950/20" : "bg-amber-50/50 border-amber-200 dark:bg-amber-950/20")}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {isTheory ? <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400" /> : <Wrench className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+                      <span className={cn("text-xs font-bold", isTheory ? "text-blue-700 dark:text-blue-400" : "text-amber-700 dark:text-amber-400")}>
+                        Tip {isTheory ? 'Teori' : 'Praktik'}
+                      </span>
+                    </div>
+                    <div className="text-sm">
+                      <ContentBlockList blocks={tip.content} compactLayout={compactLayout} />
+                    </div>
+                 </div>
+               )
+            } else {
+               return (
+                 <button 
+                   key={idx}
+                   onClick={(e) => { e.preventDefault(); onUseTip?.(question.id, idx, tip.type); }}
+                   className={cn(
+                     "w-full flex items-center justify-between p-3 rounded-lg border border-dashed transition-all hover:shadow-sm",
+                     isTheory ? "hover:bg-blue-50/50 border-blue-300 dark:border-blue-800" : "hover:bg-amber-50/50 border-amber-300 dark:border-amber-800"
+                   )}
+                 >
+                    <div className="flex items-center gap-2">
+                      {isTheory ? <Lightbulb className="w-4 h-4 text-blue-500" /> : <Wrench className="w-4 h-4 text-amber-500" />}
+                      <span className="text-sm font-medium text-muted-foreground">Buka Tip {isTheory ? 'Teori' : 'Praktik'}</span>
+                    </div>
+                    {enableTipPenalty && penaltyVal > 0 && (
+                      <Badge variant="outline" className="text-xs text-orange-600 border-orange-200 bg-orange-50 dark:bg-orange-950/30">
+                        <AlertTriangle className="w-3 h-3 mr-1" /> -{penaltyVal}% Nilai
+                      </Badge>
+                    )}
+                 </button>
+               )
+            }
+          })}
         </div>
       )}
     </div>

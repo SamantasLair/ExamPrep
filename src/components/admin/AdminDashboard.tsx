@@ -93,6 +93,9 @@ export function AdminDashboard() {
   const [isDaily, setIsDaily] = useState(false);
   const [showAnswer, setShowAnswer] = useState(true);
   const [immediateFeedback, setImmediateFeedback] = useState(false);
+  const [enableTipPenalty, setEnableTipPenalty] = useState(false);
+  const [penaltyTheoryConfig, setPenaltyTheoryConfig] = useState('10, 15, 20, 22, ...');
+  const [penaltyPracticeConfig, setPenaltyPracticeConfig] = useState('15, 20, 25, 28, ...');
   const [showSettings, setShowSettings] = useState(false);
   const [currentPreviewIdx, setCurrentPreviewIdx] = useState(0);
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
@@ -127,6 +130,7 @@ export function AdminDashboard() {
   const [promptOther, setPromptOther] = useState('');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [promptLabels, setPromptLabels] = useState<LabelTaxonomy>({ difficulty: [], ageRange: [], subject: [] });
+  const [tipsRange, setTipsRange] = useState('0-1');
 
   const questions = useMemo(() => {
     try {
@@ -236,6 +240,9 @@ export function AdminDashboard() {
     setIsDaily(false);
     setShowAnswer(true);
     setImmediateFeedback(false);
+    setEnableTipPenalty(false);
+    setPenaltyTheoryConfig('10, 15, 20, 22, ...');
+    setPenaltyPracticeConfig('15, 20, 25, 28, ...');
     setShowSettings(true);
     setSaveMsg('');
     setActiveTab('editor');
@@ -252,6 +259,9 @@ export function AdminDashboard() {
     setIsDaily(false);
     setShowAnswer(t.show_answer ?? true);
     setImmediateFeedback(t.immediate_feedback ?? false);
+    setEnableTipPenalty(t.enable_tip_penalty ?? false);
+    setPenaltyTheoryConfig(t.penalty_theory_config ?? '10, 15, 20, 22, ...');
+    setPenaltyPracticeConfig(t.penalty_practice_config ?? '15, 20, 25, 28, ...');
     setShowSettings(true);
     setSaveMsg('');
     setActiveTab('editor');
@@ -277,6 +287,9 @@ export function AdminDashboard() {
       end_at: endAt || null,
       show_answer: showAnswer,
       immediate_feedback: immediateFeedback,
+      enable_tip_penalty: enableTipPenalty,
+      penalty_theory_config: penaltyTheoryConfig,
+      penalty_practice_config: penaltyPracticeConfig,
     };
 
     let errorObj = null;
@@ -372,8 +385,14 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
 3. Gunakan KaTeX ($...$ dan $$...$$) untuk semua ekspresi matematika secara disiplin.
 4. HASILKAN DISCUSSION YANG LENGKAP & PROFESIONAL.
 5. JIKA TERJADI KESALAHAN/TERPOTONG: Ketik tag "[Delete this]" pada soal tersebut, lalu ulangi pembuatan soal dengan nomor yang sama di bawahnya.
-6. HANYA gunakan kemampuan rendering di atas. JANGAN berhalusinasi format baru.
-
+7. SISTEM TIPS (TIPS BANTUAN)
+   - Rentang Bantuan Tips yang diminta: ${tipsRange} tips per soal.
+   - JIKA 0-0, JANGAN BUAT TIPS SAMA SEKALI. JIKA > 0, WAJIB BERIKAN TIPS YANG BENAR-BENAR MEMBANTU.
+   - Bedakan tipe tips dengan format di BAWAH baris DISCUSSION:
+     TIPS_THEORY: [Berisi rumus yang dipakai, konsep dasar, atau ide krusial]
+     TIPS_PRACTICE: [Berisi bocoran langkah pengerjaan, substitusi angka, atau clue praktis]
+   - Contoh: Jika rentang 0-1, buatkan maksimal 1 TIPS_THEORY. Jika 2-4, buatkan kombinasi THEORY dan PRACTICE. Pastikan tidak terlalu ambigu.
+   
 ═══════════════════════════════════════════`;
 
     const requestDetails = `Saya butuh soal ujian baru dengan spesifikasi berikut:\n\n` +
@@ -393,7 +412,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
       : '';
     
     return systemRules + "\n\n" + requestDetails + labelContext + ctx + oth + `\nSilakan buatkan soal sesuai panduan di atas.`;
-  }, [promptType, promptCount, promptLang, promptLevel, promptContext, promptOther, promptLabels]);
+  }, [promptType, promptCount, promptLang, promptLevel, promptContext, promptOther, promptLabels, tipsRange]);
 
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(generatedPrompt);
@@ -899,7 +918,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
             )}
             
             {showSettings && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
                 {/* Card 1: Identitas Ujian */}
                 <Card className="shadow-none border border-border/60 bg-muted/20 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
                   <CardHeader className="py-4 bg-muted/30 border-b border-border/40">
@@ -978,6 +997,32 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                     <div className="p-2 px-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start gap-2">
                       <HelpCircle className="w-3.5 h-3.5 text-blue-500 mt-0.5" />
                       <p className="text-[10px] text-blue-600/80 leading-relaxed italic">Pengaturan ini akan diterapkan pada semua peserta ujian ini.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 4: Pengaturan Bantuan Tips (AI) */}
+                <Card className="shadow-none border border-border/60 bg-muted/20 rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
+                  <CardHeader className="py-4 bg-muted/30 border-b border-border/40">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                      <HelpCircle className="w-4 h-4 text-primary" /> Penalti Tips AI
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-5 space-y-4">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border bg-background/80 hover:bg-background hover:shadow-sm transition-all">
+                      <input type="checkbox" checked={enableTipPenalty} onChange={(e) => setEnableTipPenalty(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">Penurunan Nilai</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Kurangi nilai soal jika tips digunakan.</span>
+                      </div>
+                    </label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Skema Penalti Tips Teori (%)</Label>
+                      <Input value={penaltyTheoryConfig} onChange={(e) => setPenaltyTheoryConfig(e.target.value)} placeholder="10, 15, 20, ..." className="bg-background/80 text-xs" disabled={!enableTipPenalty}/>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Skema Penalti Tips Praktik (%)</Label>
+                      <Input value={penaltyPracticeConfig} onChange={(e) => setPenaltyPracticeConfig(e.target.value)} placeholder="15, 20, 25, ..." className="bg-background/80 text-xs" disabled={!enableTipPenalty}/>
                     </div>
                   </CardContent>
                 </Card>
@@ -1126,6 +1171,27 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
                         </span>
                       </Label>
                       <Input placeholder="Cth: 10" value={promptCount} onChange={(e) => setPromptCount(e.target.value)} />
+                    </div>
+
+                    <div className="space-y-2 relative">
+                      <Label className="flex items-center gap-2">
+                        Rentang Bantuan Tips
+                        <span className="group relative cursor-help">
+                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
+                            Jumlah tips yang akan dihasilkan AI per soal. Tips bisa berupa teori (rumus) atau praktik (langkah).
+                          </span>
+                        </span>
+                      </Label>
+                      <select 
+                        className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={tipsRange} onChange={(e) => setTipsRange(e.target.value)}
+                      >
+                        <option value="0-0">0-0 (Tanpa Tips)</option>
+                        <option value="0-1">0-1 (Sedikit Bantuan)</option>
+                        <option value="1-2">1-2 (Bantuan Menengah)</option>
+                        <option value="2-4">2-4 (Banyak Bantuan)</option>
+                      </select>
                     </div>
 
                     <div className="space-y-2 relative">

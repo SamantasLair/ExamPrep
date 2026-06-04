@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Question } from '@/lib/types';
+import { getPenaltyForTip } from '@/lib/parser';
 import { QuestionRenderer } from './QuestionRenderer';
 import { StimulusRenderer } from './StimulusRenderer';
 import { Button } from '@/components/ui/button';
@@ -18,8 +19,11 @@ interface ExamRunnerProps {
   questions: Question[];
   durationMinutes: number;
   examId: string;
-  onSubmit: (answers: Record<string, string>, score: number) => void;
+  onSubmit: (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>) => void;
   immediateFeedback?: boolean;
+  enableTipPenalty?: boolean;
+  penaltyTheoryConfig?: string;
+  penaltyPracticeConfig?: string;
 }
 
 const STORAGE_KEY_PREFIX = 'exaprep_exam_';
@@ -38,8 +42,12 @@ type RenderItem =
   | { type: 'question'; question: Question }
   | { type: 'stimulus_group'; stimulus_id: string; content: string; questions: Question[] };
 
-export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immediateFeedback = false }: ExamRunnerProps) {
+export function ExamRunner({ 
+  questions, durationMinutes, examId, onSubmit, immediateFeedback = false,
+  enableTipPenalty = false, penaltyTheoryConfig = '', penaltyPracticeConfig = ''
+}: ExamRunnerProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [tipsUsed, setTipsUsed] = useState<Record<string, number[]>>({});
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
   const [showConfirm, setShowConfirm] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -77,16 +85,54 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
   const calculateScore = useCallback(() => {
     const mcqs = questions.filter((q) => q.type === 'MCQ');
     if (mcqs.length === 0) return 0;
-    const correct = mcqs.filter((q) => answers[q.id] === q.correctAnswer).length;
-    return Math.round((correct / mcqs.length) * 100);
-  }, [questions, answers]);
+    
+    let totalCorrect = 0;
+
+    for (const q of mcqs) {
+      if (answers[q.id] === q.correctAnswer) {
+        totalCorrect += 1;
+        if (enableTipPenalty && tipsUsed[q.id]) {
+           let qPenalty = 0;
+           tipsUsed[q.id].forEach(idx => {
+             const tip = q.tips?.[idx];
+             if (tip) {
+                const sameTypeTips = q.tips!.filter(t => t.type === tip.type);
+                const myTypeIndex = sameTypeTips.indexOf(tip) + 1;
+                qPenalty += getPenaltyForTip(
+                  tip.type === 'THEORY' ? penaltyTheoryConfig : penaltyPracticeConfig,
+                  myTypeIndex
+                );
+             }
+           });
+           const questionValue = 1 * Math.max(0, (100 - qPenalty) / 100);
+           totalCorrect = totalCorrect - 1 + questionValue; 
+        }
+      }
+    }
+    
+    return Math.round((totalCorrect / mcqs.length) * 100);
+  }, [questions, answers, enableTipPenalty, tipsUsed, penaltyTheoryConfig, penaltyPracticeConfig]);
 
   const handleSubmit = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
+    
+    const tipsUsedObj: Record<string, { theory: number; practice: number }> = {};
+    for (const qId of Object.keys(tipsUsed)) {
+      const q = questions.find(x => x.id.toString() === qId);
+      if (q && q.tips) {
+         let t = 0, p = 0;
+         tipsUsed[qId].forEach(idx => {
+            if (q.tips![idx].type === 'THEORY') t++;
+            else p++;
+         });
+         tipsUsedObj[qId] = { theory: t, practice: p };
+      }
+    }
+
     localStorage.removeItem(getStorageKey(examId));
-    onSubmit(answers, score);
-  }, [answers, calculateScore, examId, onSubmit]);
+    onSubmit(answers, score, tipsUsedObj);
+  }, [answers, calculateScore, examId, onSubmit, tipsUsed, questions]);
 
   useEffect(() => { submitRef.current = handleSubmit; }, [handleSubmit]);
 
@@ -96,6 +142,7 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.answers) setAnswers(parsed.answers);
+        if (parsed.tipsUsed) setTipsUsed(parsed.tipsUsed);
         if (parsed.timeLeft !== undefined) setTimeLeft(parsed.timeLeft);
       }
     } catch { /* ignore */ }
@@ -103,9 +150,9 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
 
   useEffect(() => {
     try {
-      localStorage.setItem(getStorageKey(examId), JSON.stringify({ answers, timeLeft }));
+      localStorage.setItem(getStorageKey(examId), JSON.stringify({ answers, timeLeft, tipsUsed }));
     } catch { /* storage full, ignore */ }
-  }, [answers, timeLeft, examId]);
+  }, [answers, timeLeft, tipsUsed, examId]);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -123,6 +170,15 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
 
   const handleAnswer = useCallback((qId: number | string, val: string) => {
     setAnswers((prev) => ({ ...prev, [qId]: val }));
+  }, []);
+
+  const handleUseTip = useCallback((qId: string | number, tipIndex: number) => {
+    setTipsUsed((prev) => {
+       const qIdStr = qId.toString();
+       const existing = prev[qIdStr] || [];
+       if (existing.includes(tipIndex)) return prev;
+       return { ...prev, [qIdStr]: [...existing, tipIndex] };
+    });
   }, []);
 
   const answeredCount = Object.keys(answers).length;
@@ -190,6 +246,11 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
                       onAnswer={(id, val) => handleAnswer(id, val)}
                       showCorrectAnswer={immediateFeedback && answers[item.question.id] !== undefined}
                       feedbackMode={immediateFeedback ? 'graded' : 'neutral'}
+                      onUseTip={handleUseTip}
+                      usedTips={tipsUsed[item.question.id] || []}
+                      enableTipPenalty={enableTipPenalty}
+                      tipPenaltyTheory={penaltyTheoryConfig}
+                      tipPenaltyPractice={penaltyPracticeConfig}
                     />
                   </div>
                 ) : (
@@ -203,6 +264,11 @@ export function ExamRunner({ questions, durationMinutes, examId, onSubmit, immed
                             onAnswer={(id, val) => handleAnswer(id, val)}
                             showCorrectAnswer={immediateFeedback && answers[q.id] !== undefined}
                             feedbackMode={immediateFeedback ? 'graded' : 'neutral'}
+                            onUseTip={handleUseTip}
+                            usedTips={tipsUsed[q.id] || []}
+                            enableTipPenalty={enableTipPenalty}
+                            tipPenaltyTheory={penaltyTheoryConfig}
+                            tipPenaltyPractice={penaltyPracticeConfig}
                           />
                         </div>
                       ))}
