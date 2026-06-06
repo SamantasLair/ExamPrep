@@ -67,7 +67,7 @@ export function useBankSoalVM() {
       if (count !== null) setTotalQuestions(count);
       setCurrentPage(page);
     }
-  }, []);
+  }, [itemsPerPage, searchTerm, filterLabels]);
 
   useEffect(() => {
     loadQuestions(1);
