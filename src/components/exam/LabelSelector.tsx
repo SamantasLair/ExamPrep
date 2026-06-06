@@ -27,7 +27,7 @@ interface LabelSelectorProps {
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, X, Edit2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function LabelSelector({ selectedLabels, onChange, readOnly = false }: LabelSelectorProps) {
@@ -43,6 +43,44 @@ export function LabelSelector({ selectedLabels, onChange, readOnly = false }: La
       }
     } catch { /* ignore */ }
   }, []);
+
+  const [editingLabel, setEditingLabel] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  const handleSaveEdit = (oldVal: string) => {
+    const newVal = editValue.trim();
+    if (!newVal || newVal === oldVal || PREDEFINED_LABELS.subject.includes(newVal) || (customSubjects.includes(newVal) && newVal !== oldVal)) {
+      setEditingLabel(null);
+      return;
+    }
+    const updatedCustom = customSubjects.map(s => s === oldVal ? newVal : s);
+    setCustomSubjects(updatedCustom);
+    localStorage.setItem('exaprep_custom_subjects', JSON.stringify(updatedCustom));
+    
+    const currentSelected = selectedLabels.subject || [];
+    if (currentSelected.includes(oldVal)) {
+      onChange({
+        ...selectedLabels,
+        subject: currentSelected.map(s => s === oldVal ? newVal : s)
+      });
+    }
+    setEditingLabel(null);
+  };
+
+  const handleDeleteCustom = (val: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedCustom = customSubjects.filter(s => s !== val);
+    setCustomSubjects(updatedCustom);
+    localStorage.setItem('exaprep_custom_subjects', JSON.stringify(updatedCustom));
+    
+    const currentSelected = selectedLabels.subject || [];
+    if (currentSelected.includes(val)) {
+      onChange({
+        ...selectedLabels,
+        subject: currentSelected.filter(s => s !== val)
+      });
+    }
+  };
 
   const handleAddCustomSubject = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -78,15 +116,36 @@ export function LabelSelector({ selectedLabels, onChange, readOnly = false }: La
   const renderCategory = (category: keyof LabelTaxonomy, title: string, colorClass: string, options: string[]) => (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-muted-foreground uppercase">{title}</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         {options.map(label => {
           const isSelected = (selectedLabels[category] || []).includes(label);
+          const isCustom = category === 'subject' && customSubjects.includes(label);
+          const isEditingThis = editingLabel === label;
+
+          if (isEditingThis) {
+            return (
+              <div key={`edit-${label}`} className="flex items-center gap-1">
+                <Input 
+                  value={editValue} 
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveEdit(label);
+                    if (e.key === 'Escape') setEditingLabel(null);
+                  }}
+                  onBlur={() => handleSaveEdit(label)}
+                  autoFocus
+                  className="h-6 text-xs w-32 px-2 py-0 border-primary focus-visible:ring-1"
+                />
+              </div>
+            );
+          }
+
           return (
             <Badge 
               key={label}
               variant={isSelected ? 'default' : 'outline'}
               className={cn(
-                "transition-all cursor-pointer",
+                "transition-all cursor-pointer group flex items-center gap-1",
                 !readOnly && "hover:opacity-80",
                 isSelected && colorClass,
                 readOnly && !isSelected && "hidden" // Only show selected in readonly
@@ -94,6 +153,24 @@ export function LabelSelector({ selectedLabels, onChange, readOnly = false }: La
               onClick={() => toggleLabel(category, label)}
             >
               {label}
+              {!readOnly && isCustom && (
+                <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setEditingLabel(label); setEditValue(label); }}
+                    className="p-0.5 rounded-sm hover:bg-black/20 dark:hover:bg-white/20"
+                    title="Edit Label"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </button>
+                  <button 
+                    onClick={(e) => handleDeleteCustom(label, e)}
+                    className="p-0.5 rounded-sm hover:bg-red-500/50 hover:text-white"
+                    title="Hapus Label"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
             </Badge>
           );
         })}

@@ -72,7 +72,7 @@ export function useExamPageVM(examId: string) {
     const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert(payload).select().single();
 
     if (attemptError || !attemptData) {
-      if (attemptError.message.toLowerCase().includes('fetch') || attemptError.message.toLowerCase().includes('network')) {
+      if (attemptError?.message?.toLowerCase().includes('fetch') || attemptError?.message?.toLowerCase().includes('network')) {
         // Network error during fetch
         localStorage.setItem(`exaprep_offline_sync_${examId}`, JSON.stringify(payload));
         setIsOfflineSync(true);
@@ -80,7 +80,7 @@ export function useExamPageVM(examId: string) {
         setSubmitted(true);
         return;
       }
-      alert(`Gagal Mengirim Ujian: ${attemptError.message}`);
+      alert(`Gagal Mengirim Ujian: ${attemptError?.message || 'Data kosong'}`);
       return; // Halt submission
     }
 

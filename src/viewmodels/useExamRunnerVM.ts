@@ -15,7 +15,8 @@ export function useExamRunnerVM({
   onSubmit,
   enableTipPenalty,
   penaltyTheoryConfig,
-  penaltyPracticeConfig
+  penaltyPracticeConfig,
+  violationCount
 }: {
   questions: Question[];
   durationMinutes: number;

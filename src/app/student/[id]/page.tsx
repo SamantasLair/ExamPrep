@@ -122,6 +122,7 @@ export default function StudentDashboardPage() {
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
                     labelStyle={{ fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}
+                    // @ts-ignore: Recharts types are inaccurate for ReactNode array
                     formatter={(value: number, name: string, props: any) => [
                       <span key="score" className="font-bold">{value} <span className="font-normal text-xs text-muted-foreground">({props.payload.testName})</span></span>,
                       "Skor"
@@ -164,7 +165,7 @@ export default function StudentDashboardPage() {
                     <td className="px-6 py-4 font-medium">{att.tests?.title || 'Unknown'}</td>
                     <td className="px-6 py-4 text-muted-foreground">
                       {att.finished_at ? new Date(att.finished_at).toLocaleString('id-ID') : '-'}
-                      {att.offline_sync_at && (
+                      {(att as any).offline_sync_at && (
                         <Badge variant="outline" className="ml-2 text-[10px] bg-amber-50 text-amber-600 border-amber-200">
                           Offline Sync
                         </Badge>

@@ -119,6 +119,7 @@ export function useAdminDashboardVM() {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [promptLabels, setPromptLabels] = useState<LabelTaxonomy>({ difficulty: [], ageRange: [], subject: [] });
   const [tipsRange, setTipsRange] = useState('0-1');
+  const [isCustomTips, setIsCustomTips] = useState(false);
 
   const questions = useMemo(() => {
     try {
@@ -520,6 +521,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
     copiedPrompt,
     promptLabels, setPromptLabels,
     tipsRange, setTipsRange,
+    isCustomTips, setIsCustomTips,
     // Computed & Methods
     questions,
     generatedPrompt,

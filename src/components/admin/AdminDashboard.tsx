@@ -71,6 +71,7 @@ export function AdminDashboard() {
     copiedPrompt,
     promptLabels, setPromptLabels,
     tipsRange, setTipsRange,
+    isCustomTips, setIsCustomTips,
     questions,
     generatedPrompt,
     printDocumentStyle,
@@ -938,13 +939,34 @@ export function AdminDashboard() {
                       </Label>
                       <select 
                         className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        value={tipsRange} onChange={(e) => setTipsRange(e.target.value)}
+                        value={isCustomTips ? "custom" : tipsRange} 
+                        onChange={(e) => {
+                          if (e.target.value === 'custom') {
+                            setIsCustomTips(true);
+                            setTipsRange('0-5'); // Default custom value
+                          } else {
+                            setIsCustomTips(false);
+                            setTipsRange(e.target.value);
+                          }
+                        }}
                       >
                         <option value="0-0">0-0 (Tanpa Tips)</option>
                         <option value="0-1">0-1 (Sedikit Bantuan)</option>
                         <option value="1-2">1-2 (Bantuan Menengah)</option>
+                        <option value="1-3">1-3 (Bantuan Ekstra)</option>
                         <option value="2-4">2-4 (Banyak Bantuan)</option>
+                        <option value="0-5">0-5 (Variasi Lebar)</option>
+                        <option value="custom">Kustom...</option>
                       </select>
+                      {isCustomTips && (
+                        <div className="pt-2 animate-in fade-in slide-in-from-top-2">
+                          <Input 
+                            placeholder="Ketik rentang (misal: 3-5, 0-10)..." 
+                            value={tipsRange} 
+                            onChange={(e) => setTipsRange(e.target.value)} 
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2 relative">
