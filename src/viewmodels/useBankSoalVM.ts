@@ -169,12 +169,10 @@ export function useBankSoalVM() {
     if (selectedIds.length === 0) return;
     setLoading(true);
     
-    // Simplistic bulk update: we update the 'labels' field for all selected IDs
-    // Since Supabase doesn't easily support bulk jsonb merge in js client without RPC, 
-    // we'll fetch them, merge locally, and update one by one or in a batch if supported.
+    // Use Supabase upsert for bulk update in a single network request (O(1) footprint)
     const toUpdate = questionsList.filter(q => selectedIds.includes(q.id));
     
-    for (const q of toUpdate) {
+    const updates = toUpdate.map(q => {
       const newLabels = { ...q.labels };
       for (const [key, vals] of Object.entries(labelObj)) {
         if (!newLabels[key]) newLabels[key] = [];
@@ -182,7 +180,18 @@ export function useBankSoalVM() {
           if (!newLabels[key].includes(v)) newLabels[key].push(v);
         });
       }
-      await supabase.from('questions').update({ labels: newLabels }).eq('id', q.id);
+      // Remove aggregated fields like 'count' before upserting
+      const { count, ...rest } = q as any;
+      return {
+        ...rest,
+        labels: newLabels
+      };
+    });
+
+    const { error } = await supabase.from('questions').upsert(updates);
+    
+    if (error) {
+      setErrorMsg('Gagal melakukan bulk update: ' + error.message);
     }
     
     setLoading(false);
