@@ -23,6 +23,7 @@ const ANSWER_RE = /^(?:Jawaban:\s*)?ANSWER:\s*(.+)$/i;
 const DISCUSSION_RE = /^(?:Pembahasan:\s*)?DISCUSSION:\s*([\s\S]*)$/i;
 const TIPS_THEORY_RE = /^TIPS_THEORY:\s*([\s\S]*)$/i;
 const TIPS_PRACTICE_RE = /^TIPS_PRACTICE:\s*([\s\S]*)$/i;
+const LABELS_RE = /^LABELS:\s*(.+)$/i;
 
 /* ── Inline content parsers ── */
 
@@ -261,10 +262,11 @@ export function parseMarkdown(markdown: string): Question[] {
     bodyLines: string[];
     options: { key: string; textLines: string[] }[];
     answerRaw: string;
+    labelsRaw: string[];
     discussionLines: string[];
     tipsList: { type: 'THEORY' | 'PRACTICE'; lines: string[] }[];
   } | null = null;
-  let section: 'body' | 'options' | 'discussion' | 'tip_theory' | 'tip_practice' = 'body';
+  let section: 'body' | 'options' | 'discussion' | 'tip_theory' | 'tip_practice' | 'labels' = 'body';
 
   function flushQuestion() {
     if (!current) return;
@@ -283,9 +285,16 @@ export function parseMarkdown(markdown: string): Question[] {
       content: parseInlineContent(t.lines.join('\n').trim()),
     })).filter(t => t.content.length > 0);
 
+    const extractedLabels = current.labelsRaw.join(' ').trim();
+    let labelsArray: string[] | undefined = undefined;
+    if (extractedLabels) {
+      labelsArray = extractedLabels.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
     questions.push({
       id: current.id,
       type: current.type,
+      labels: labelsArray,
       body: parseInlineContent(bodyText),
       options: current.type === 'MCQ' ? options : undefined,
       correctAnswer: current.answerRaw || undefined,
@@ -306,6 +315,7 @@ export function parseMarkdown(markdown: string): Question[] {
         bodyLines: [],
         options: [],
         answerRaw: '',
+        labelsRaw: [],
         discussionLines: [],
         tipsList: [],
       };
@@ -349,8 +359,20 @@ export function parseMarkdown(markdown: string): Question[] {
       continue;
     }
 
+    const labelsMatch = line.match(LABELS_RE);
+    if (labelsMatch) {
+      section = 'labels';
+      current.labelsRaw.push(labelsMatch[1].trim());
+      continue;
+    }
+
     if (section === 'discussion') {
       current.discussionLines.push(line);
+      continue;
+    }
+
+    if (section === 'labels') {
+      current.labelsRaw.push(line);
       continue;
     }
 

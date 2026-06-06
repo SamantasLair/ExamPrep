@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { parseMarkdown } from '@/lib/parser';
 import { QuestionRenderer } from '@/components/exam/QuestionRenderer';
 import { LabelSelector, type LabelTaxonomy } from '@/components/exam/LabelSelector';
+import { BankSoalTab } from '@/components/admin/BankSoalTab';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type } from 'lucide-react';
+import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type, Database } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import { useAdminDashboardVM } from '@/viewmodels/useAdminDashboardVM';
@@ -438,6 +439,9 @@ export function AdminDashboard() {
              <Button variant={activeTab === 'tests' ? 'default' : 'ghost'} onClick={() => setActiveTab('tests')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
                <FileText className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Daftar Ujian</span>
              </Button>
+             <Button variant={activeTab === 'bank' ? 'default' : 'ghost'} onClick={() => setActiveTab('bank')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+               <Database className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Bank Soal</span>
+             </Button>
              <Button variant={activeTab === 'attempts' ? 'default' : 'ghost'} onClick={() => setActiveTab('attempts')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
                <CheckCircle2 className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Hasil Peserta</span>
              </Button>
@@ -464,7 +468,13 @@ export function AdminDashboard() {
               <TabsTrigger value="students">3</TabsTrigger>
               <TabsTrigger value="editor">4</TabsTrigger>
               <TabsTrigger value="prompt">5</TabsTrigger>
+              <TabsTrigger value="bank">6</TabsTrigger>
             </TabsList>
+
+          {/* TAB: BANK SOAL */}
+          <TabsContent value="bank" className="flex-1 h-full">
+            <BankSoalTab />
+          </TabsContent>
 
           {/* TAB: TEKS (DAFTAR UJIAN) */}
           <TabsContent value="tests" className="flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">

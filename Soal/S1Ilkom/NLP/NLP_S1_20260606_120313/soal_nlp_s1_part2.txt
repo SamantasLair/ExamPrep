@@ -1,0 +1,143 @@
+```text
+# Q11 (PILGAN)
+Dalam teknik prapemrosesan teks (text preprocessing), terdapat perbedaan mendasar antara *Stemming* dan *Lemmatization*. Manakah pernyataan di bawah ini yang paling tepat menggambarkan perbedaan keduanya?
+
+[[A]] Stemming menggunakan aturan morfologi linguistik yang kompleks, sedangkan Lemmatization hanya memotong akhiran kata menggunakan aturan heuristik (seperti algoritma Porter).
+[[B]] Lemmatization selalu mengembalikan kata ke bentuk dasar yang ada di kamus (lemma valid), sedangkan Stemming bisa menghasilkan kata yang tidak bermakna di kamus.
+[[C]] Stemming jauh lebih lambat dikomputasi dibandingkan Lemmatization karena membutuhkan korpus yang besar.
+[[D]] Lemmatization hanya berfungsi pada bahasa Inggris, sedangkan Stemming bisa untuk semua bahasa.
+[[E]] Stemming mengubah huruf kapital menjadi huruf kecil, sedangkan Lemmatization mempertahankan kapitalisasi kata asli.
+
+ANSWER: B
+DISCUSSION: *Stemming* bekerja dengan cara memotong prefiks atau sufiks dari kata menggunakan aturan-aturan statis sederhana (misal memotong "ing", "ly", "ed"), sehingga hasilnya bisa berupa *root* yang bukan kata baku (misal "arguing" menjadi "argu"). Sebaliknya, *Lemmatization* melakukan analisis morfologis menggunakan kamus (vocabulary) dan analisis *Part-of-Speech* (POS) untuk memastikan kata dikembalikan ke bentuk dasar yang valid secara linguistik (misal "arguing" menjadi "argue", "better" menjadi "good").
+TIPS_THEORY: Karena melibatkan analisis kamus, *Lemmatization* berjalan lebih lambat namun lebih presisi daripada *Stemming*.
+TIPS_PRACTICE: Ingat "Lemma" berarti bentuk baku kamus, "Stem" berarti batang/potongan kata.
+
+# Q12 (PILGAN)
+*Hidden Markov Model* (HMM) klasik sangat populer digunakan untuk *Part-of-Speech* (POS) tagging sebelum era *Deep Learning*. Algoritma *Dynamic Programming* apa yang secara efisien digunakan oleh HMM untuk menemukan sekuens *tag* (state tersembunyi) yang paling mungkin untuk suatu kalimat pengamatan?
+
+[[A]] Algoritma Forward-Backward
+[[B]] Algoritma Viterbi
+[[C]] Algoritma Dijkstra
+[[D]] Algoritma Bellman-Ford
+[[E]] Algoritma Expectation-Maximization (EM)
+
+ANSWER: B
+DISCUSSION: Algoritma *Viterbi* adalah algoritma *dynamic programming* yang digunakan untuk menemukan path yang paling mungkin (*most likely sequence of hidden states*) pada *Hidden Markov Model* (HMM). Dalam konteks POS Tagging, Viterbi menelusuri probabilitas transisi antar tag (misal Noun -> Verb) dan probabilitas emisi kata dari tag (misal peluang kata "buku" keluar dari tag Noun) untuk menemukan sekuens tag terbaik.
+TIPS_THEORY: Algoritma *Forward-Backward* (atau Baum-Welch/EM) digunakan untuk melatih (menemukan bobot/probabilitas) HMM jika parameter belum diketahui, sedangkan Viterbi digunakan saat fase *inference* (decoding).
+TIPS_PRACTICE: Jika ditanya "menemukan sekuens tersembunyi terbaik" di HMM, jawabannya selalu Viterbi.
+
+# Q13 (PILGAN)
+Dalam arsitektur *Decoder* pada *Transformer* (seperti pada model GPT), terdapat mekanisme *Masked Multi-Head Attention*. Apa tujuan utama dari penggunaan mask (masking) ini?
+
+[[A]] Untuk mencegah model melihat (attend) ke kata-kata di masa depan saat memprediksi kata berikutnya.
+[[B]] Untuk mempercepat komputasi karena mengurangi jumlah iterasi pada matriks *Attention*.
+[[C]] Untuk memberikan penalti pada kata yang memiliki frekuensi kemunculan tinggi (seperti TF-IDF).
+[[D]] Untuk menyamarkan identitas kata rahasia (privacy preservation) dalam kalimat.
+[[E]] Untuk memisahkan encoder dan decoder secara fisik agar gradien tidak tumpang tindih.
+
+ANSWER: A
+DISCUSSION: Model bahasa *autoregressive* (seperti GPT) harus memprediksi token berikutnya hanya berdasarkan token-token masa lalu dan token saat ini. *Masked Multi-Head Attention* memastikan bahwa skor *attention* antara *Query* posisi $i$ dengan *Key* posisi $j > i$ (masa depan) diset ke nilai $-\infty$, sehingga setelah melalui fungsi *softmax*, probabilitas *attention*-nya menjadi $0$. Ini mencegah fenomena "kebocoran informasi" (information leakage) selama proses *training*.
+TIPS_THEORY: Jika tidak di-mask, *Decoder* akan curang (*cheat*) dengan melihat langsung jawaban (kata berikutnya) pada sekuens input selama fase *training*.
+TIPS_PRACTICE: Bayangkan masking sebagai matriks segitiga bawah, di mana bagian atas diagonal bernilai $-\infty$.
+
+# Q14 (PILGAN)
+Selain *Cosine Similarity*, NLP juga memiliki metrik untuk mengukur kesamaan antara dua himpunan (set), seperti membandingkan kemiripan dokumen berdasarkan irisan kata unik di dalamnya. Jarak/kemiripan ini dihitung dari ukuran irisan kedua himpunan dibagi dengan ukuran gabungannya. Rumus $J(A, B) = \frac{|A \cap B|}{|A \cup B|}$ ini adalah...
+
+[[A]] Minkowski Distance
+[[B]] Jaccard Similarity
+[[C]] Euclidean Distance
+[[D]] Levenshtein Distance
+[[E]] Hamming Distance
+
+ANSWER: B
+DISCUSSION: *Jaccard Similarity* mengukur kesamaan antara dua himpunan terbatas (finite sample sets). Rumusnya membagi jumlah elemen pada irisan (*intersection*) dengan jumlah elemen pada gabungan (*union*).
+$$J(A, B) = \frac{|A \cap B|}{|A \cup B|}$$
+TIPS_THEORY: *Levenshtein Distance* mengukur jarak edit (penambahan, pengurangan, penggantian karakter). *Euclidean* mengukur jarak ruang lurus antara dua vektor.
+TIPS_PRACTICE: Jaccard sangat baik untuk membandingkan keberadaan kata tak bergantung frekuensi (*bag of words boolean*).
+
+# Q15 (PILGAN)
+ROUGE (*Recall-Oriented Understudy for Gisting Evaluation*) adalah metrik evaluasi yang dominan digunakan untuk...
+
+[[A]] Sistem Pengenalan Suara (Speech Recognition)
+[[B]] Sistem Terjemahan Mesin (Machine Translation)
+[[C]] Sistem Peringkasan Teks Otomatis (Text Summarization)
+[[D]] Sistem Pengenalan Entitas Nama (Named Entity Recognition)
+[[E]] Sistem Analisis Sentimen (Sentiment Analysis)
+
+ANSWER: C
+DISCUSSION: Sementara BLEU lebih sering digunakan untuk *Machine Translation* (berbasis Precision), ROUGE adalah standar de-facto untuk mengevaluasi *Text Summarization* (peringkasan teks). ROUGE mengukur sejauh mana ringkasan yang dihasilkan oleh mesin mengandung n-gram yang sama dengan ringkasan referensi manusia (cenderung *Recall-oriented*).
+TIPS_THEORY: Ada beberapa varian ROUGE, seperti ROUGE-N (untuk kecocokan n-gram tunggal) dan ROUGE-L (berbasis *Longest Common Subsequence*).
+TIPS_PRACTICE: BLEU = Terjemahan, ROUGE = Peringkasan (Summarization).
+
+# Q16 (PILGAN)
+Untuk mengukur seberapa baik sebuah model bahasa (Language Model) memprediksi sampel kata yang tidak pernah ia lihat sebelumnya, kita menggunakan metrik *Perplexity* (PP). Hubungan *Perplexity* dengan probabilitas data pengujian $P(W)$ dari $N$ kata adalah:
+
+[[A]] $PP(W) = \log_2 P(W)^N$
+[[B]] $PP(W) = P(W)^{-\frac{1}{N}}$
+[[C]] $PP(W) = 1 - P(W)^{\frac{1}{N}}$
+[[D]] $PP(W) = N \times P(W)$
+[[E]] $PP(W) = \sqrt[N]{-P(W)}$
+
+ANSWER: B
+DISCUSSION: *Perplexity* pada dasarnya adalah eksponensial dari nilai *Cross-Entropy*. Matematis, perplexity dapat ditulis sebagai invers dari probabilitas geometris rata-rata dari kata-kata di dataset *test*.
+$$PP(W) = P(w_1, w_2, ..., w_N)^{-\frac{1}{N}} = \sqrt[N]{\frac{1}{P(w_1, w_2, ..., w_N)}}$$
+TIPS_THEORY: Semakin rendah perplexity suatu *Language Model*, semakin baik model tersebut menebak distribusi asli data (lebih tidak bingung / *perplexed*).
+TIPS_PRACTICE: Jika model bahasa dengan vocabulary V memberikan probabilitas seragam $1/V$ untuk tiap kata, maka *Perplexity*-nya adalah $V$.
+
+# Q17 (PILGAN)
+Model *word embedding* FastText (dikembangkan oleh Facebook AI) memperbaiki kelemahan fatal dari model Word2Vec klasik dengan cara...
+
+[[A]] Menyimpan struktur pohon sintaksis dari setiap kalimat dalam korpus.
+[[B]] Hanya menggunakan matriks co-occurrence global seperti model GloVe.
+[[C]] Memecah kata menjadi *n-gram* karakter (subword) sehingga vektor kata dibentuk dari jumlahan vektor n-gram-nya.
+[[D]] Mengganti aktivasi softmax dengan ReLU (Rectified Linear Unit) murni.
+[[E]] Melatih model secara terpusat pada satu GPU tanpa metode *Negative Sampling*.
+
+ANSWER: C
+DISCUSSION: Word2Vec konvensional memperlakukan setiap kata sebagai entitas diskrit secara utuh, yang membuatnya tak berdaya saat berhadapan dengan kata baru yang tidak ada di *vocabulary* (*Out-Of-Vocabulary*/OOV) atau kata yang mengalami perubahan afiksasi. FastText menangani hal ini dengan merepresentasikan kata sebagai kumpulan/jumlahan *character n-grams* (contoh: "apple" menjadi "<ap", "app", "ppl", "ple", "le>").
+TIPS_THEORY: Dengan teknik ini, kata OOV (yang belum pernah dilihat saat *training*) tetap bisa dibuatkan embedding-nya asalkan *n-gram* karakternya pernah muncul pada kata-kata lain.
+TIPS_PRACTICE: FastText = Subword / Character N-grams + OOV Handling.
+
+# Q18 (PILGAN)
+Dalam analisis NLP, terdapat representasi matriks relasional yang disebut matriks term-document atau matriks *co-occurrence*. Algoritma GloVe (*Global Vectors for Word Representation*) mengambil keunggulan dari pendekatan metode matriks ini (seperti LSA) dengan mengombinasikannya dengan metode...
+
+[[A]] Attention mechanism dari Transformer.
+[[B]] *Local context window* (pembelajaran berbasis prediksi lokal) khas seperti Word2Vec.
+[[C]] Transfer Learning berbasis BERT.
+[[D]] *Hierarchical clustering*.
+[[E]] *Convolutional filters* 1 dimensi.
+
+ANSWER: B
+DISCUSSION: GloVe dikembangkan untuk menggabungkan dua filosofi besar dalam NLP: keunggulan statistik global dari teknik faktorisasi matriks (seperti *Latent Semantic Analysis*/LSA) yang melihat keseluruhan korpus, dan keunggulan teknik *local context window* (seperti CBOW/Skip-Gram di Word2Vec) yang sangat baik dalam menangkap analogi bermakna. GloVe melakukan pelatihan hanya pada elemen non-nol di matriks *word-word co-occurrence*.
+TIPS_THEORY: Fungsi loss GloVe meminimalkan perbedaan antara perkalian dot (*dot product*) vektor dua kata dengan logaritma probabilitas *co-occurrence* global dari dua kata tersebut.
+TIPS_PRACTICE: GloVe = Global + Local. Co-occurrence Matrix + Word2Vec-style Window.
+
+# Q19 (PILGAN)
+Manakah dari kasus berikut di mana arsitektur *Convolutional Neural Network* (CNN 1D) lebih efisien dan sering dipilih ketimbang *Recurrent Neural Network* (RNN) dalam pemrosesan teks?
+
+[[A]] Mendeteksi *long-term dependencies* (keterikatan antar kata di paragraf pertama dan paragraf terakhir).
+[[B]] *Sequence-to-Sequence translation* (penerjemahan mesin otomatis).
+[[C]] Klasifikasi sentimen di mana pendeteksian pola fitur lokal/*n-gram* kata ("sangat bagus", "buruk sekali") lebih penting daripada urutan sekuensial penuh.
+[[D]] *Part-of-Speech* (POS) tagging dinamis yang butuh *state* dari awal kalimat hingga akhir kalimat.
+[[E]] Pembuatan *chatbot* generatif.
+
+ANSWER: C
+DISCUSSION: CNN dengan konvolusi 1 Dimensi (1D) memindai kalimat menggunakan jendela filter (*kernel*) tertentu untuk menangkap *local features* atau *n-grams*. Ini sangat cepat dilatih karena komputasinya dapat diparalelisasi penuh (berbeda dengan RNN yang sekuensial dan lambat). Untuk tugas klasifikasi dokumen atau sentimen (di mana fitur kata yang kuat sudah cukup menentukan arah label terlepas urutannya secara persis), CNN seringkali seefektif RNN namun jauh lebih cepat.
+TIPS_THEORY: CNN di NLP sangat baik mengekstraksi *spatial/local invariant features*, seperti pola frasa spesifik.
+TIPS_PRACTICE: *Text Classification/Sentiment Analysis* sederhana = CNN 1D lebih cepat dan efisien.
+
+# Q20 (PILGAN)
+Dalam *Multi-Head Attention* pada arsitektur Transformer, alasan utama mengapa $Q, K$, dan $V$ diproyeksikan (dipisah) menjadi $h$ buah *attention heads* adalah...
+
+[[A]] Agar model dapat memperhatikan kata dari dimensi (subspace) representasi dan posisi yang berbeda-beda secara paralel.
+[[B]] Untuk mengurangi total dimensi matriks agar memori GPU tidak melebihi batas.
+[[C]] Membantu konversi dari format teks ke format audio dengan lebih mulus.
+[[D]] Untuk menambahkan faktor non-linearitas (non-linearity) pada *layer* karena fungsi softmax bersifat linier.
+[[E]] Memastikan model hanya berfokus pada dua kata sebelum dan sesudahnya saja (Local attention).
+
+ANSWER: A
+DISCUSSION: *Multi-Head Attention* memproyeksikan representasi matriks *Query, Key*, dan *Value* ke dimensi yang lebih kecil sebanyak $h$ kali (membentuk $h$ buah *heads* independen). Setiap *head* kemudian menghitung *attention* masing-masing. Manfaatnya adalah memungkinkan model secara bersamaan memperhatikan (attend) informasi dari tempat berbeda, merepresentasikan interaksi bahasa yang berbeda secara paralel (contoh: Head 1 fokus ke keterkaitan subjek-predikat, Head 2 fokus ke adjektiva-nomina).
+TIPS_THEORY: Jika hanya ada *single head*, nilai rerata *attention* bisa menghilangkan detail informasi dari variasi *subspace*.
+TIPS_PRACTICE: Kata kunci *Multi-head* = Fokus ke banyak aspek (*different representation subspaces*) secara bersamaan.
+```

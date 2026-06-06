@@ -1,0 +1,1417 @@
+```text
+# Q1 (PILGAN)
+Dalam ekstraksi fitur teks, *Term Frequency-Inverse Document Frequency* (TF-IDF) digunakan untuk mengukur seberapa penting sebuah kata dalam suatu dokumen di dalam korpus. Jika $TF(t, d)$ adalah frekuensi term $t$ dalam dokumen $d$, dan $N$ adalah total dokumen, manakah rumus $IDF(t)$ yang paling tepat?
+
+[[A]] $IDF(t) = \log \left( \frac{N}{df(t)} \right)$
+[[B]] $IDF(t) = \frac{N}{df(t)}$
+[[C]] $IDF(t) = \log (N \times df(t))$
+[[D]] $IDF(t) = 1 - \log \left( \frac{N}{df(t)} \right)$
+[[E]] $IDF(t) = e^{\frac{N}{df(t)}}$
+
+ANSWER: A
+DISCUSSION: Formula IDF (Inverse Document Frequency) standar yang paling sering digunakan untuk meredam bobot kata yang terlalu sering muncul di banyak dokumen adalah logaritma dari total dokumen dibagi jumlah dokumen yang mengandung kata tersebut:
+$$IDF(t) = \log \left( \frac{N}{df(t)} \right)$$
+TIPS_THEORY: Logaritma digunakan agar nilai IDF tidak meledak (terlalu besar) ketika $N$ sangat besar dibandingkan $df(t)$.
+TIPS_PRACTICE: Ingat bahwa kata umum seperti "dan", "di" akan memiliki $df(t) \approx N$, sehingga $\log(1) = 0$.
+
+# Q2 (PILGAN)
+Sebuah model bahasa *bigram* menghitung probabilitas kalimat berdasarkan probabilitas transisi antar kata. Probabilitas kalimat $P(w_1, w_2, w_3)$ menurut asumsi Markov *first-order* (bigram) adalah...
+
+[[A]] $P(w_1) \times P(w_2) \times P(w_3)$
+[[B]] $P(w_1) \times P(w_2|w_1) \times P(w_3|w_2)$
+[[C]] $P(w_3|w_1, w_2)$
+[[D]] $P(w_1|w_2) \times P(w_2|w_3)$
+[[E]] $P(w_1, w_2) \times P(w_2, w_3)$
+
+ANSWER: B
+DISCUSSION: Model N-gram mengasumsikan sifat Markov, di mana probabilitas suatu kata hanya bergantung pada $N-1$ kata sebelumnya. Untuk bigram ($N=2$), kata saat ini hanya bergantung pada 1 kata sebelumnya:
+$$P(w_1, w_2, w_3) = P(w_1) \times P(w_2|w_1) \times P(w_3|w_2)$$
+TIPS_THEORY: Aturan rantai (chain rule) probabilitas asli adalah $P(w_1)P(w_2|w_1)P(w_3|w_1,w_2)$. Model bigram menyederhanakan $P(w_3|w_1,w_2) \approx P(w_3|w_2)$.
+TIPS_PRACTICE: Fokus pada definisi bigram = melihat 1 kata ke belakang.
+
+# Q3 (PILGAN)
+Dalam klasifikasi teks menggunakan *Multinomial Naive Bayes*, kita menggunakan *Laplace Smoothing* (add-one smoothing) untuk menghindari probabilitas nol jika kata $w$ tidak pernah muncul di kelas $c$. Jika $count(w, c)$ adalah frekuensi kata, $V$ adalah ukuran *vocabulary*, dan $N_c$ adalah total kata di kelas $c$, maka rumus probabilitas smoothed $P(w|c)$ adalah:
+
+[[A]] $P(w|c) = \frac{count(w, c) + 1}{N_c + V}$
+[[B]] $P(w|c) = \frac{count(w, c)}{N_c + 1}$
+[[C]] $P(w|c) = \frac{count(w, c) + 1}{N_c}$
+[[D]] $P(w|c) = \frac{count(w, c) + 1}{N_c + 1}$
+[[E]] $P(w|c) = \frac{count(w, c) + V}{N_c + 1}$
+
+ANSWER: A
+DISCUSSION: Laplace smoothing menambahkan 1 pada pembilang untuk semua kata, dan karena kita menambahkan 1 ke seluruh $V$ kata dalam vocabulary, kita harus menambahkan $V$ pada penyebut agar total probabilitas tetap berjumlah 1.
+$$P(w|c) = \frac{count(w, c) + 1}{N_c + V}$$
+TIPS_THEORY: Jika tidak di-smooth, satu kata yang probabilitasnya 0 akan membuat keseluruhan probabilitas dokumen $P(d|c)$ menjadi 0 karena Naive Bayes mengalikan semua probabilitas kata.
+TIPS_PRACTICE: Ingat rumus "tambah 1 di atas, tambah V di bawah".
+
+# Q4 (PILGAN)
+Dalam arsitektur *Transformer* (Vaswani et al., 2017), mekanisme *Scaled Dot-Product Attention* dihitung dengan rumus:
+
+[[A]] $\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V$
+[[B]] $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$
+[[C]] $\text{Attention}(Q, K, V) = \left(\frac{QK^T}{\sqrt{d_k}}\right)V$
+[[D]] $\text{Attention}(Q, K, V) = \text{softmax}(Q \cdot K) \cdot V$
+[[E]] $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QV^T}{\sqrt{d_k}}\right)K$
+
+ANSWER: B
+DISCUSSION: Mekanisme *self-attention* menghitung skor *alignment* antara *Query* ($Q$) dan *Key* ($K$) menggunakan perkalian dot (*dot product*). Hasil ini kemudian dibagi dengan akar dari dimensi key $\sqrt{d_k}$ (scaling) untuk mencegah nilai gradien yang terlalu kecil pada softmax.
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+TIPS_THEORY: *Scaling* diperlukan karena jika $d_k$ besar, *dot product* $QK^T$ bisa menjadi sangat besar nilainya, yang membuat fungsi *softmax* masuk ke area dengan gradien sangat kecil (saturasi).
+TIPS_PRACTICE: Ingat urutannya: Query dikali transpose Key, dibagi akar dimensi, baru di-softmax, lalu dikali Value.
+
+# Q5 (PILGAN)
+Metrik BLEU (*Bilingual Evaluation Understudy*) sering digunakan untuk mengevaluasi sistem *Machine Translation*. BLEU score didasarkan pada...
+
+[[A]] Kesamaan semantik (berbasis vektor) antara terjemahan mesin dan referensi.
+[[B]] Jumlah kata yang salah dieja oleh sistem mesin.
+[[C]] *N-gram precision* (kecocokan n-gram) antara kandidat terjemahan dan terjemahan referensi.
+[[D]] Kecepatan komputasi saat *inference*.
+[[E]] Evaluasi manual oleh manusia (MOS).
+
+ANSWER: C
+DISCUSSION: BLEU score mengevaluasi kualitas teks hasil terjemahan mesin dengan cara menghitung *precision* dari kecocokan *N-gram* (unigram, bigram, trigram, 4-gram) antara kalimat kandidat (mesin) dengan satu atau lebih kalimat referensi (manusia), ditambah dengan *Brevity Penalty* jika kalimat kandidat terlalu pendek.
+TIPS_THEORY: BLEU tidak mengerti semantik. Kalimat "Kucing mengejar anjing" dan "Anjing mengejar kucing" memiliki kata yang sama (unigram overlap tinggi), sehingga bisa mendapat skor keliru jika tidak pakai n-gram yang lebih tinggi.
+TIPS_PRACTICE: Ingat *keyword*: BLEU = N-gram Precision + Brevity Penalty.
+
+# Q6 (PILGAN)
+Untuk menghitung jarak atau kesamaan semantik antara dua *word embedding* (misalnya dari Word2Vec), metrik yang paling umum digunakan adalah *Cosine Similarity*. Jika kita memiliki vektor kata $A$ dan $B$, rumusnya adalah:
+
+[[A]] $\text{cosine\_similarity}(A, B) = \frac{A \cdot B}{||A|| + ||B||}$
+[[B]] $\text{cosine\_similarity}(A, B) = ||A - B||_2$
+[[C]] $\text{cosine\_similarity}(A, B) = \frac{A \cdot B}{||A|| ||B||}$
+[[D]] $\text{cosine\_similarity}(A, B) = \sum |A_i - B_i|$
+[[E]] $\text{cosine\_similarity}(A, B) = \text{softmax}(A \cdot B)$
+
+ANSWER: C
+DISCUSSION: *Cosine similarity* mengukur kosinus dari sudut antara dua vektor bukan nol di sebuah ruang dimensi dalam. Rumusnya adalah perkalian titik (*dot product*) dari kedua vektor dibagi dengan perkalian norma (*magnitude*) dari masing-masing vektor.
+$$\text{cosine\_similarity}(A, B) = \frac{A \cdot B}{||A|| ||B||}$$
+TIPS_THEORY: Nilai cosine similarity berkisar antara -1 (berlawanan arah sempurna) hingga 1 (searah sempurna). Pada *word embedding*, nilai mendekati 1 berarti kedua kata memiliki konteks makna yang mirip.
+TIPS_PRACTICE: Ini pada dasarnya adalah proyeksi vektor yang sudah dinormalisasi (panjang vektor diabaikan, hanya arah yang penting).
+
+# Q7 (PILGAN)
+Dalam model *Continuous Bag-of-Words* (CBOW) pada Word2Vec, apa yang menjadi *input* dan *output* dari arsitektur *neural network* tersebut?
+
+[[A]] Input: Kata target (center word) | Output: Kata-kata konteks sekitarnya.
+[[B]] Input: Kata-kata konteks sekitarnya | Output: Kata target (center word).
+[[C]] Input: Karakter demi karakter | Output: Sebuah kata utuh.
+[[D]] Input: Dokumen penuh | Output: Topik dokumen.
+[[E]] Input: Pasangan kata | Output: Nilai cosine similarity.
+
+ANSWER: B
+DISCUSSION: Pada arsitektur CBOW (*Continuous Bag-of-Words*), model mencoba memprediksi sebuah kata tengah (target) berdasarkan kata-kata konteks di sekitarnya. Sebaliknya, arsitektur *Skip-Gram* memprediksi kata-kata konteks berdasarkan satu kata tengah.
+TIPS_THEORY: Analogi mudah: CBOW itu seperti mengisi titik-titik (fill-in-the-blank) pada kalimat "Kucing itu melompat ke atas ___ untuk tidur."
+TIPS_PRACTICE: Ingat CBOW = Context -> Bag -> Output Target Word. Skip-gram = Word -> Skip -> Output Context.
+
+# Q8 (PILGAN)
+Salah satu permasalahan utama pada jaringan *Recurrent Neural Network* (RNN) konvensional saat memproses kalimat yang sangat panjang adalah...
+
+[[A]] *Vanishing Gradient*, di mana model kesulitan mengingat informasi dari awal kalimat saat mencapai akhir kalimat.
+[[B]] Membutuhkan data dengan label *image* untuk inisialisasi bobot.
+[[C]] Hanya bisa melakukan *generative text*, tidak bisa untuk klasifikasi teks.
+[[D]] Model tidak bisa memproses input berupa angka/vektor.
+[[E]] Arsitekturnya yang sepenuhnya *feed-forward* tanpa koneksi rekursif.
+
+ANSWER: A
+DISCUSSION: Jaringan RNN konvensional rentan terhadap masalah *vanishing gradient* (atau *exploding gradient*) saat di-*training* dengan algoritma *Backpropagation Through Time* (BPTT). Gradien yang dikalikan berkali-kali melintasi *time steps* (kata) akan menyusut mendekati nol, membuat model lupa akan konteks awal di kalimat panjang.
+TIPS_THEORY: Arsitektur LSTM (*Long Short-Term Memory*) dan GRU (*Gated Recurrent Unit*) diciptakan secara spesifik untuk mengatasi masalah *vanishing gradient* di RNN menggunakan mekanisme gerbang (*gates*).
+TIPS_PRACTICE: Kata kunci untuk kelemahan RNN murni adalah "Gagal memproses long-term dependencies" karena "Vanishing Gradient".
+
+# Q9 (PILGAN)
+Teknik *Byte-Pair Encoding* (BPE) merupakan salah satu algoritma *subword tokenization* yang sangat populer di model-model bahasa modern (seperti GPT dan BERT). Algoritma dasar BPE pada saat pelatihan adalah:
+
+[[A]] Memecah kalimat berdasarkan spasi, lalu menghilangkan semua huruf vokal.
+[[B]] Memulai dengan vocabulary berupa karakter individual, lalu secara iteratif menggabungkan pasangan karakter/subword yang paling sering muncul berdampingan.
+[[C]] Menggunakan jaringan saraf konvolusi (CNN) untuk mengekstrak bentuk kata.
+[[D]] Mencocokkan kata dengan kamus (dictionary) dari *Part-of-Speech tagger*.
+[[E]] Hanya menyimpan 10.000 kata dengan TF-IDF tertinggi.
+
+ANSWER: B
+DISCUSSION: *Byte-Pair Encoding* (BPE) awalnya adalah algoritma kompresi data. Dalam NLP, BPE menginisialisasi *vocabulary* dengan semua karakter dasar, kemudian pada setiap iterasi, mencari pasangan simbol yang paling sering berdampingan di korpus dan menggabungkannya menjadi simbol baru.
+TIPS_THEORY: Keuntungan utama BPE dan *subword tokenization* adalah mengatasi masalah *Out-Of-Vocabulary* (OOV). Kata yang belum pernah dilihat model dapat dipecah menjadi *subword* yang sudah dikenal.
+TIPS_PRACTICE: Ingat kata kuncinya: "Merge most frequent adjacent pairs" (Gabungkan pasangan teratas).
+
+# Q10 (PILGAN)
+Jika fungsi aktivasi *Softmax* diaplikasikan pada vektor logit $Z = [z_1, z_2, ..., z_K]$ untuk menghasilkan distribusi probabilitas, rumus $P(y_i)$ untuk elemen ke-$i$ adalah:
+
+[[A]] $\frac{z_i}{\sum z_k}$
+[[B]] $\frac{e^{z_i}}{\sum_{k=1}^K e^{z_k}}$
+[[C]] $\frac{1}{1 + e^{-z_i}}$
+[[D]] $\max(0, z_i)$
+[[E]] $\frac{e^{z_i}}{K}$
+
+ANSWER: B
+DISCUSSION: Fungsi *Softmax* mengubah sekumpulan skor mentah (logit) menjadi distribusi probabilitas yang jumlah totalnya selalu 1. Rumusnya menggunakan fungsi eksponensial untuk menonjolkan nilai maksimum dan mengubah skor negatif menjadi probabilitas positif.
+$$P(y_i) = \text{softmax}(z)_i = \frac{e^{z_i}}{\sum_{k=1}^K e^{z_k}}$$
+TIPS_THEORY: Pembilang $e^{z_i}$ selalu positif, dan penyebut adalah total dari semua eksponensial logit. Ini memastikan properti probabilitas terpenuhi: semua output positif dan berjumlah 1.
+TIPS_PRACTICE: Opsi C adalah fungsi Sigmoid (hanya untuk 2 kelas), sedangkan Softmax digunakan untuk *multiclass classification*.
+
+# Q11 (PILGAN)
+Dalam teknik prapemrosesan teks (text preprocessing), terdapat perbedaan mendasar antara *Stemming* dan *Lemmatization*. Manakah pernyataan di bawah ini yang paling tepat menggambarkan perbedaan keduanya?
+
+[[A]] Stemming menggunakan aturan morfologi linguistik yang kompleks, sedangkan Lemmatization hanya memotong akhiran kata menggunakan aturan heuristik (seperti algoritma Porter).
+[[B]] Lemmatization selalu mengembalikan kata ke bentuk dasar yang ada di kamus (lemma valid), sedangkan Stemming bisa menghasilkan kata yang tidak bermakna di kamus.
+[[C]] Stemming jauh lebih lambat dikomputasi dibandingkan Lemmatization karena membutuhkan korpus yang besar.
+[[D]] Lemmatization hanya berfungsi pada bahasa Inggris, sedangkan Stemming bisa untuk semua bahasa.
+[[E]] Stemming mengubah huruf kapital menjadi huruf kecil, sedangkan Lemmatization mempertahankan kapitalisasi kata asli.
+
+ANSWER: B
+DISCUSSION: *Stemming* bekerja dengan cara memotong prefiks atau sufiks dari kata menggunakan aturan-aturan statis sederhana (misal memotong "ing", "ly", "ed"), sehingga hasilnya bisa berupa *root* yang bukan kata baku (misal "arguing" menjadi "argu"). Sebaliknya, *Lemmatization* melakukan analisis morfologis menggunakan kamus (vocabulary) dan analisis *Part-of-Speech* (POS) untuk memastikan kata dikembalikan ke bentuk dasar yang valid secara linguistik (misal "arguing" menjadi "argue", "better" menjadi "good").
+TIPS_THEORY: Karena melibatkan analisis kamus, *Lemmatization* berjalan lebih lambat namun lebih presisi daripada *Stemming*.
+TIPS_PRACTICE: Ingat "Lemma" berarti bentuk baku kamus, "Stem" berarti batang/potongan kata.
+
+# Q12 (PILGAN)
+*Hidden Markov Model* (HMM) klasik sangat populer digunakan untuk *Part-of-Speech* (POS) tagging sebelum era *Deep Learning*. Algoritma *Dynamic Programming* apa yang secara efisien digunakan oleh HMM untuk menemukan sekuens *tag* (state tersembunyi) yang paling mungkin untuk suatu kalimat pengamatan?
+
+[[A]] Algoritma Forward-Backward
+[[B]] Algoritma Viterbi
+[[C]] Algoritma Dijkstra
+[[D]] Algoritma Bellman-Ford
+[[E]] Algoritma Expectation-Maximization (EM)
+
+ANSWER: B
+DISCUSSION: Algoritma *Viterbi* adalah algoritma *dynamic programming* yang digunakan untuk menemukan path yang paling mungkin (*most likely sequence of hidden states*) pada *Hidden Markov Model* (HMM). Dalam konteks POS Tagging, Viterbi menelusuri probabilitas transisi antar tag (misal Noun -> Verb) dan probabilitas emisi kata dari tag (misal peluang kata "buku" keluar dari tag Noun) untuk menemukan sekuens tag terbaik.
+TIPS_THEORY: Algoritma *Forward-Backward* (atau Baum-Welch/EM) digunakan untuk melatih (menemukan bobot/probabilitas) HMM jika parameter belum diketahui, sedangkan Viterbi digunakan saat fase *inference* (decoding).
+TIPS_PRACTICE: Jika ditanya "menemukan sekuens tersembunyi terbaik" di HMM, jawabannya selalu Viterbi.
+
+# Q13 (PILGAN)
+Dalam arsitektur *Decoder* pada *Transformer* (seperti pada model GPT), terdapat mekanisme *Masked Multi-Head Attention*. Apa tujuan utama dari penggunaan mask (masking) ini?
+
+[[A]] Untuk mencegah model melihat (attend) ke kata-kata di masa depan saat memprediksi kata berikutnya.
+[[B]] Untuk mempercepat komputasi karena mengurangi jumlah iterasi pada matriks *Attention*.
+[[C]] Untuk memberikan penalti pada kata yang memiliki frekuensi kemunculan tinggi (seperti TF-IDF).
+[[D]] Untuk menyamarkan identitas kata rahasia (privacy preservation) dalam kalimat.
+[[E]] Untuk memisahkan encoder dan decoder secara fisik agar gradien tidak tumpang tindih.
+
+ANSWER: A
+DISCUSSION: Model bahasa *autoregressive* (seperti GPT) harus memprediksi token berikutnya hanya berdasarkan token-token masa lalu dan token saat ini. *Masked Multi-Head Attention* memastikan bahwa skor *attention* antara *Query* posisi $i$ dengan *Key* posisi $j > i$ (masa depan) diset ke nilai $-\infty$, sehingga setelah melalui fungsi *softmax*, probabilitas *attention*-nya menjadi $0$. Ini mencegah fenomena "kebocoran informasi" (information leakage) selama proses *training*.
+TIPS_THEORY: Jika tidak di-mask, *Decoder* akan curang (*cheat*) dengan melihat langsung jawaban (kata berikutnya) pada sekuens input selama fase *training*.
+TIPS_PRACTICE: Bayangkan masking sebagai matriks segitiga bawah, di mana bagian atas diagonal bernilai $-\infty$.
+
+# Q14 (PILGAN)
+Selain *Cosine Similarity*, NLP juga memiliki metrik untuk mengukur kesamaan antara dua himpunan (set), seperti membandingkan kemiripan dokumen berdasarkan irisan kata unik di dalamnya. Jarak/kemiripan ini dihitung dari ukuran irisan kedua himpunan dibagi dengan ukuran gabungannya. Rumus $J(A, B) = \frac{|A \cap B|}{|A \cup B|}$ ini adalah...
+
+[[A]] Minkowski Distance
+[[B]] Jaccard Similarity
+[[C]] Euclidean Distance
+[[D]] Levenshtein Distance
+[[E]] Hamming Distance
+
+ANSWER: B
+DISCUSSION: *Jaccard Similarity* mengukur kesamaan antara dua himpunan terbatas (finite sample sets). Rumusnya membagi jumlah elemen pada irisan (*intersection*) dengan jumlah elemen pada gabungan (*union*).
+$$J(A, B) = \frac{|A \cap B|}{|A \cup B|}$$
+TIPS_THEORY: *Levenshtein Distance* mengukur jarak edit (penambahan, pengurangan, penggantian karakter). *Euclidean* mengukur jarak ruang lurus antara dua vektor.
+TIPS_PRACTICE: Jaccard sangat baik untuk membandingkan keberadaan kata tak bergantung frekuensi (*bag of words boolean*).
+
+# Q15 (PILGAN)
+ROUGE (*Recall-Oriented Understudy for Gisting Evaluation*) adalah metrik evaluasi yang dominan digunakan untuk...
+
+[[A]] Sistem Pengenalan Suara (Speech Recognition)
+[[B]] Sistem Terjemahan Mesin (Machine Translation)
+[[C]] Sistem Peringkasan Teks Otomatis (Text Summarization)
+[[D]] Sistem Pengenalan Entitas Nama (Named Entity Recognition)
+[[E]] Sistem Analisis Sentimen (Sentiment Analysis)
+
+ANSWER: C
+DISCUSSION: Sementara BLEU lebih sering digunakan untuk *Machine Translation* (berbasis Precision), ROUGE adalah standar de-facto untuk mengevaluasi *Text Summarization* (peringkasan teks). ROUGE mengukur sejauh mana ringkasan yang dihasilkan oleh mesin mengandung n-gram yang sama dengan ringkasan referensi manusia (cenderung *Recall-oriented*).
+TIPS_THEORY: Ada beberapa varian ROUGE, seperti ROUGE-N (untuk kecocokan n-gram tunggal) dan ROUGE-L (berbasis *Longest Common Subsequence*).
+TIPS_PRACTICE: BLEU = Terjemahan, ROUGE = Peringkasan (Summarization).
+
+# Q16 (PILGAN)
+Untuk mengukur seberapa baik sebuah model bahasa (Language Model) memprediksi sampel kata yang tidak pernah ia lihat sebelumnya, kita menggunakan metrik *Perplexity* (PP). Hubungan *Perplexity* dengan probabilitas data pengujian $P(W)$ dari $N$ kata adalah:
+
+[[A]] $PP(W) = \log_2 P(W)^N$
+[[B]] $PP(W) = P(W)^{-\frac{1}{N}}$
+[[C]] $PP(W) = 1 - P(W)^{\frac{1}{N}}$
+[[D]] $PP(W) = N \times P(W)$
+[[E]] $PP(W) = \sqrt[N]{-P(W)}$
+
+ANSWER: B
+DISCUSSION: *Perplexity* pada dasarnya adalah eksponensial dari nilai *Cross-Entropy*. Matematis, perplexity dapat ditulis sebagai invers dari probabilitas geometris rata-rata dari kata-kata di dataset *test*.
+$$PP(W) = P(w_1, w_2, ..., w_N)^{-\frac{1}{N}} = \sqrt[N]{\frac{1}{P(w_1, w_2, ..., w_N)}}$$
+TIPS_THEORY: Semakin rendah perplexity suatu *Language Model*, semakin baik model tersebut menebak distribusi asli data (lebih tidak bingung / *perplexed*).
+TIPS_PRACTICE: Jika model bahasa dengan vocabulary V memberikan probabilitas seragam $1/V$ untuk tiap kata, maka *Perplexity*-nya adalah $V$.
+
+# Q17 (PILGAN)
+Model *word embedding* FastText (dikembangkan oleh Facebook AI) memperbaiki kelemahan fatal dari model Word2Vec klasik dengan cara...
+
+[[A]] Menyimpan struktur pohon sintaksis dari setiap kalimat dalam korpus.
+[[B]] Hanya menggunakan matriks co-occurrence global seperti model GloVe.
+[[C]] Memecah kata menjadi *n-gram* karakter (subword) sehingga vektor kata dibentuk dari jumlahan vektor n-gram-nya.
+[[D]] Mengganti aktivasi softmax dengan ReLU (Rectified Linear Unit) murni.
+[[E]] Melatih model secara terpusat pada satu GPU tanpa metode *Negative Sampling*.
+
+ANSWER: C
+DISCUSSION: Word2Vec konvensional memperlakukan setiap kata sebagai entitas diskrit secara utuh, yang membuatnya tak berdaya saat berhadapan dengan kata baru yang tidak ada di *vocabulary* (*Out-Of-Vocabulary*/OOV) atau kata yang mengalami perubahan afiksasi. FastText menangani hal ini dengan merepresentasikan kata sebagai kumpulan/jumlahan *character n-grams* (contoh: "apple" menjadi "<ap", "app", "ppl", "ple", "le>").
+TIPS_THEORY: Dengan teknik ini, kata OOV (yang belum pernah dilihat saat *training*) tetap bisa dibuatkan embedding-nya asalkan *n-gram* karakternya pernah muncul pada kata-kata lain.
+TIPS_PRACTICE: FastText = Subword / Character N-grams + OOV Handling.
+
+# Q18 (PILGAN)
+Dalam analisis NLP, terdapat representasi matriks relasional yang disebut matriks term-document atau matriks *co-occurrence*. Algoritma GloVe (*Global Vectors for Word Representation*) mengambil keunggulan dari pendekatan metode matriks ini (seperti LSA) dengan mengombinasikannya dengan metode...
+
+[[A]] Attention mechanism dari Transformer.
+[[B]] *Local context window* (pembelajaran berbasis prediksi lokal) khas seperti Word2Vec.
+[[C]] Transfer Learning berbasis BERT.
+[[D]] *Hierarchical clustering*.
+[[E]] *Convolutional filters* 1 dimensi.
+
+ANSWER: B
+DISCUSSION: GloVe dikembangkan untuk menggabungkan dua filosofi besar dalam NLP: keunggulan statistik global dari teknik faktorisasi matriks (seperti *Latent Semantic Analysis*/LSA) yang melihat keseluruhan korpus, dan keunggulan teknik *local context window* (seperti CBOW/Skip-Gram di Word2Vec) yang sangat baik dalam menangkap analogi bermakna. GloVe melakukan pelatihan hanya pada elemen non-nol di matriks *word-word co-occurrence*.
+TIPS_THEORY: Fungsi loss GloVe meminimalkan perbedaan antara perkalian dot (*dot product*) vektor dua kata dengan logaritma probabilitas *co-occurrence* global dari dua kata tersebut.
+TIPS_PRACTICE: GloVe = Global + Local. Co-occurrence Matrix + Word2Vec-style Window.
+
+# Q19 (PILGAN)
+Manakah dari kasus berikut di mana arsitektur *Convolutional Neural Network* (CNN 1D) lebih efisien dan sering dipilih ketimbang *Recurrent Neural Network* (RNN) dalam pemrosesan teks?
+
+[[A]] Mendeteksi *long-term dependencies* (keterikatan antar kata di paragraf pertama dan paragraf terakhir).
+[[B]] *Sequence-to-Sequence translation* (penerjemahan mesin otomatis).
+[[C]] Klasifikasi sentimen di mana pendeteksian pola fitur lokal/*n-gram* kata ("sangat bagus", "buruk sekali") lebih penting daripada urutan sekuensial penuh.
+[[D]] *Part-of-Speech* (POS) tagging dinamis yang butuh *state* dari awal kalimat hingga akhir kalimat.
+[[E]] Pembuatan *chatbot* generatif.
+
+ANSWER: C
+DISCUSSION: CNN dengan konvolusi 1 Dimensi (1D) memindai kalimat menggunakan jendela filter (*kernel*) tertentu untuk menangkap *local features* atau *n-grams*. Ini sangat cepat dilatih karena komputasinya dapat diparalelisasi penuh (berbeda dengan RNN yang sekuensial dan lambat). Untuk tugas klasifikasi dokumen atau sentimen (di mana fitur kata yang kuat sudah cukup menentukan arah label terlepas urutannya secara persis), CNN seringkali seefektif RNN namun jauh lebih cepat.
+TIPS_THEORY: CNN di NLP sangat baik mengekstraksi *spatial/local invariant features*, seperti pola frasa spesifik.
+TIPS_PRACTICE: *Text Classification/Sentiment Analysis* sederhana = CNN 1D lebih cepat dan efisien.
+
+# Q20 (PILGAN)
+Dalam *Multi-Head Attention* pada arsitektur Transformer, alasan utama mengapa $Q, K$, dan $V$ diproyeksikan (dipisah) menjadi $h$ buah *attention heads* adalah...
+
+[[A]] Agar model dapat memperhatikan kata dari dimensi (subspace) representasi dan posisi yang berbeda-beda secara paralel.
+[[B]] Untuk mengurangi total dimensi matriks agar memori GPU tidak melebihi batas.
+[[C]] Membantu konversi dari format teks ke format audio dengan lebih mulus.
+[[D]] Untuk menambahkan faktor non-linearitas (non-linearity) pada *layer* karena fungsi softmax bersifat linier.
+[[E]] Memastikan model hanya berfokus pada dua kata sebelum dan sesudahnya saja (Local attention).
+
+ANSWER: A
+DISCUSSION: *Multi-Head Attention* memproyeksikan representasi matriks *Query, Key*, dan *Value* ke dimensi yang lebih kecil sebanyak $h$ kali (membentuk $h$ buah *heads* independen). Setiap *head* kemudian menghitung *attention* masing-masing. Manfaatnya adalah memungkinkan model secara bersamaan memperhatikan (attend) informasi dari tempat berbeda, merepresentasikan interaksi bahasa yang berbeda secara paralel (contoh: Head 1 fokus ke keterkaitan subjek-predikat, Head 2 fokus ke adjektiva-nomina).
+TIPS_THEORY: Jika hanya ada *single head*, nilai rerata *attention* bisa menghilangkan detail informasi dari variasi *subspace*.
+TIPS_PRACTICE: Kata kunci *Multi-head* = Fokus ke banyak aspek (*different representation subspaces*) secara bersamaan.
+
+# Q21 (PILGAN)
+Dalam probabilitas *Language Model*, *Kneser-Ney Smoothing* dianggap sebagai salah satu teknik *smoothing* klasik terbaik sebelum era *Deep Learning*. Keunggulan utama *Kneser-Ney* dibandingkan *Laplace Smoothing* terletak pada penggunaannya terhadap...
+
+[[A]] Pengurangan absolut (*absolute discounting*) dan *continuation probability* yang memperhitungkan keragaman konteks dari sebuah kata.
+[[B]] Algoritma *Expectation-Maximization* untuk menyesuaikan bobot secara dinamis pada setiap kalimat.
+[[C]] *Word Embeddings* yang sudah dilatih sebelumnya (pre-trained) pada korpus Wikipedia.
+[[D]] Penggandaan probabilitas kata-kata asing (*out-of-vocabulary*) secara eksponensial.
+[[E]] Hanya menggunakan unigram dan mengabaikan bigram untuk mencegah probabilitas nol.
+
+ANSWER: A
+DISCUSSION: *Kneser-Ney Smoothing* bekerja menggunakan prinsip bahwa sebuah kata memiliki kemungkinan besar muncul sebagai kata baru (unigram) *jika* kata tersebut sebelumnya muncul dalam banyak ragam konteks bigram yang berbeda (disebut *continuation probability*). Ia juga menerapkan *absolute discounting* dengan mengurangi konstanta kecil dari count kata.
+TIPS_THEORY: Contoh klasik: Kata "Francisco" muncul sering, tapi *hanya* setelah kata "San". Jadi "Francisco" memiliki *continuation probability* yang sangat rendah, berbeda dengan kata "membaca" yang bisa muncul setelah subjek apapun.
+TIPS_PRACTICE: Ingat Kneser-Ney = Absolute Discounting + Continuation Probability.
+
+# Q22 (PILGAN)
+Algoritma *Conditional Random Fields* (CRF) sering digunakan untuk tugas *sequence labeling* seperti *Named Entity Recognition* (NER). Dibandingkan dengan *Hidden Markov Model* (HMM), CRF memiliki keunggulan karena...
+
+[[A]] CRF adalah model generatif murni sehingga bisa menghasilkan kalimat baru.
+[[B]] CRF tidak mengharuskan asumsi independensi fitur yang kuat seperti HMM, dan CRF memodelkan probabilitas bersyarat secara langsung secara diskriminatif.
+[[C]] CRF mengeksekusi komputasi menggunakan operasi *Backpropagation Through Time* (BPTT).
+[[D]] CRF hanya membutuhkan memori $O(N)$ dibandingkan HMM yang membutuhkan $O(N^2)$.
+[[E]] CRF secara bawaan menghilangkan fitur *stop words*.
+
+ANSWER: B
+DISCUSSION: HMM adalah model *Generatif* yang memodelkan $P(X, Y)$ dan mengasumsikan bahwa fitur-fitur yang diamati independen satu sama lain mengingat *state* saat ini. CRF adalah model *Diskriminatif* yang memodelkan $P(Y|X)$ (probabilitas sekuens label $Y$ mengingat sekuens input $X$) dan memungkinkan penggunaan fitur arbitrer yang tumpang tindih (non-independent features) dari keseluruhan urutan input.
+TIPS_THEORY: HMM menghitung *joint probability* $P(X,Y)$ via probabilitas transisi dan emisi. CRF menghitung *conditional probability* global $P(Y|X)$.
+TIPS_PRACTICE: Keyword: CRF = Discriminative & Arbitrary Overlapping Features. HMM = Generative & Strict Independence Assumption.
+
+# Q23 (PILGAN)
+BERT (*Bidirectional Encoder Representations from Transformers*) memiliki arsitektur yang secara mendasar berbeda dengan GPT. Perbedaan utama tersebut adalah...
+
+[[A]] BERT hanya menggunakan blok *Decoder* dari Transformer, sedangkan GPT menggunakan blok *Encoder* saja.
+[[B]] BERT hanya menggunakan blok *Encoder* dari Transformer, sehingga dapat melihat konteks dari kiri dan kanan secara bersamaan (*bidirectional*).
+[[C]] BERT menggunakan *Convolutional Neural Network* (CNN), sedangkan GPT menggunakan *Recurrent Neural Network* (RNN).
+[[D]] BERT hanya bisa digunakan untuk bahasa Inggris, sedangkan GPT bersifat multilingual.
+[[E]] BERT tidak menggunakan *self-attention*, melainkan *cross-attention* antar kalimat.
+
+ANSWER: B
+DISCUSSION: BERT (Devlin et al., 2018) dibangun sepenuhnya dari tumpukan blok *Encoder* Transformer. Karena tugas pre-trainingnya adalah *Masked Language Modeling* (bukan *next-word prediction*), *attention mechanism* di BERT bersifat tak-bermasker (unmasked) sehingga token dapat *attend* ke token kiri maupun kanan di setiap *layer* secara simultan (*deeply bidirectional*).
+TIPS_THEORY: GPT bersifat *autoregressive* (Decoder-only dengan masked attention) yang membaca teks dari kiri-ke-kanan. BERT bersifat *autoencoding* (Encoder-only tanpa mask).
+TIPS_PRACTICE: Ingat huruf 'B' dan 'E' di BERT: **B**idirectional **E**ncoder.
+
+# Q24 (PILGAN)
+Dalam tugas *Word Sense Disambiguation* (WSD), terdapat algoritma heuristik klasik yang menggunakan kamus (dictionary) seperti WordNet untuk membedakan arti kata dengan cara menghitung jumlah tumpang-tindih (overlap) kata antara definisi kamus dan kalimat yang sedang dievaluasi. Algoritma ini disebut...
+
+[[A]] PageRank
+[[B]] Viterbi Algorithm
+[[C]] Lesk Algorithm
+[[D]] BPE Algorithm
+[[E]] Apriori Algorithm
+
+ANSWER: C
+DISCUSSION: Algoritma *Lesk* (Lesk, 1986) adalah metode WSD klasik berbasis kamus. Ia mengasumsikan bahwa kata-kata yang muncul bersamaan di sebuah kalimat (misal: "bank" dan "sungai") akan memiliki definisi kamus yang mengandung kata-kata yang beririsan (misal, definisi bank sebagai tepi sungai memiliki overlap dengan definisi sungai). Sense (arti) dengan overlap terbanyak akan dipilih.
+TIPS_THEORY: Algoritma Lesk asli sangat rentan terhadap keterbatasan kosa kata dalam definisi kamus (kurangnya sinonim). Versi modernnya adalah *Simplified Lesk* atau *Corpus-based Lesk*.
+TIPS_PRACTICE: Ingat keyword: WSD via Kamus / Overlap Definisi = Algoritma Lesk.
+
+# Q25 (PILGAN)
+Dalam sistem *Information Retrieval* (seperti Search Engine), rumus metrik *Recall* adalah jumlah dokumen relevan yang terambil dibagi dengan total dokumen relevan yang ada. Jika direpresentasikan dengan *True Positive* (TP), *False Positive* (FP), dan *False Negative* (FN), maka rumusnya adalah:
+
+[[A]] $\frac{TP}{TP + FP}$
+[[B]] $\frac{TP}{TP + FN}$
+[[C]] $\frac{TN}{TN + FP}$
+[[D]] $\frac{TP + TN}{TP + TN + FP + FN}$
+[[E]] $\frac{2 \times Precision \times Recall}{Precision + Recall}$
+
+ANSWER: B
+DISCUSSION: *Recall* mengukur proporsi sampel positif yang sebenarnya berhasil diidentifikasi secara benar oleh sistem. Dalam IR, ini berarti "Berapa banyak dokumen relevan di dunia yang berhasil ditemukan?".
+$$\text{Recall} = \frac{TP}{TP + FN}$$
+TIPS_THEORY: Opsi A adalah rumus *Precision* ("Dari semua yang terambil, berapa banyak yang benar-benar relevan?").
+TIPS_PRACTICE: *Recall* berfokus meminimalisir FN (jangan sampai ada dokumen penting yang terlewat). *Precision* berfokus meminimalisir FP (jangan sampai membawa dokumen sampah).
+
+# Q26 (PILGAN)
+Teknik *WordPiece* adalah varian dari algoritma tokenisasi subword yang digunakan secara spesifik oleh model BERT. Perbedaan konseptual utama antara *WordPiece* dengan *Byte-Pair Encoding* (BPE) adalah...
+
+[[A]] WordPiece tidak menggunakan spasi putih (whitespace) sebagai pemisah awal, BPE menggunakannya.
+[[B]] WordPiece menggabungkan pasangan karakter berdasarkan peningkatan rasio kemungkinan (*likelihood*) dari bahasa secara keseluruhan, sedangkan BPE menggabungkan pasangan karakter semata-mata berdasarkan frekuensi kemunculan absolut terbanyak.
+[[C]] WordPiece menghasilkan token yang sepenuhnya berupa *hash integer*, BPE menghasilkan teks.
+[[D]] WordPiece hanya berlaku pada huruf alfabet Latin.
+[[E]] WordPiece menggunakan *Stemming* sebelumnya, sedangkan BPE menggunakan *Lemmatization*.
+
+ANSWER: B
+DISCUSSION: Meskipun terlihat sangat mirip, *Byte-Pair Encoding* (BPE) bersifat *greedy* dan murni berdasarkan **frekuensi tertinggi** pasangan yang berdekatan. *WordPiece*, yang awalnya dikembangkan untuk pencarian suara Google, membangun model *Language Model* (unigram) dan memilih pasangan penggabungan yang paling memaksimalkan probabilitas (likelihood) model data latih secara keseluruhan (menghitung skor $P(AB)/(P(A)P(B))$).
+TIPS_THEORY: Pemisahan token *subword* di dalam WordPiece biasanya direpresentasikan dengan prefiks ganda (misalnya `##ing` atau `##ly`), menandakan bahwa token ini adalah kepanjangan dari kata sebelumnya.
+TIPS_PRACTICE: BPE = Frequency Based. WordPiece = Likelihood/Probability Based.
+
+# Q27 (PILGAN)
+Dalam tugas *Named Entity Recognition* (NER), kita sering menggunakan skema penandaan "BIO" atau "IOB". Dalam kalimat "Rektor Universitas Indonesia berada di Jakarta", tag apa yang paling tepat disematkan pada kata "Universitas" dan "Indonesia" jika entitasnya adalah ORGANISASI (ORG)?
+
+[[A]] Universitas: B-ORG, Indonesia: I-ORG
+[[B]] Universitas: I-ORG, Indonesia: I-ORG
+[[C]] Universitas: O-ORG, Indonesia: B-ORG
+[[D]] Universitas: B-ORG, Indonesia: O-ORG
+[[E]] Universitas: ORG, Indonesia: ORG
+
+ANSWER: A
+DISCUSSION: Skema BIO (*Begin, Inside, Outside*) digunakan untuk melabeli batas *token* secara spesifik. "B" menandakan awal dari sebuah entitas (*Begin*), "I" menandakan kelanjutan dari entitas sebelumnya (*Inside*), dan "O" menandakan bukan entitas (*Outside*). Kata "Universitas" adalah awal entitas, maka dilabeli `B-ORG`. "Indonesia" adalah kelanjutan entitas, maka dilabeli `I-ORG`.
+TIPS_THEORY: Skema ini wajib digunakan karena entitas bernama (*Named Entity*) sering terdiri dari multi-kata (*multi-word expressions*). Tanpa tag B dan I, sistem tidak bisa membedakan mana dua entitas terpisah yang bersebelahan.
+TIPS_PRACTICE: Selalu mulai dengan "B", lanjut dengan "I". Kata non-entitas diisi "O" polos (tanpa sufiks).
+
+# Q28 (PILGAN)
+*Latent Dirichlet Allocation* (LDA) adalah algoritma paling populer untuk *Topic Modeling*. LDA mengasumsikan bahwa setiap dokumen adalah sebuah...
+
+[[A]] Graf yang dibentuk oleh sekumpulan entitas nama dan relasinya.
+[[B]] Vektor padat (*dense vector*) hasil dari rata-rata *word embeddings*.
+[[C]] Campuran dari berbagai macam topik (*mixture of topics*), di mana setiap topik adalah distribusi atas sekumpulan kata.
+[[D]] Representasi *Markov Chain* dari kelas kata (POS tag).
+[[E]] Hierarki pohon sintaksis *Context-Free Grammar* (CFG).
+
+ANSWER: C
+DISCUSSION: LDA (Blei et al., 2003) adalah model probabilistik generatif untuk koleksi data teks. Ide utamanya adalah bahwa dokumen dianggap sebagai *probabilistic mixture* (campuran) dari laten topik-topik, dan setiap topik direpresentasikan sebagai *probability distribution* dari kata-kata.
+TIPS_THEORY: Proses generatif LDA mengasumsikan penulis dokumen pertama-tama memilih campuran topik, kemudian untuk setiap kata, memilih topik dari campuran tersebut, lalu mengambil kata dari probabilitas kata pada topik tersebut.
+TIPS_PRACTICE: LDA digunakan di *Unsupervised Learning* untuk menemukan "tema" teks tersembunyi tanpa butuh label manual.
+
+# Q29 (PILGAN)
+Pada mekanisme *Self-Attention* matriks $Q$ (Query), $K$ (Key), dan $V$ (Value) dikalikan. Jika matriks representasi input $X$ memiliki ukuran $(T \times d_{model})$ di mana $T$ adalah panjang sekuens, dan kita mengalikan $X$ dengan bobot $W_Q, W_K, W_V$ berukuran $(d_{model} \times d_k)$, berapa ukuran dimensi matriks matriks skor Attention hasil perkalian $QK^T$ (sebelum softmax)?
+
+[[A]] $(T \times d_{model})$
+[[B]] $(d_{model} \times d_{model})$
+[[C]] $(d_k \times d_k)$
+[[D]] $(T \times T)$
+[[E]] $(T \times d_k)$
+
+ANSWER: D
+DISCUSSION: Matriks $Q$ dan $K$ masing-masing berukuran $(T \times d_k)$. Jika kita mengalikan matriks $Q$ dengan transpose dari $K$ ($K^T$ yang berukuran $d_k \times T$), perkalian matriks $(T \times d_k) \times (d_k \times T)$ menghasilkan matriks persegi berukuran $(T \times T)$. Matriks ini dinamakan *attention score/alignment matrix*.
+TIPS_THEORY: Matriks $T \times T$ menunjukkan bobot interaksi/korelasi skor dari *setiap kata* di sekuens input terhadap *setiap kata* lainnya di sekuens input.
+TIPS_PRACTICE: Karena ukurannya $T^2$, komputasi *Transformer* standar melambat secara kuadratik seiring panjangnya teks input. Inilah alasan panjang input dibatasi (misalnya 512 atau 2048 token maksimum pada arsitektur standar).
+
+# Q30 (PILGAN)
+Dalam *Sentiment Analysis*, pendekatan berbasis leksikon (*Lexicon-based approach*) beroperasi dengan cara...
+
+[[A]] Melatih *Convolutional Neural Network* (CNN) menggunakan kumpulan twit bersentimen positif dan negatif.
+[[B]] Mencocokkan kata-kata dalam teks dengan kamus yang sudah memuat bobot sentimen kata (misal SentiWordNet), lalu mengakumulasikan skor teks.
+[[C]] Memetakan dokumen ke ruang 10.000 dimensi untuk menghitung *Cosine Similarity* dokumen dengan kata kunci.
+[[D]] Melakukan klasifikasi menggunakan SVM dengan fitur TF-IDF n-gram teks.
+[[E]] Menjalankan algoritma pemotongan karakter (*Stemming*) berulang-ulang hingga tersisa kata sifat utama.
+
+ANSWER: B
+DISCUSSION: Pendekatan Berbasis Leksikon adalah teknik di mana kita mengumpulkan kamus (lexicon) berisikan kata-kata dan polaritas sentimennya (contoh: "baik" = +1, "marah" = -1). Sentimen keseluruhan dari sebuah kalimat dinilai secara deterministik dengan menjumlahkan, merata-rata, atau menggabungkan bobot leksikon dari kata-kata yang ada di kalimat tersebut.
+TIPS_THEORY: Ini adalah pendekatan *rule-based* tanpa pembelajaran mesin (*training-free*), sangat bergantung pada kualitas dan cakupan kamus leksikon yang dirancang.
+TIPS_PRACTICE: Sangat rentan gagal menangani sarkasme atau konteks ganda karena bobot kata bersifat mutlak di dalam kamus, tidak adaptif terhadap susunan kalimat.
+
+# Q31 (PILGAN)
+Dalam implementasi Word2Vec *Skip-Gram*, menghitung fungsi *Softmax* secara penuh (*Full Hierarchical Softmax*) pada kosa kata berukuran jutaan sangat lambat. Alternatif solusi komputasi aproksimasi yang sangat efisien secara performa untuk masalah ini adalah...
+
+[[A]] Byte-Pair Encoding
+[[B]] Negative Sampling
+[[C]] Singular Value Decomposition (SVD)
+[[D]] Gated Recurrent Unit (GRU)
+[[E]] Multi-head Attention
+
+ANSWER: B
+DISCUSSION: *Negative Sampling* memodifikasi *objective function* *Skip-Gram* dari masalah prediksi *multinomial* raksasa menjadi *binary logistic regression* lokal. Daripada menghitung probabilitas 1 kelas benar dari sejuta kosa kata, model hanya diminta membedakan mana pasangan kata positif asli (dari teks) melawan sejumlah kecil (contoh: 5 sampai 20) sampel "pasangan kata negatif" (noise) buatan yang ditarik acak secara probabilistik.
+TIPS_THEORY: Algoritma *Noise Contrastive Estimation* (NCE) adalah akar matematis di mana *Negative Sampling* disederhanakan oleh Mikolov dkk (2013).
+TIPS_PRACTICE: Ini mempercepat komputasi backpropagation eksponensial kali lipat karena model hanya meng-update bobot dari 1 kata asli dan beberapa kata "negatif" saja per langkah pelatihan.
+
+# Q32 (PILGAN)
+Arsitektur standar *Sequence-to-Sequence* (Seq2Seq) yang diajukan oleh Sutskever et al. (2014) untuk menerjemahkan teks menggunakan dua jaringan RNN yang disebut...
+
+[[A]] Generator dan Discriminator
+[[B]] Actor dan Critic
+[[C]] Encoder dan Decoder
+[[D]] Filter dan Pooling
+[[E]] Convolutional dan Fully-Connected
+
+ANSWER: C
+DISCUSSION: Arsitektur dasar *Seq2Seq* terdiri dari sebuah jaringan *Encoder* dan *Decoder*. *Encoder* menerima urutan input variabel-panjang kata per kata lalu memadatkannya menjadi sebuah *Context Vector* berukuran tetap. *Decoder* mengambil vektor konteks tersebut lalu memproduksi urutan target terjemahan, kata per kata secara bergantian.
+TIPS_THEORY: Kelemahan utama model ini adalah adanya kemacetan informasi (*information bottleneck*) pada *Context Vector* tunggal, yang memicu munculnya revolusi mekanisme *Attention* satu tahun kemudian.
+TIPS_PRACTICE: Kunci Seq2Seq: Encoder (baca semua, kompres jadi satu vektor rahasia) -> Decoder (ekstrak rahasia itu jadi bahasa lain).
+
+# Q33 (PILGAN)
+Terkait mekanisme *Attention* dalam model *Seq2Seq* RNN klasik, dua paper fondasional berasal dari Bahdanau et al. dan Luong et al. Apa perbedaan teknis paling mendasar dalam menghitung *alignment score* antara pendekatan *Bahdanau Attention* dengan *Luong Attention*?
+
+[[A]] Bahdanau menggunakan RNN sementara Luong menggunakan CNN.
+[[B]] Bahdanau menghitung skor *Attention* di blok Encoder, Luong di blok Decoder.
+[[C]] Bahdanau menggunakan *Multi-Layer Perceptron* (Additive) untuk menghitung bobot attention, sementara Luong mengeksplorasi kalkulasi *Dot-Product* (Multiplicative).
+[[D]] Bahdanau memproses input kalimat dari belakang, Luong dari depan.
+[[E]] Bahdanau memotong kalimat berukuran panjang menjadi n-grams, Luong membiarkannya sekuensial.
+
+ANSWER: C
+DISCUSSION: Pendekatan *Bahdanau* menggunakan jaringan saraf tiruan tambahan (perkalian matriks dan penjumlahan, dikenal dengan *Additive Attention* $\tanh(W_a [h_{t-1}; s_j])$) untuk mencari skor kedekatan dua status laten. Pendekatan *Luong* secara krusial mengusulkan metode *Dot-Product* matematis murni ($h_t^T W_a \bar{h}_s$), yang secara hitungan algoritmis jauh lebih efisien karena dapat berjalan dengan optimasi aljabar matriks di hardware modern GPU tanpa neural layer tambahan.
+TIPS_THEORY: Filosofi *Dot-Product Attention* inilah yang nantinya disempurnakan (dengan *scaling root d_k*) menjadi pilar dari arsitektur *Transformer* modern.
+TIPS_PRACTICE: Keyword: Bahdanau = Additive (MLP), Luong = Multiplicative (Dot-Product).
+
+# Q34 (PILGAN)
+Dalam pre-training model BERT, objektif *Masked Language Modeling* (MLM) dijalankan dengan mengganti secara acak beberapa persentase token di input dengan token khusus `[MASK]`. Berapakah standar persentase token yang dipilih untuk dikaburkan/di-mask oleh BERT pada paper aslinya (Devlin et al., 2018)?
+
+[[A]] 5%
+[[B]] 15%
+[[C]] 30%
+[[D]] 50%
+[[E]] 80%
+
+ANSWER: B
+DISCUSSION: Di paper *BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding*, model diajarkan "Clouze Task" di mana BERT menutupi/mengaburkan secara random **15%** dari keseluruhan token *WordPiece* di sekuens pada setiap iterasi latih. Model dilatih memprediksi kata asli dari konteks sekeliling kata (depan-belakang) yang ditutup `[MASK]`.
+TIPS_THEORY: Kenapa 15%? Jika terlalu sedikit, konvergensi latih terlalu lama karena *error gradient* minim. Jika terlalu banyak (misal 50%), BERT kehilangan terlalu banyak konteks sehingga hanya sekadar menebak acak.
+TIPS_PRACTICE: Fakta teknis ekstra: Dari 15% itu, 80% murni diganti `[MASK]`, 10% diganti kata *random*, 10% dibiarkan apa adanya (sebagai injeksi *noise invariance*).
+
+# Q35 (PILGAN)
+Selain MLM, BERT juga menggunakan satu lagi fungsi kerugian/objektif (*loss function*) pada tahap latih awalnya yang disebut *Next Sentence Prediction* (NSP). Pada NSP, dua kalimat diberikan ke BERT. Apa tujuan dari arsitektur pelatihan biner (binary training) ini?
+
+[[A]] Mengurutkan dua kalimat yang letaknya teracak dari sebuah paragraf tunggal agar membentuk sintaksis tepat.
+[[B]] Memprediksi apakah kalimat kedua (Sentence B) secara logis adalah kelanjutan langsung dari kalimat pertama (Sentence A) di dalam korpus orisinal.
+[[C]] Menebak apakah kedua kalimat memiliki *Sentiment Analysis* yang bertolak belakang.
+[[D]] Mengubah kalimat pasif di kalimat pertama menjadi kalimat aktif di kalimat kedua.
+[[E]] Mengurangi nilai *Out-Of-Vocabulary* di antara dua kalimat yang berbeda bahasa.
+
+ANSWER: B
+DISCUSSION: Banyak sistem NLP hierarkis seperti *Question Answering* (QA) dan *Natural Language Inference* (NLI) bergantung mutlak pada pamahaman kohesi dan relasi logis antar dua frasa. Objektif NSP dibuat agar BERT dapat menangkap koneksi kalimat tingkat lanjut di luar batas *masking* kata. Format input NSP adalah: `[CLS] Sentence A [SEP] Sentence B [SEP]`. Label Y nya bernilai 1 jika B lanjutan A (kategori `IsNext`), 0 jika B acak (kategori `NotNext`).
+TIPS_THEORY: Meskipun NSP inovatif saat itu, paper-paper modern generasi setelah BERT (misal *RoBERTa*) membuktikan bahwa menghilangkan fitur NSP sepenuhnya bisa menghasilkan skor latih setara, asalkan ukuran panjang teks untuk metode MLM diperlebar secara berurutan.
+TIPS_PRACTICE: NSP menggunakan prediksi logika di atas *special token* `[CLS]` di depan kalimat.
+
+# Q36 (PILGAN)
+Evaluasi yang ketat dan adil di dataset klasifikasi teks yang tidak seimbang (*imbalanced dataset*, contoh: 990 komentar non-spam, 10 komentar spam) dilakukan menggunakan metrik evaluasi *F1-Score*. Formula harmonis rerata dari *Precision* (P) dan *Recall* (R) ini dikalkulasikan sebagai:
+
+[[A]] $\frac{P+R}{2}$
+[[B]] $\frac{P \times R}{P + R}$
+[[C]] $2 \times \frac{P \times R}{P + R}$
+[[D]] $\sqrt{P^2 + R^2}$
+[[E]] $1 - \frac{P}{R}$
+
+ANSWER: C
+DISCUSSION: *F1-score* (atau *F-measure*) bukanlah rerata aritmetika biasa, namun merupakan harmonik rata-rata (*harmonic mean*) antara dua matriks yang bertolak belakang fungsinya: *Precision* dan *Recall*. Tujuan *harmonic mean* adalah untuk menarik hukuman parah apabila salah satu elemen memiliki skor anjlok/rendah ekstrim.
+$$F_1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}$$
+TIPS_THEORY: Di dalam sistem peradilan hukum, analogi *Precision* = Jangan sampai memenjarakan orang tak bersalah (hindari *False Positive*). Analogi *Recall* = Pastikan seluruh pencuri yang bersembunyi ditangkap (hindari *False Negative*). 
+TIPS_PRACTICE: F1-score menjamin performa model tidak bisa dievaluasi tinggi jika hanya melempar model naif *always-vote-majority-class* (yang memiliki recall 100% namun presisi 0%).
+
+# Q37 (PILGAN)
+Di ranah metode *Dependency Parsing* komputasional modern, format analitis dari struktur gramatika sintaksis divisualisasikan dalam bentuk graf panah bersumbu kata (bukan berbasis fraksi kelompok kalimat). Di antara algoritma di bawah ini yang memproses parse tree secara bergiliran *step-by-step* dengan mekanisme tumpukan statis (*Stack* dan *Buffer*) adalah:
+
+[[A]] CKY Algorithm
+[[B]] Viterbi Algorithm
+[[C]] Shift-Reduce Parsing
+[[D]] Lesk Algorithm
+[[E]] K-Means Parsing
+
+ANSWER: C
+DISCUSSION: Algoritma parsing *Transition-Based* yang populer (seperti parser Arc-Standard) beroperasi berdasarkan mesin hierarki deterministik bernama *Shift-Reduce*. Teks belum diperiksa dipertahankan dalam suatu *Buffer*, sementara unit yang dalam kalkulasi disimpan dalam struktur memori berbasis LIFO (*Last In First Out*) bernama *Stack*. Mesin ini menjalankan tiga jenis kontrol motorik: *SHIFT* (mendorong kata dari *Buffer* ke *Stack*), *LEFT-ARC* (membuat hubungan ketergantungan mengarah silang ke kiri), dan *RIGHT-ARC*.
+TIPS_THEORY: Model parsing *Transition-Based* secara operasional adalah fungsi regresi *classification/scoring*, ini membuat parsing *Shift-Reduce* sangat efisien dalam Big O komputasi senilai $O(N)$.
+TIPS_PRACTICE: Algoritma ini berjalan selangkah demi selangkah membaca pita memori dari awal sampai pita baca habis (*deterministic finite automata with stack element*).
+
+# Q38 (PILGAN)
+Selama fase pra-pemrosesan di *pipeline* analitik teks konvensional, tahapan penyaringan reguler yang mengeksekusi penghapusan deretan kata-kata fungsi dan kata konjungsi super fungsional seperti "yang", "dan", "di", "ke", "adalah" dirujuk secara spesifik dalam istilah global...
+
+[[A]] Case Folding
+[[B]] Regular Expression Masking
+[[C]] Stopword Removal
+[[D]] Part-of-Speech Pruning
+[[E]] Morphological Stripping
+
+ANSWER: C
+DISCUSSION: *Stop words* merujuk pada kata-kata yang mendominasi frekuensi distribusi statistik tertinggi bahasa komunal (Sering dikaitkan pada kaidah Distribusi *Zipf's Law*) namun secara praktis minim atau bahkan nol dalam mendistribusikan representasi muatan leksikal *keyword* analisis topik spesifik (misal di mesin pencarian *inverted-index*). Memusnahkannya akan memotong ruang *Vocabulary* dimensi tinggi untuk komputasi TF-IDF hingga 50%.
+TIPS_THEORY: Walaupun *stop words removal* absolut wajib dilakukan di metode klasik (Naive Bayes/TF-IDF), langkah ini seringkali **dihindari** untuk *Deep Learning Contextual Language Model* masa kini (BERT, RNN) karena model memerlukan struktur "dan/atau/tidak" secara penuh dalam menghitung konteks matriks *Attention* untuk memprediksi arah sintaksis kompleks.
+TIPS_PRACTICE: Pembuangan stop words merusak semantik urutan di neural networks. Hati-hati.
+
+# Q39 (PILGAN)
+Di algoritma jaringan syaraf tiruan pengolah klasifikasi urutan *Multi-Class*, komponen objektif komputasional akhir yang disematkan untuk meminimalkan deviasi fungsi prediksi sistem dari target sejati menggunakan perhitungan entropi dasar sistem. Ekspresi matematis optimal kalkulasi *Categorical Cross-Entropy Loss* untuk satu pasang parameter $(y_{true}, y_{pred})$ berjumlah $C$ buah kelas dinotasikan sebagai:
+
+[[A]] $\text{Loss} = - \sum_{i=1}^C y_{true,i} \cdot \log(y_{pred,i})$
+[[B]] $\text{Loss} = \sum_{i=1}^C (y_{true,i} - y_{pred,i})^2$
+[[C]] $\text{Loss} = \max(0, 1 - y_{true} \cdot y_{pred})$
+[[D]] $\text{Loss} = \sum_{i=1}^C |y_{true,i} - y_{pred,i}|$
+[[E]] $\text{Loss} = - \sum_{i=1}^C y_{pred,i} \cdot \log(y_{true,i})$
+
+ANSWER: A
+DISCUSSION: Formula matematis *Cross-Entropy* merupakan ukuran pergeseran atau diferensiasi dua distribusi peluang independen ($P$ berbanding $Q$). Di AI, distribusi rujukan target *ground-truth* (*one-hot encoded* bernilai biner 0 dan 1) difaktorkan terhadap nilai estimasi fungsi logaritmik distribusi *predicted* yang di-ekspor oleh arsitektur aktivasi terminal semacam *Softmax*.
+TIPS_THEORY: Pada label klasifikasi kelas murni (one-hot), seluruh $y_{true}$ berstatus nol eksternal kecuali satu sumbu yang bernilai satu, hal ini menyebabkan *Categorical Cross-Entropy* dapat direduksi ekstrem menjadi $\text{Loss} = - \log(p_{\text{target\_class\_prob}})$.
+TIPS_PRACTICE: Opsi B adalah perhitungan diferensial *Mean Squared Error* (MSE), eksklusif di zona Regresi, bukan Klasifikasi diskrit.
+
+# Q40 (PILGAN)
+Gated Recurrent Unit (GRU) yang diajukan oleh *Cho dkk (2014)* merestrukturisasi sistem perlindungan gerbang memori LSTM ke dalam kerangka perhitungan parameter matriks yang jauh lebih hemat dan ramping. Di GRU, pemisahan arus perlindungan dan kontrol data direduksi menjadi dua mekanisme fundamental matriks gerbang logistik yang dijuluki:
+
+[[A]] Input Gate dan Output Gate
+[[B]] Reset Gate dan Update Gate
+[[C]] Forget Gate dan Output Gate
+[[D]] State Gate dan Memory Gate
+[[E]] Attention Gate dan Convolution Gate
+
+ANSWER: B
+DISCUSSION: Struktur elemen logistik *Gated Recurrent Unit* menghapus fungsionalitas memori paralel (Cell State / $C_t$) dan *Forget/Output Gate* dari model orisinal *Long Short-Term Memory* (LSTM), demi melahirkan unit jaringan adaptif yang bereaksi mengontrol parameter fusi dari sekuens murni melalui gerbang hibrida baru: **Update Gate** (berperan layaknya penggabungan Forget & Input gate dalam mempertimbangkan informasi historis) dan **Reset Gate** (mengontrol berapa drastis elemen masa lalu yang diacuhkan saat menulis respons sementara baru).
+TIPS_THEORY: Keuntungan empiris model GRU melampaui LSTM saat memori *hardware* komputasi terbatas, karena hilangnya 1 vektor parameter gerbang menurunkan konsumsi VRAM dan kecepatan kalkulasi *backpropagation* nyaris >25% dengan mempertahankan ketepatan presisi setara.
+TIPS_PRACTICE: Kata kunci perbandingan: LSTM = Forget, Input, Output (Cell + Hidden state). GRU = Update, Reset (Murni 1 single Hidden state).
+
+# Q41 (PILGAN)
+Dalam pra-pemrosesan NLP, meskipun sering dikacaukan oleh pemula, tokenisasi dan stemming adalah dua proses yang sangat berbeda. Secara hierarkis dalam *pipeline* pemrosesan teks standar, bagaimanakah urutan dan fungsi dari kedua proses ini?
+
+[[A]] Stemming memotong kata menjadi bentuk dasar, lalu Tokenisasi memecah teks menjadi karakter individual.
+[[B]] Tokenisasi memecah string teks menjadi unit-unit leksikal (token), baru kemudian Stemming diterapkan pada masing-masing token untuk memotong afiks (imbuhan).
+[[C]] Keduanya dilakukan secara bersamaan dalam satu langkah menggunakan kamus WordNet.
+[[D]] Stemming harus selalu dilakukan sebelum Tokenisasi agar spasi antar kalimat hilang.
+[[E]] Tokenisasi mendeteksi bahasa (Language Detection), sedangkan Stemming mendeteksi kelas kata (POS Tagging).
+
+ANSWER: B
+DISCUSSION: Dalam *pipeline* NLP standar, teks mentah berbentuk *string* blok harus dipisahkan terlebih dahulu menjadi unit-unit diskrit yang disebut token (kata, tanda baca, atau *subword*) melalui proses **Tokenisasi**. Setelah teks dipisah-pisah, barulah operasi per-kata seperti **Stemming** (pemotongan afiks statis) atau *Lemmatization* bisa diterapkan pada masing-masing token tersebut.
+TIPS_THEORY: Anda tidak bisa melakukan stemming pada kalimat utuh tanpa memisahkannya menjadi kata-kata terlebih dahulu.
+TIPS_PRACTICE: Urutan standar: Teks Mentah -> Case Folding -> Tokenization -> Stopword Removal -> Stemming/Lemmatization.
+
+# Q42 (PILGAN)
+Model Word2Vec memiliki dua arsitektur turunan: *Continuous Bag-of-Words* (CBOW) dan *Skip-Gram*. Dalam konteks ukuran dataset dan frekuensi kata langka (*rare words*), manakah arsitektur yang paling direkomendasikan secara empiris?
+
+[[A]] CBOW lebih lambat namun lebih baik untuk kata-kata langka, sedangkan Skip-Gram cepat namun buruk pada dataset kecil.
+[[B]] Keduanya memberikan hasil matematis yang identik karena simetris, sehingga pemilihannya tidak relevan.
+[[C]] Skip-Gram lebih lambat dilatih namun bekerja lebih baik pada dataset berukuran kecil dan sangat peka dalam merepresentasikan kata-kata langka (*rare words*).
+[[D]] CBOW hanya bisa digunakan jika *vocabulary* kurang dari 10.000 kata.
+[[E]] Skip-Gram hanya mendukung embedding 1 dimensi, sehingga CBOW lebih disukai.
+
+ANSWER: C
+DISCUSSION: Berdasarkan paper Mikolov dkk, **Skip-Gram** bekerja sangat baik dengan dataset dalam jumlah kecil dan terbukti lebih superior dalam merepresentasikan kata-kata yang jarang muncul (*rare words*). Sebaliknya, **CBOW** melatih jaringan beberapa kali lipat lebih cepat daripada Skip-Gram dan sedikit lebih akurat untuk kata-kata umum (*frequent words*).
+TIPS_THEORY: Alasan Skip-Gram jago pada kata langka adalah karena objektifnya (satu kata memprediksi banyak konteks) "memaksa" setiap kata langka diekspos berulang-ulang ke berbagai sampel konteks selama *training*. CBOW merata-rata seluruh konteks, menenggelamkan sinyal kata langka.
+TIPS_PRACTICE: Rumus hafal: Skip-Gram = Pelan & Jago Rare Words. CBOW = Cepat & Jago Frequent Words.
+
+# Q43 (PILGAN)
+Sebelum arsitektur Transformer merajai dunia NLP (via BERT), ada sebuah model representasi kontekstual *deep learning* pionir bernama ELMo (*Embeddings from Language Models*). ELMo dibangun berdasarkan arsitektur jaringan...
+
+[[A]] Multi-Layer Convolutional Neural Networks (CNN) 1D
+[[B]] Bidirectional LSTM (BiLSTM) yang dilatih memprediksi kata berikutnya
+[[C]] Autoencoder berbasis Generative Adversarial Networks (GAN)
+[[D]] Gated Graph Neural Networks
+[[E]] Forward-only RNN dengan *Global Max Pooling*
+
+ANSWER: B
+DISCUSSION: ELMo (Peters et al., 2018) adalah salah satu terobosan pertama dalam *Contextualized Word Embeddings* (vektor kata yang maknanya berubah-ubah tergantung kalimatnya). ELMo mengekstrak representasi tersembunyi (*hidden states*) dari *Bidirectional Language Model* yang dilatih menggunakan dua lapis jaringan *Bidirectional LSTM* (satu berlari *forward*, satu *backward*).
+TIPS_THEORY: Berbeda dengan BERT yang menggunakan pendekatan *Transformer Encoder* dalam memproses input sekalian dari depan-belakang, ELMo menggabungkan hasil panen (*concatenation*) dari fungsi rekursif LSTM independen.
+TIPS_PRACTICE: ELMo membuktikan bahwa mengekstraksi vektor dari setiap layar *internal network* (bukan hanya output akhir) sangat penting untuk menangkap sintaksis (di layar bawah) dan semantik (di layar atas).
+
+# Q44 (PILGAN)
+Dalam proses menghasilkan teks (Sequence Decoding) pada model translasi atau generator teks, *Greedy Search* memiliki kelemahan miopia (rabun dekat), yakni hanya memilih kata dengan probabilitas tertinggi di saat itu juga tanpa memikirkan struktur kalimat jangka panjang. Algoritma apa yang memperluas *Greedy Search* dengan mempertahankan $k$ kandidat sekuens probabilitas terbaik pada setiap *time-step*?
+
+[[A]] Beam Search
+[[B]] Depth-First Search
+[[C]] A* Search
+[[D]] Monte Carlo Tree Search
+[[E]] Dijkstra Algorithm
+
+ANSWER: A
+DISCUSSION: *Beam Search* adalah algoritma pencarian heuristik yang mengeksplorasi ruang pencarian dengan melebarkan kandidat dari langkah sebelumnya, tetapi secara konstan hanya mempertahankan $k$ probabilitas gabungan terbaik (di mana $k$ disebut sebagai *beam width*). Hal ini secara radikal mengalahkan *Greedy Search* ($k=1$) dalam menemukan kalimat yang probabilitas gabungannya optimal, tanpa harus menghitung seluruh ruang kombinasi kata yang jumlahnya eksponensial.
+TIPS_THEORY: Jika probabilitas sebuah kandidat terlalu kecil pada awal kalimat, ia akan dibuang (pruning) secara agresif dari kelompok $k$ pemenang, sehingga model fokus memperdalam cabang yang menjanjikan.
+TIPS_PRACTICE: *Greedy Search* = Memilih lokal maksimum saat ini juga. *Beam Search* = Menyimpan beberapa tabungan jalur untuk melihat ke depan.
+
+# Q45 (PILGAN)
+*Coreference Resolution* adalah salah satu sub-bidang menantang di NLP. Tugas komputasional ini bertujuan untuk...
+
+[[A]] Mengubah dokumen fisik (*hardcopy*) menjadi teks digital (OCR).
+[[B]] Memperbaiki tata bahasa Inggris yang buruk (Grammar Correction).
+[[C]] Mengidentifikasi seluruh representasi sebutan (mentions) di dalam dokumen yang merujuk pada entitas dunia nyata yang sama.
+[[D]] Menghubungkan dua dokumen berbeda yang memiliki topik yang identik (Document Clustering).
+[[E]] Memecah kata ambigu menjadi makna-makna berlainan menggunakan kamus.
+
+ANSWER: C
+DISCUSSION: *Coreference Resolution* (Resolusi Koreferensi) adalah tugas mengenali kata-kata (sering berupa kata ganti/pronomina atau frasa nomina) yang merujuk kepada satu entitas referensial yang sama. Contoh: Dalam kalimat "Budi membeli mobil baru. Ia sangat menyukainya", sistem harus memetakan kata "Ia" kembali ke "Budi", dan kata "-nya" merujuk ke "mobil baru".
+TIPS_THEORY: Sistem *coreference resolution* esensial untuk pemahaman dialog, robot Q&A, dan *Text Summarization* agar konteks tokoh cerita tidak "hilang".
+TIPS_PRACTICE: Salah satu algoritma modern paling dominan untuk masalah ini adalah *End-to-End Neural Coreference* (Lee et al., 2017) yang menghitung skor *mention-pair*.
+
+# Q46 (PILGAN)
+Sistem *Text Summarization* diklasifikasikan menjadi dua paradigma utama: *Extractive* dan *Abstractive*. Ringkasan berjenis *Extractive* bekerja dengan cara...
+
+[[A]] Membaca seluruh dokumen, "memahaminya", lalu menyusun kalimat-kalimat baru dengan kata-kata buatan sistem sendiri (parafrase).
+[[B]] Menyeleksi dan menyalin kalimat-kalimat yang paling penting secara harfiah (copy-paste) dari dokumen asli untuk dirangkai menjadi satu teks.
+[[C]] Menerjemahkan dokumen berbahasa asing ke bahasa Inggris sebelum meringkasnya.
+[[D]] Mengganti seluruh nama orang dan tempat dengan variabel acak untuk menjaga privasi dokumen intelijen.
+[[E]] Menyajikan ringkasan dalam format graf poin-poin (*bullet points*).
+
+ANSWER: B
+DISCUSSION: Pada *Extractive Summarization*, mesin secara algoritmik menghitung skor kepentingan (*importance score*) setiap kalimat (misalnya dengan TextRank), lalu menyaring (*extracting*) top $N$ kalimat tersebut mentah-mentah dari dokumen aslinya. Tidak ada kosakata atau frasa baru yang di-generate. Di sisi lain, *Abstractive Summarization* bersifat generatif (layaknya penulis manusia) yang mampu melakukan parafrase dan memproduksi kosakata baru di luar naskah aslinya.
+TIPS_THEORY: *Abstractive* jauh lebih sulit (sering mengalami *hallucination*) namun hasilnya lebih terbaca (*fluent*). *Extractive* sangat kaku dan terkadang tidak nyambung (kurang kohesi), namun 100% bebas dari risiko disinformasi fakta.
+TIPS_PRACTICE: Extractive = TextRank (Graf kalimat), TF-IDF Sentence Scoring. Abstractive = Seq2Seq (BART, T5).
+
+# Q47 (PILGAN)
+Dalam teori *Statistical Machine Translation* (SMT) era awal, konsep menyelaraskan korespondensi kata di bahasa sumber dengan kata di bahasa target diatur oleh landasan probabilitas yang dikenal dengan sebutan IBM Models. Salah satu inovasi penting dalam IBM Model adalah model perhitungan *Fertility*. Apa yang dimaksud *Fertility*?
+
+[[A]] Jumlah kata benda dalam kalimat sumber dikali jumlah kalimat target.
+[[B]] Probabilitas bahwa satu kata di bahasa sumber akan diterjemahkan menjadi *nol atau beberapa* kata berbeda di bahasa target.
+[[C]] Seberapa sering suatu model penerjemah *crash* selama proses pelatihan.
+[[D]] Persentase kecocokan n-gram antara dokumen orisinal dengan teks referensi penerjemah manusia.
+[[E]] Rasio panjang antara dokumen bahasa sumber terhadap dokumen bahasa target.
+
+ANSWER: B
+DISCUSSION: Dalam terjemahan mesin statistik (IBM Model 3 ke atas), *Fertility* merujuk pada parameter probabilitas distribusi yang mengatur berapa banyak jumlah kata target yang dihasilkan oleh satu kata sumber. Contoh: Dalam bahasa Inggris ke bahasa Spanyol, kata bahasa Inggris "not" memiliki *fertility* 1, namun idiom bahasa Inggris "slap" mungkin memiliki *fertility* 2 (karena diterjemahkan menjadi "dar bofetada").
+TIPS_THEORY: Konsep *fertility* membantu IBM Models untuk tidak terbatas pada pemetaan murni matriks terjemahan kata 1-to-1, melainkan mendukung 1-to-N atau bahkan 1-to-0 (drop kata).
+TIPS_PRACTICE: Ingat *Fertility* (Kesuburan) = Seberapa banyak "anak kata" yang dilahirkan dari satu "ibu kata".
+
+# Q48 (PILGAN)
+Metrik BLEU menghukum terjemahan mesin yang menebak hanya beberapa patah kata namun tepat semua (misal referensi: "Kucing makan ikan segar", mesin menebak "Kucing makan" -> *Precision* 100%). Penalti hukuman eksponensial ini mencegah mesin memproduksi terjemahan yang terlalu pendek. Faktor penalti ini disebut *Brevity Penalty* (BP). Berapakah nilai BP jika panjang hasil terjemahan mesin ($c$) **lebih besar** daripada panjang terjemahan referensi ($r$)?
+
+[[A]] $BP = \exp(1 - \frac{r}{c})$
+[[B]] $BP = 1$
+[[C]] $BP = 0$
+[[D]] $BP = \frac{c}{r}$
+[[E]] $BP = -1$
+
+ANSWER: B
+DISCUSSION: Rumus matematis murni *Brevity Penalty* dalam BLEU adalah:
+Jika $c > r$ (Kandidat mesin lebih panjang dari Referensi), maka $BP = 1$. (Tidak ada penalti, karena *Precision* secara alami akan jatuh jika mesin sembarangan membuat terjemahan panjang membanjir).
+Jika $c \leq r$ (Kandidat mesin lebih pendek dari Referensi), maka $BP = e^{(1 - r/c)}$. (Ini akan menghasilkan angka koma eksponensial $< 1$ yang berfungsi sebagai pengali diskon untuk menghancurkan total *score*).
+TIPS_THEORY: Mesin yang menebak "Kucing makan" (c=2) untuk referensi "Kucing makan ikan segar" (r=4) akan dihajar penalti eksponensial bernilai $e^{1-2} = e^{-1} \approx 0.36$. Jadi presisi tinggi 100% dikalikan 0.36, membuat skor BLEU jeblok.
+TIPS_PRACTICE: $BP$ hanya menghukum jika hasil teks mesin terlalu *pendek* (*Brevity*).
+
+# Q49 (PILGAN)
+Dalam tokenisasi berbasis subword, terdapat alat populer bernama *SentencePiece* (Kudo & Richardson, 2018). Apa pembeda paling revolusioner antara *SentencePiece* dengan alat implementasi klasik *Byte-Pair Encoding* (BPE) seperti *Subword-NMT*?
+
+[[A]] *SentencePiece* menggunakan *reinforcement learning* (RL).
+[[B]] *SentencePiece* memperlakukan teks input benar-benar mentah sebagai aliran karakter Unicode utuh (termasuk spasi sebagai karakter normal `_`), sehingga menghilangkan ketergantungan pada alat *pre-tokenization* pemecah spasi antar bahasa.
+[[C]] *SentencePiece* hanya dapat membaca format XML dan membuang tag HTML.
+[[D]] *SentencePiece* membatasi *vocabulary* maksimum hingga tepat 256 karakter ASCII.
+[[E]] *SentencePiece* tidak bisa di-*decode* (irreversible), sehingga tidak bisa mengubah token ID kembali menjadi kalimat asli.
+
+ANSWER: B
+DISCUSSION: Alat tradisional (seperti BPE orisinal) bergantung pada kenyataan bahwa teks harus melalui *pre-tokenization* lebih dulu (dipisah berbasis spasi atau bahasa khusus seperti *Moses Tokenizer* untuk bahasa Latin). Ini cacat bawaan untuk bahasa yang tidak memiliki spasi yang tegas (seperti Mandarin, Jepang). *SentencePiece* mengambil pendekatan *pure raw sequence*: spasi putih (whitespace) dilebur ke dalam algoritma sebagai karakter literal biasa (sering divisualisasikan dengan simbol `_`). Hal ini membuat tokenisasi 100% *lossless* dan *language-agnostic*.
+TIPS_THEORY: Karena memperlakukan spasi sebagai huruf biasa, output token ID dari *SentencePiece* dapat disambung kembali (*detokenized*) dengan mudah secara sempurna $1:1$ ke teks awal tanpa *script* rumit.
+TIPS_PRACTICE: SentencePiece = Spasi adalah karakter berwujud (`_`) + Bebas Pre-tokenizer.
+
+# Q50 (PILGAN)
+Pada saat pelatihan (training) model prediktif berbasis *Encoder-Decoder* (seperti RNN-Seq2Seq), metode yang menyuntikkan *ground-truth* (jawaban benar masa lalu) secara paksa ke dalam input Decoder di *time-step* selanjutnya — ketimbang memasukkan tebakan *output* Decoder itu sendiri — dirujuk sebagai teknik...
+
+[[A]] Attention Forcing
+[[B]] Scheduled Sampling
+[[C]] Teacher Forcing
+[[D]] Label Smoothing
+[[E]] Gradient Clipping
+
+ANSWER: C
+DISCUSSION: *Teacher Forcing* adalah taktik pelatihan sistem rekursif di mana probabilitas input token saat posisi $t$ di *Decoder* langsung diganti (*forced*) secara absolut dengan nilai token asli *ground-truth* dari data *training* posisi $t-1$, alih-alih menggunakan distribusi probabilitas tebakan model pada waktu $t-1$. Ini membuat waktu konvergensi menjadi sangat cepat.
+TIPS_THEORY: Kelemahannya: Terjadi *Exposure Bias*, di mana model dilatih selalu digendong "guru", namun ketika ujian (*inference*) harus memakan *output*-nya sendiri yang berisiko menumpuk kesalahan komulatif (snowball effect).
+TIPS_PRACTICE: Mengatasi *Exposure Bias* dilakukan dengan *Scheduled Sampling* (mengurangi intensitas "guru" seiring berjalannya pelatihan latih-ulang bertahap).
+
+# Q51 (PILGAN)
+Kasus di mana model NLP berhadapan dengan representasi kosakata asing yang sama sekali tak terdeteksi dalam perbendaharaan latih (*vocabulary dict*) disebut masalah *Out-Of-Vocabulary* (OOV). Sebelum era mempopulernya *subword tokenization* (BPE/WordPiece), pendekatan primitif apa yang selalu diambil oleh model untuk fenomena kata ini?
+
+[[A]] Melakukan *Google Search API* secara *realtime* untuk mencari definisinya.
+[[B]] Mengabaikan (skip) operasi komputasi untuk kata itu secara utuh seakan kalimat lebih pendek dari aslinya.
+[[C]] Memetakan seluruh ragam kata tak dikenal itu kepada satu vektor representasi universal statis berlabel `<UNK>` (Unknown).
+[[D]] Menerjemahkannya secara proksi melalui matriks *one-hot* bertipe *floating point*.
+[[E]] Menggandakan probabilitas token terdekat secara proporsional.
+
+ANSWER: C
+DISCUSSION: Dalam NLP klasik level kata (*word-level model*), setiap *vocabulary* tak tercatat akan dipaksa masuk (di-*bucket*) ke sebuah token statis `<UNK>` (Unknown). Hal ini menghancurkan konteks kalimat jika jumlah kata OOV yang unik terlalu banyak (misal: "Kemarin saya makan [UNK] di [UNK]" bisa jadi merujuk pada "Ratatouille" dan "Marseille").
+TIPS_THEORY: Semua token `<UNK>` dipaksa berbagi matriks *embedding* vektor berbobot sama persis yang merepresentasikan "suatu kata acak entah apa yang tak kuketahui".
+TIPS_PRACTICE: Pemecah masalah OOV klasik yang merusak ini adalah FastText (subword karakter) dan BPE.
+
+# Q52 (PILGAN)
+Meskipun algoritma *Term Frequency-Inverse Document Frequency* (TF-IDF) merupakan senjata andalan di era awal klasifikasi teks dan IR, algoritma statistik ini menyimpan satu kelemahan filosofis struktural mendasar dalam analisis linguistik mendalam, yakni...
+
+[[A]] Proses kalkulasi matematikanya mengambil waktu polinomial derajat eksponensial.
+[[B]] Ia memandang dokumen sekadar "karung kata" (Bag-of-Words), mengabaikan murni urutan sekuensial posisi kata dan keterkaitan makna antar sinonim kata (Semantik).
+[[C]] Ia tidak dapat menangani dokumen dengan jumlah rentang panjang (token) di atas 500 kata per bait teks.
+[[D]] Parameter inversi dokumentasinya (IDF) mengharuskan model *training* menggunakan representasi tensor dimensi tinggi.
+[[E]] Rumusnya secara paksa mendiskualifikasi nilai kata ganti numerik komersial (seperti "2024" atau "$5").
+
+ANSWER: B
+DISCUSSION: Konsep dasar *TF-IDF* dibangun pada asumsi ortogonal kemerdekaan kata (*Bag-of-Words*). Matriks TF-IDF tidak tahu apa itu urutan tata bahasa, dan secara vektor representasi, jarak *Cosine* antara "mobil" dan "kendaraan" di TF-IDF bisa jadi nol (seakan tidak punya kesamaan arti sama sekali) selama kedua kata ini belum pernah ditemui berekspresi tumpang-tindih (*overlapping* murni huruf-huruf).
+TIPS_THEORY: Kegagalan menangkap properti ko-oksistensi fitur semantik ini merupakan penggerak utama revolusi pencarian berbasis ruang padat laten (*Latent Dense Vector Space* / *Word Embeddings*).
+TIPS_PRACTICE: TF-IDF = Cepat, Berbasis Statistik Kata Berulang Murni. Semantik = Lemah.
+
+# Q53 (PILGAN)
+Model *word embeddings* standar pra-latih komersial yang tersedia luas di internet (seperti Word2Vec GoogleNews atau GloVe) mayoritas dikapalkan dengan konfigurasi dimensi ruang vektor numerik berukuran 300 Dimensi (300D). Secara konseptual linguistik *Deep Learning*, apa sebenarnya yang direpresentasikan oleh 300 deret matriks angka *(floating points)* padat per setiap kata ini?
+
+[[A]] Sebanyak 300 tag *Part-of-Speech* khusus di kompilasi ke dalam probabilitas diskrit.
+[[B]] Posisi absolut posisi kata dalam 300 frasa dokumen latih pertama di Wikipedia.
+[[C]] Sumbu koordinat sumbu geometri X-Y-Z berulang sebanyak 100 lapis kedalaman rotasi.
+[[D]] Fitur-fitur laten (*latent/hidden semantic features*) tersembunyi yang ditangkap mesin secara hierarkis (yang sumbunya tak selamanya bisa dideskripsikan/diinterpretasikan jelas secara bahasa manusia, misal sumbu x-21 mendeteksi "tingkat maskulinitas").
+[[E]] Skor TF-IDF dari daftar top 300 kata paling langka di korpus tersebut.
+
+ANSWER: D
+DISCUSSION: Vektor 300 Dimensi dalam representasi mampat (*Dense Word Embeddings*) merepresentasikan sekumpulan spektrum fitur konsep laten/rahasia (*Distributed Representation*) yang dipelajari mesin, bukan diprogram secara eksplisit oleh programmer manusia. Meskipun beberapa sumbu/dimensi (atau kombinasi linier dari berbagai dimensi) mungkin berkorelasi dengan konsep alamiah (seperti *Gender*, *Royalty*, *Tense*, atau *Plurality*), sebagian besar dimensi adalah ruang vektor *noise* abstrak tak bernama.
+TIPS_THEORY: Angka 300 dipilih akibat penemuan efisiensi asimptotik secara *empirical tuning*: menambah dimensi melebihi 300/500 jarang mendongkrak performa klasifikasi linguistik namun meningkatkan beban komputasi kuadratik.
+TIPS_PRACTICE: Ingat prinsip Embedding = "Meaning as a dense continuous vector". Dimensi itu bukan representasi harfiah aturan *grammar*.
+
+# Q54 (PILGAN)
+Arsitektur *Transformer* mengabaikan penggunaan unit perulangan waktu rekursif murni (*Recurrent*) seperti yang terdapat pada RNN/LSTM, sehingga ia kehilangan kemampuan inheren untuk mengetahui "posisi letak" kata secara sekuensial. Untuk menebus "kebutaan posisi" ini, Vaswani dkk. (2017) memperkenalkan injeksi matriks khusus ke dalam lapisan dasar *Encoder* yang dinamakan...
+
+[[A]] Absolute TF-IDF Marker
+[[B]] Attention Time Penalty
+[[C]] Position Embeddings (Positional Encoding)
+[[D]] Bidirectional LSTM Projection
+[[E]] Sequential Gradient Modifier
+
+ANSWER: C
+DISCUSSION: Berbeda dari algoritma RNN yang menyuap aliran kata selangkah demi selangkah sesuai ketukan deret derak jarum jam komputasi ($t_1, t_2, t_3$), blok Transformer membaca 100% korpus input teks seketika itu juga (Paralel / Operasi Matriks). Supaya mesin mengerti jika kata "Saya" berada di posisi depan (indeks 1) dan "Kamu" di indeks terakhir (indeks 10), mereka merumuskan *Positional Encoding*.
+TIPS_THEORY: Vaswani mengkalkulasi matriks *Position Embeddings* ini melalui pendekatan fiksasi fungsi gelombang sinus dan kosinus berfrekuensi ganda (untuk model asli), atau dilatih layaknya memori neuron adaptif (*Learned Positional Embeddings*).
+TIPS_PRACTICE: Tanpa Positional Encoding, kalimat "Kucing mengejar anjing" bernilai 100% kembar matematik dengan "Anjing mengejar kucing" di kacamata model matriks Transformer!
+
+# Q55 (PILGAN)
+Di ranah klasifikasi probabilitas di akhir lapisan neural, terdapat jebakan konseptual umum antara aktivasi Sigmoid dan Softmax. Jika Anda ditugaskan mengembangkan aplikasi NLP *Multi-Label Document Classification* (satu dokumen berita bisa sekaligus menyabet tag "Olahraga", "Bisnis", DAN "Politik" berbarengan di atas *threshold* tertentu), manakah aktivasi layar akhir yang benar matematis?
+
+[[A]] *Softmax Activation* di setiap node karena Softmax akan membagi bobot menjadi desimal.
+[[B]] *Sigmoid Activation* per masing-masing *output node* kelas, karena aktivasi Sigmoid memutus probabilitas masing-masing sumbu independen tanpa memaksanya bersaing berjumlah total 1.
+[[C]] *ReLU Activation* karena Sigmoid terlalu lambat di layer akhir.
+[[D]] *Argmax function* di kombinasi logit tanpa fungsi eksponensial.
+[[E]] *Tanh Activation* di mana probabilitas negatif disaring menjadi positif mutlak.
+
+ANSWER: B
+DISCUSSION: Klasifikasi *Multi-Label* (satu dokumen banyak bendera label independen) secara matematis dikalkulasi sebagai $K$ buah klasifikasi biner (*Binary Classification*) independen. Artinya, setiap logit dilempar ke fungsi aktivasi *Sigmoid* terpisah untuk menghasilkan nilai desimal (0 s.d. 1) tanpa peduli kelas tetangganya.
+Sebaliknya, aktivasi *Softmax* difungsikan eksklusif untuk *Multi-Class Classification* (satu dokumen *HANYA* boleh menyabet 1 label mutlak, seperti Deteksi Tipe Cuaca), karena Softmax "memaksa" kompetisi logit sehingga total semua probabilitas harus terhimpun berjumlah pas 1.0.
+TIPS_THEORY: Sigmoid $\rightarrow$ $P(\text{Olahraga}) = 0.9, P(\text{Bisnis}) = 0.8$ (Sah/Valid). Softmax $\rightarrow$ Jika 0.9 + 0.8 sudah melanggar hukum probabilitas berjumlah 1.0.
+TIPS_PRACTICE: Hafalkan rumusan praktis TensorFlow/PyTorch: *BCEWithLogitsLoss* (Sigmoid) untuk Multi-Label, *CrossEntropyLoss* (Softmax) untuk Multi-Class tunggal.
+
+# Q56 (PILGAN)
+Kerangka probabilitas dari *Hidden Markov Model* (HMM) didefinisikan secara konseptual oleh 2 matriks probabilitas fundamental utama. Probabilitas matematis untuk menghitung peluang keluarnya fenomena wujud observasi "Kucing" secara literal apabila diketahui model sedang memijak label variabel tersembunyi (hidden state) `[Noun]`, dijuluki sebagai...
+
+[[A]] Transition Probability
+[[B]] Emission Probability
+[[C]] Initial State Probability
+[[D]] Viterbi Decoding Probability
+[[E]] Discounting Probability
+
+ANSWER: B
+DISCUSSION: Di dalam ranah arsitektur state tersembunyi seperti HMM, terdapat pemisahan matriks probabilitas. **Probabilitas Transisi (Transition Probability):** Probabilitas perpindahan dinamis ruang mesin dari State *A* ke State *B* ($P(\text{Verb} | \text{Noun})$). **Probabilitas Emisi (Emission Probability / Observation Likelihood):** Probabilitas seberapa mungkin sebuah *State Laten* itu "muntah" / berevaporasi menembakkan bentuk observasi fisik $O_i$ ($P(\text{"Kucing"} | \text{Noun})$).
+TIPS_THEORY: Probabilitas transisi berkuasa dalam mengontrol logika tata bahasa (*Grammar rules*), probabilitas emisi berkuasa atas pemilihan penguasaan distribusi kamus *Vocabulary*.
+TIPS_PRACTICE: Emisi (Emission) = "Memancarkan". Laten $\rightarrow$ Fisik nyata (kata/teks).
+
+# Q57 (PILGAN)
+Setelah mengeksekusi mesin ekstraksi *Topic Modeling* tak-terselia (Unsupervised) seperti algoritma *LDA* atau *NMF*, kita menemui kebuntuan di mana tak ada metrik Akurasi/F1 karena absennya label data rujukan ($Y_{true}$). Alternatif metrik modern untuk melakukan validasi objektif demi menjustifikasi kualitas kemurnian "topik ter-ekstrak" agar semantiknya masuk akal manusia adalah...
+
+[[A]] Topic Extractive BLEU Score
+[[B]] Jaccard Vocabulary Similarity Index
+[[C]] Topic Coherence Score (seperti c_v atau u_mass)
+[[D]] Latent Frobenius Norm Error
+[[E]] K-Means Davies-Bouldin Coefficient
+
+ANSWER: C
+DISCUSSION: *Topic Coherence* adalah standar empiris *gold-standard* di dunia riset untuk menjustifikasi mutu metrik pemodelan topik laten *Unsupervised*. Logika algoritma ini dibangun berdasarkan simulasi asumsional penalaran otak linguistik manusia: "Berapa tinggi tingkat skor asosiasi ko-oksistensi antara Top-N (biasanya 10-20) pasang kata kunci penyumbang utama di dalam suatu wadah topik tertentu?"
+TIPS_THEORY: Jika *Top words* dari sebuah wadah Topik A adalah ["bank", "saham", "investasi", "bunga", "bursa"], algoritma asosiatif eksternal (seperti PMI /*Pointwise Mutual Information* atau *Word2Vec Similarity*) akan memberikan *Coherence* amat tinggi.
+TIPS_PRACTICE: Angka perplexity sering kali gagal berkolerasi dengan interpretasi manusiawi pada ranah *Topic Modeling*. Gunakan *Coherence Score* (c_v) di Gensim.
+
+# Q58 (PILGAN)
+Kendala data *training* minim dalam melatih model klasifikasi Transformer rakus sering memicu terjadinya efek pendarahan *Overfitting*. Dari opsi trik ekpansi artifisial korpus (*Data Augmentation*) di ranah teks mentah berikut ini, manakah metodologi yang menjamin dipertahankannya koherensi tata bahasa sintaksis makro berakurasi tinggi (mencegah kalimat pecah tata-bahasanya)?
+
+[[A]] Random Token Deletion (Menghapus 15% token di berbagai sudut kalimat acak).
+[[B]] Term Frequency Inversion (Menukar kata benda subjek dan objek secara terbalik).
+[[C]] Random Synonym Replacement (Menukar manual 30% fitur kata dengan sinonim WordNet termurah).
+[[D]] Back-Translation (Menerjemahkan kalimat Indonesia $\rightarrow$ Prancis $\rightarrow$ dikembalikan lagi menjadi mesin kalimat Indonesia baru yang berparafrase alamiah).
+[[E]] Vowel Extraction (Menghilangkan semua spasi dan menyambung seluruh deret string dokumen menjadi blok konstan).
+
+ANSWER: D
+DISCUSSION: Mengaugmentasi manipulasi teks lebih rawan kerusakan makna fatal secara matematis ketimbang manipulasi piksel distorsi citra visual di *Computer Vision*. Trik modern yang elegan dinamakan **Back-Translation**. Data mentah dioper ke mesin penerjemah SMT/Neural translasi *intermediate* yang handal, lalu ditranslasikan ulang ke ruang bahasa orisinalnya. Proses putaran ganda ini secara intrinsik memproduksi perombakan struktur vokabulari (*paraphrasing* otomatis tingkat tinggi) dan variasi *grammar* dengan tingkat akurasi pemahaman makna awal yang nyaris tetap dipertahankan aman.
+TIPS_THEORY: Algoritma seperti EDA (*Easy Data Augmentation* - Wei & Zou, 2019) yang menjalankan substitusi sinonim dan rotasi random hanya bisa diaplikasikan di persentase yang sangat kejam-kecil (batas 10%) jika tidak ingin menghancurkan distribusi makna korpus utamanya.
+TIPS_PRACTICE: Back-Translation = Memanfaatkan translator orang ketiga untuk mendapatkan kalimat "parafrase gratis & aman".
+
+# Q59 (PILGAN)
+Ratusan juta parameter tumpukan saraf tiruan dalam blok-blok raksasa susunan Transformer sangat sensitif untuk kehilangan stabilitas *Gradient Descent* dan terjatuh pada *Gradient Exploding*. Insinyur NLP menangani ancaman krusial ini secara presisi di level penutupan aktivasi menggunakan sisipan sub-layer...
+
+[[A]] Batch Normalization di awal komputasi Matriks Attention Q,K,V.
+[[B]] Layer Normalization (LayerNorm) pada titik residu jaringan pasca blok *Self-Attention* dan *Feed Forward*.
+[[C]] Sigmoid Threshold Clipping di belakang *Softmax Layer*.
+[[D]] L2 Regularization Penalty sebesar 0.5 di bias arsitektur.
+[[E]] Global Average Max Pooling.
+
+ANSWER: B
+DISCUSSION: Desain blok *Transformer* konvensional bersandar pada gerbang sirkuit koneksi lewati arus (*Residual Connection / Add*), lalu direkatkan bersama-sama dengan filter adaptasi sentral yang dinotasikan secara luas sebagai **Layer Normalization** (`Add & Norm`). Operasi matematika normalisasi ini menghitung Mean dan Variansi sampel secara individual meretas *Features/Hidden Dimension* (berlawanan dengan perataan agregasi Batch Normalization berdasar volume Batch). Hal ini mengekang lonjakan sinyal *activation* liar.
+TIPS_THEORY: Di NLP, panjang rantai teks sekuens per kalimat berubah-ubah dinamis di setiap tensor baris data komputasi, membuat *Batch Normalization* rontok/rapuh. *Layer Normalization* justru murni independen dari dinamika populasi tetangga *Batch*, memastikannya aman digunakan di NLP.
+TIPS_PRACTICE: Model bahasa Generatif kekinian semacam LLaMA dan GPT-3 bahkan memposisikan komponen ini secara asimetris (Pre-LayerNorm alias RMSNorm di depan sublayer murni) guna memaksimalkan laju konvergensi komputasi *training*.
+
+# Q60 (PILGAN)
+Munculnya raksasa bahasa *Large Language Models* (LLM) seperti GPT-3 (Brown et al., 2020) mengusung filosofi revolusioner baru untuk mengeksekusi instruksi klasifikasi *Machine Learning* tanpa secuil pun menyentuh dan memanipulasi perhitungan parameter algoritma bobot optimisasi *Backpropagation*. Apa terminologi resmi dari revolusi NLP eksekusi instruksi buta ini?
+
+[[A]] Feature Engineering
+[[B]] Supervised Transfer Learning
+[[C]] In-Context Learning (Few-Shot / Zero-Shot Prompting)
+[[D]] Domain Adaptation Fine-Tuning
+[[E]] Adversarial Reinforcement Generative Training
+
+ANSWER: C
+DISCUSSION: Filosofi mendasar paper pilar GPT-3 (*"Language Models are Few-Shot Learners"*) mengklaim kemampuan pemahaman di atas ukuran parameter jaringan raksasa (>100 Miliar) dapat dimanfaatkan sebagai basis pemahaman rasional induktif secara sekuensial. Mesin cukup menerima injeksi demonstrasi di *input prompt teks mentah* (*In-Context Learning*) berupa 0 demonstrasi (*Zero-shot*) atau beberapa pasang sampel mentah (*Few-Shot*) untuk serta-merta memahami maksud klasifikasi tugas tanpa memerlukan *gradient descent update (Fine-tuning)* sepersekian bobot parameter sistem pun.
+TIPS_THEORY: Revolusi GPT-3 menggiring transisi dunia metodologi NLP fase transisi-tiga (*Pre-train, Fine-tune*) menuju metodologi fase-keempat paling pamungkas (*Pre-train, Prompt, and Predict*).
+TIPS_PRACTICE: Zero-Shot = Mengajar mesin tanpa memberikan contoh jawaban (*Ground truth*) dalam bentuk matriks, tapi murni manipulasi kata prompt narasi linguistik deskriptif.
+
+# Q61 (PILGAN)
+Secara metodologis, evaluasi model NLP terbagi menjadi evaluasi *Intrinsic* dan *Extrinsic*. Apa perbedaan utama di antara keduanya?
+
+[[A]] Evaluasi intrinsik diukur berdasarkan metrik matematis dari model itu sendiri (seperti Perplexity), sementara evaluasi ekstrinsik mengukur dampaknya pada performa aplikasi NLP dunia nyata (seperti akurasi klasifikasi teks akhir).
+[[B]] Evaluasi intrinsik dilakukan oleh komputer secara otomatis, sedangkan evaluasi ekstrinsik wajib dievaluasi manual oleh manusia.
+[[C]] Evaluasi intrinsik mengukur kualitas kode program, sedangkan evaluasi ekstrinsik mengukur kecepatan RAM GPU.
+[[D]] Evaluasi intrinsik memakan waktu berbulan-bulan, sedangkan evaluasi ekstrinsik bisa dieksekusi seketika.
+[[E]] Evaluasi intrinsik digunakan di model *Supervised*, sedangkan ekstrinsik hanya di model *Unsupervised*.
+
+ANSWER: A
+DISCUSSION: Evaluasi *Intrinsic* memfokuskan pada performa model bahasa itu sendiri terlepas dari aplikasi hilir (*downstream tasks*). Contohnya adalah mengukur *Perplexity* dari *Language Model* atau *Word Similarity* dari vektor Word2Vec. Evaluasi *Extrinsic* menguji model saat diintegrasikan ke sebuah tugas hilir nyata, misalnya melihat seberapa besar kenaikan akurasi *Machine Translation* atau *Spam Detection* jika menggunakan vektor Word2Vec tersebut.
+TIPS_THEORY: Peneliti lebih menyukai evaluasi ekstrinsik karena membuktikan model benar-benar berguna, namun evaluasi intrinsik jauh lebih cepat, murah, dan mudah di-debug.
+TIPS_PRACTICE: Intrinsic = "Seberapa bagus embedding-nya?". Extrinsic = "Seberapa bagus robot Q&A-nya dengan embedding itu?".
+
+# Q62 (PILGAN)
+Arsitektur klasik terbaik untuk mengekstrak entitas (*Named Entity Recognition*/NER) sebelum munculnya Transformer adalah penggabungan *Bidirectional LSTM* dan *Conditional Random Fields* (BiLSTM-CRF). Apa fungsi pembagian kerja dari kedua komponen jaringan hibrida ini?
+
+[[A]] CRF mengekstrak fitur grafis visual teks, sedangkan BiLSTM merangkai tokennya.
+[[B]] BiLSTM digunakan untuk mendeteksi bahasa (Language Detection), dan CRF untuk menerjemahkannya.
+[[C]] BiLSTM bertugas menangkap fitur konteks kalimat masa lalu dan masa depan, sedangkan CRF mengoptimalkan rantai probabilitas transisi tag agar hasil label akhir logis secara sekuens (misal mencegah tag I-ORG muncul sebelum B-ORG).
+[[D]] Keduanya beroperasi paralel di mana BiLSTM mendeteksi Noun dan CRF mendeteksi Verb.
+[[E]] CRF bertindak sebagai memori jangka pendek, sedangkan BiLSTM menghapus stop-words.
+
+ANSWER: C
+DISCUSSION: Arsitektur BiLSTM mengekstraksi fitur kata yang sangat kaya secara leksikal dan sekuensial dari arah kiri-ke-kanan dan kanan-ke-kiri. Namun, output aktivasi softmax tunggal dari BiLSTM bersifat rakus (*greedy*) dan "buta" terhadap label di sebelahnya. CRF diletakkan di layer paling atas untuk menangkap probabilitas *Transition Matrix* antar label berdekatan (contoh: secara gramatikal, label `I-Person` mustahil diikuti oleh label `I-Organization`). CRF mengoreksi kesalahan fatal tersebut via *Viterbi decoding*.
+TIPS_THEORY: BiLSTM fokus pada pemahaman *features* kalimat, sementara CRF menjadi polisi *rules* transisi antar tag NER yang berdekatan.
+TIPS_PRACTICE: Kombinasi BiLSTM + CRF (Lample dkk, 2016) adalah raja klasifikasi sekuens *state-of-the-art* selama era 2016-2018.
+
+# Q63 (PILGAN)
+Selain *Negative Sampling*, komputasi Word2Vec *Skip-Gram* dapat diakselerasi besar-besaran menggunakan struktur data pohon biner yang menggantikan *Softmax* linear rata (Flat Softmax). Metode aproksimasi berstruktur logaritmik ini dinamakan...
+
+[[A]] Binary Cross Entropy
+[[B]] Hierarchical Softmax
+[[C]] Huffman Encoding Softmax
+[[D]] Tree-Structured LSTM
+[[E]] Logistic Regression
+
+ANSWER: B
+DISCUSSION: *Hierarchical Softmax* (Morin & Bengio, 2005) menggantikan lapisan layer *Softmax* linier konvensional yang memakan waktu $O(V)$ dengan struktur pohon biner lengkap yang menampung seluruh *vocabulary* sebagai daunnya (*leaves*). Komputasi untuk menemukan probabilitas sebuah kata kini hanya membutuhkan kalkulasi *binary decision* dari akar ke daun, memangkas kecepatan proses secara asimptotik menjadi $O(\log_2 V)$.
+TIPS_THEORY: Pohon yang sering digunakan dioptimasi menggunakan algoritma *Huffman Tree*, di mana kata-kata yang paling sering muncul (frequent words) diletakkan pada cabang sangat pendek dekat akar pohon, mempercepat kalkulasi eksponensial kali lipat.
+TIPS_PRACTICE: Jika kecepatan adalah isu absolut, *Hierarchical Softmax* jauh lebih efisien membedah *vocabulary* raksasa.
+
+# Q64 (PILGAN)
+Dalam blok *Encoder Transformer* standar, setelah lapisan *Multi-Head Self-Attention*, terdapat lapisan *Position-wise Feed-Forward Network* (FFN). Jika ukuran dimensi representasi model ($d_{model}$) adalah 512, berapakah ukuran dimensi lapisan tersembunyi tengah (*hidden dimension* $d_{ff}$) dari matriks FFN pada arsitektur aslinya di makalah "Attention Is All You Need"?
+
+[[A]] 256
+[[B]] 512
+[[C]] 1024
+[[D]] 2048
+[[E]] 4096
+
+ANSWER: D
+DISCUSSION: Lapisan FFN dalam Transformer terdiri dari dua transformasi linier dengan aktivasi ReLU di tengahnya. Rumusnya adalah $FFN(x) = \max(0, xW_1 + b_1)W_2 + b_2$. Pada paper asli (Vaswani dkk, 2017), lapisan FFN ini melebarkan *(projecting)* representasi dimensi vektor 512 menjadi vektor raksasa 2048 dimensi (pengali $4\times$), memprosesnya dengan ReLU, lalu memampatkannya kembali ke 512.
+TIPS_THEORY: Pelebaran dimensi temporer ini (jaringan bertipe botol leher terbalik / *inverted bottleneck*) bertujuan untuk memberikan model kapasitas parameter yang cukup luas untuk menghafal fakta konseptual dan membangun pola non-linier kompleks secara independen pada setiap posisi kata (position-wise).
+TIPS_PRACTICE: Ingat dimensi FFN = $4 \times d_{model}$.
+
+# Q65 (PILGAN)
+Di dalam klasifikasi jenjang hierarki pemrosesan bahasa alami (NLP Pipeline), analisis yang berfokus meneliti tata bahasa, struktur kalimat yang benar secara konstituen, urutan kata (word order), dan parsing *dependency* pohon sintaks disebut tahap...
+
+[[A]] Morphological Analysis (Analisis Morfologi)
+[[B]] Semantic Analysis (Analisis Semantik)
+[[C]] Syntactic Analysis (Analisis Sintaksis)
+[[D]] Pragmatic Analysis (Analisis Pragmatik)
+[[E]] Discourse Integration (Integrasi Wacana)
+
+ANSWER: C
+DISCUSSION: Tingkatan pemrosesan bahasa terbagi hierarkis. *Sintaksis* adalah cabang ilmu yang berhubungan dengan keabsahan struktur dan tata aturan urutan kata (*grammar* dan parsing). Contoh: Memastikan kalimat "Anjing digigit orang" mematuhi kerangka S-P-O.
+TIPS_THEORY: **Morfologi** = Struktur internal kata (akar+imbuhan). **Sintaksis** = Struktur grammar (Subject-Verb). **Semantik** = Makna kata/kalimat murni. **Pragmatik** = Makna tersirat berdasarkan konteks situasi sosial penutur.
+TIPS_PRACTICE: Sintaksis selalu berhubungan erat dengan pohon Parsing (Parsing Tree).
+
+# Q66 (PILGAN)
+Sebuah model *Support Vector Machine* (SVM) linier digunakan untuk mendeteksi *spam* email. SVM beroperasi dengan cara mencari hiperbidang pemisah (*hyperplane*) optimal yang membelah fitur-fitur vektor teks positif dan negatif. Rumus matematis utama SVM memformulasikan *hyperplane* optimal ini dengan objektif...
+
+[[A]] Meminimalkan nilai *Information Gain*.
+[[B]] Memaksimalkan margin pemisah (*margin of separation*) antara dua kelas.
+[[C]] Memaksimalkan nilai probabilitas distribusi eksponensial di setiap sisi.
+[[D]] Mengurangi lapisan *hidden layer* ke titik nol absolut.
+[[E]] Mencari titik potong (*intercept*) terbesar.
+
+ANSWER: B
+DISCUSSION: Teori inti dari algoritma *Support Vector Machine* (SVM) bukan sekadar mencari sembarang garis pemisah, melainkan murni tentang **memaksimalkan margin** geometri absolut antara *hyperplane* (garis batas) dengan titik-titik data (sampel) paling dekat dari setiap kelas. Titik data terdekat ini yang membatasi ketebalan margin disebut *Support Vectors*.
+TIPS_THEORY: Objektif maksimasi margin ini dinotasikan secara analitik dengan meminimalkan $||w||^2$ (kuadrat bobot / norma-L2), yang setara dengan memperbesar batas margin.
+TIPS_PRACTICE: "Support Vector" = Titik sampel yang secara harfiah "menahan" garis batas agar tidak bergeser.
+
+# Q67 (PILGAN)
+Sebelum arsitektur SMT (Statistical MT) tergusur oleh Neural Machine Translation (NMT), model terjemahan berbasis frasa (*Phrase-Based Machine Translation* / PBMT) merupakan *state-of-the-art* selama lebih dari sedekade. Mengapa PBMT berevolusi jauh melampaui terjemahan mesin purba yang menerjemahkan murni "kata-per-kata" (Word-based SMT)?
+
+[[A]] PBMT menggunakan jaringan saraf *Deep Learning*.
+[[B]] PBMT mengompilasi unit terjemahan fundamental berupa sekumpulan kata berdekatan (frasa) secara simultan, bukan per leksikal, sehingga mampu mengatasi inkonsistensi urutan *grammar* antarbahasa.
+[[C]] PBMT memanfaatkan kamus sinonim yang diperbarui secara manual oleh ahli linguistik (*Rule-based*).
+[[D]] PBMT hanya digunakan untuk bahasa dengan abjad Latin murni.
+[[E]] PBMT mengabaikan semua *stop words* yang ada dalam dokumen.
+
+ANSWER: B
+DISCUSSION: SMT berbasis kata (*Word-Based SMT* / IBM Models awal) sangat buruk dalam mengatur keluwesan dan penyelarasan (*alignment*) bahasa yang strukturnya bertolak belakang (misal Bahasa Inggris S-V-O ke Bahasa Jepang S-O-V). *Phrase-Based SMT* tidak melihat kata, melainkan sekumpulan segmen kontinu "n-gram frasa" utuh yang sudah dihafal secara probabilistik (*Phrase Table*), membuat hasil terjemahan jauh lebih luwes secara konteks struktural tanpa butuh modifikasi penyelarasan yang rumit.
+TIPS_THEORY: Keberhasilan PBMT melesatkan nama Google Translate klasik di era pra-2016 sebelum diganti total oleh GNMT (Google Neural Machine Translation).
+TIPS_PRACTICE: PBMT mengasumsikan kata-kata yang diucapkan beriringan secara organik memiliki interdependensi semantik absolut.
+
+# Q68 (PILGAN)
+Teknik *SentencePiece* menyatukan dua algoritma subword tokenisasi *lossless* paling mutakhir untuk memotong bahasa: *Byte-Pair Encoding* (BPE) dan algoritma berbasis probabilitas Unigram. Metode *Unigram Language Model Tokenization* memiliki cara kerja yang sangat bertolak-belakang (*top-down*) dengan BPE. Cara kerjanya adalah...
+
+[[A]] Mulai dari karakter dasar, dan secara perlahan menyatukan huruf-huruf menjadi kata.
+[[B]] Menetapkan kosakata awal dalam jumlah besar (bahkan kata-kata penuh), lalu memangkas unit probabilitas paling tidak penting secara bertahap hingga menyusut mencapai jumlah ukuran *vocabulary* target.
+[[C]] Mengeksklusi spasi dan simbol dari teks awal sepenuhnya.
+[[D]] Mengganti setiap huruf vokal dengan angka.
+[[E]] Menyatukan seluruh kata dalam satu kalimat ke dalam satu representasi token (unigram tunggal).
+
+ANSWER: B
+DISCUSSION: BPE bekerja secara *bottom-up* (membangun dari bawah): dimulai dari alfabet tunggal $\rightarrow$ digabung menjadi pecahan suku kata $\rightarrow$ digabung menjadi kata. Algoritma Unigram (Kudo, 2018) bekerja secara eksklusif berlawanan arah yaitu *top-down*: mesin mengumpulkan segala bentuk korpus teks/subword terbesar secara masif, lalu menghitung penurunan skor *log-likelihood* di Language Model jika setiap subword dihapus. Kumpulan kosa kata dipangkas (*pruning*) satu persatu hingga mencapai *threshold* batas dimensi target pengguna.
+TIPS_THEORY: Keunggulan hebat model Unigram adalah mesin dapat menghasilkan beragam tokenisasi probabilitas alternatif (banyak cara valid untuk memecah 1 kata) yang krusial untuk *Subword Regularization*.
+TIPS_PRACTICE: Keyword perbedaan fundamental: BPE = Merging (*Bottom-up*). Unigram = Pruning (*Top-down*).
+
+# Q69 (PILGAN)
+Di ranah NLP, representasi vektor kata dibagi menjadi kubu representasi *Static* (Statis) dan representasi *Contextualized* (Dinamis). Contoh nyata dari vektor kata Statis adalah...
+
+[[A]] ELMo
+[[B]] BERT
+[[C]] RoBERTa
+[[D]] Word2Vec (Skip-Gram)
+[[E]] GPT-4
+
+ANSWER: D
+DISCUSSION: Vektor *Statis* mengikat ketat 1 *string* kata unik dengan 1 *array* nilai parameter numerik konstan abadi. Pada Word2Vec, kata "bisa" (racun) dan "bisa" (mampu) dilambangkan oleh satu matriks vektor identik 100% dari *look-up table*. Vektor *Contextualized* (BERT, GPT, ELMo) bersifat dinamis di mana mesin tidak melabel vektor kamus konstan, namun menghitung matriks representasi numerik kata saat *inference* berlangsung melalui lapisan neural tergantung *kata apa yang mengepungnya*.
+TIPS_THEORY: Terobosan revolusioner *Contextualized Word Embeddings* mengamputasi kelemahan linguistik yang disebut *Polisemi* (Polysemy), kata yang bentuk/ejaannya sama tapi maknanya bercabang banyak.
+TIPS_PRACTICE: Word2Vec, FastText, GloVe = Static. Segala hal yang berbau Transformer/ELMo = Contextualized.
+
+# Q70 (PILGAN)
+Di algoritma *Recurrent Neural Network* (RNN), metode untuk merambatkan galat komputasional turun-naik demi memperbarui parameter bobot dinamakan *Backpropagation Through Time* (BPTT). Apa perbedaan paling mencolok algoritma BPTT dengan *Backpropagation* jaringan saraf tiruan *feed-forward* biasa?
+
+[[A]] BPTT hanya menghitung galat pada *time step* terakhir, mengabaikan kata-kata awal.
+[[B]] BPTT membentangkan waktu (*unrolling the network in time*) sehingga lapisan waktu diperlakukan ekuivalen sebagai lapisan kedalaman jaringan teoretis (*deep layer*) yang membagikan/men-sharing matriks bobot ($W$) identik pada tiap langkah.
+[[C]] BPTT menghilangkan gradien sama sekali dan hanya memakai metode genetik.
+[[D]] BPTT membutuhkan pengawas dua dimensi yang bergerak horizontal.
+[[E]] BPTT digunakan eksklusif pada layar *pooling* yang memadatkan data temporal seketika.
+
+ANSWER: B
+DISCUSSION: Sifat rekursif dari RNN membuat matriks tidak berlapis *deep* ke bawah secara literal arsitektur per node terpisah. Dalam mengeksekusi kalkulus BPTT, rantai *looping* waktu waktu perulangan di RNN dibuka (unrolled) memanjang bagai gerbong kereta. Hal krusial yang membuatnya berbeda dari perceptron adalah seluruh "gerbong" pada berbagai unit waktu ($t=1, t=2, t_n$) diikat dan dirantai menggunakan himpunan parameter **satu beban bobot $W$ yang di-*sharing* sama rata**.
+TIPS_THEORY: Konsekuensi matematis absolut dari pengulangan konstan perkalian nilai bobot matriks yang di-*sharing* $W^n$ di perputaran rantai waktu *unrolled network* inilah pemicu fenomena kiamat komputasi *Vanishing/Exploding Gradient*.
+TIPS_PRACTICE: BPTT = Backprop konvensional yang diterapkan pada *network* yang telah di-*unroll* berdasar dimensi waktu.
+
+# Q71 (PILGAN)
+Secara teknis teori dasar probabilistik Bayes di dalam arsitektur *Latent Dirichlet Allocation* (LDA), parameter hiper prior $(\alpha, \beta)$ direferensikan pada fungsi *Dirichlet distribution*. Apa dampak intuitif matematis langsung jika kita **mengecilkan** drastis nilai hiperparameter parameter $\alpha$ mendekati angka nol?
+
+[[A]] Dokumen-dokumen teks akan cenderung dihuni murni oleh segelintir (satu atau dua) persentase kelompok Topik spesifik saja yang dominan dan jarang bercampur homogen.
+[[B]] Setiap kalimat akan selalu dipastikan mengandung representasi seluruh Topik K merata (homogen).
+[[C]] Kualitas vektor kosakata kata sandang akan menaik signifikan secara semantik.
+[[D]] Topik-topik yang ada dipaksa tumpang tindih beririsan leksikal kata identik.
+[[E]] Algoritma *Topic Modeling* akan mengalami eror gagal *converge*.
+
+ANSWER: A
+DISCUSSION: Fungsi *Dirichlet Distribution* dengan parameter $\alpha$ mengatur distribusi probabilitas *Campuran Topik per Dokumen*. Jika $\alpha$ bernilai rendah ($< 1$ atau mendekati nol), efek *sparsity* (kelangkaan) ekstrem diaktifkan: setiap unit dokumen lebih "konservatif", cenderung diisi mutlak oleh 1 atau 2 topik yang monolitik saja. Sebaliknya, $\alpha$ tinggi akan memunculkan fenomena merata di mana setiap dokumen tersusun oleh gado-gado dari lusinan topik yang proporsinya sama kuat (*smooth mixture*).
+TIPS_THEORY: $\alpha$ (Alpha) mengontrol ketebalan proporsi Dokumen-ke-Topik. $\beta$ (Eta) mengontrol kelangkaan persebaran Topik-ke-Kosakata (*Word distribution* per *Topic*).
+TIPS_PRACTICE: Nilai $\alpha$ kecil = Distribusi tajam (spiky). Sebagian besar corpus nyata condong ke $\alpha$ kecil (sebuah dokumen artikel umumnya hanya membahas segelintir topik utama spesifik, tak peduli isinya puluhan halaman).
+
+# Q72 (PILGAN)
+Dalam rantai ekstraksi informasi (Information Extraction / IE), setelah melakukan Named Entity Recognition (NER), tugas vital algoritma *Relation Extraction* bertindak mengekstrak struktur semantik. Output paling fundamental dari operasi klasifikasi pola relasi kalimat teks NLP direpresentasikan layaknya blok struktur basis data graf yang berstatus konstan dan dikenal dengan nomenklatur...
+
+[[A]] Matriks Invers Adjacency.
+[[B]] Set Leksikon Polarity.
+[[C]] Triplet Semantik atau *Knowledge Triples* (Subject, Predicate/Relation, Object).
+[[D]] Konjugasi N-gram Bidirectional.
+[[E]] Node Sinkronus *Parse Tree*.
+
+ANSWER: C
+DISCUSSION: Sasaran absolut dari implementasi *Relation Extraction* adalah membongkar narasi non-struktural teks linear (misal kalimat "Elon Musk mengakuisisi penuh saham Twitter") menjadi sebuah komponen tabel representasi pangkalan data relasional logis (*Knowledge Graph*) terstruktur. Struktur relasi ontologi standar baku direpresentasikan oleh serangkaian *Triplet* kognitif: (ENTITAS 1, RELASI_PREDIKAT, ENTITAS 2).
+TIPS_THEORY: Pada contoh kalimat sebelumnya, mesin akan mengawinkan *triplet* ekstraksi menjadi (Elon_Musk, CEO_Of / Founder_Of / Acquirer, Twitter). Kumpulan ratusan juta triplet semacam ini membentuk otak basis data dari Google Knowledge Graph.
+TIPS_PRACTICE: IE Pipeline: Raw Text $\rightarrow$ NER (Deteksi Entitas) $\rightarrow$ Relation Extraction (Penghubung Entitas).
+
+# Q73 (PILGAN)
+Salah satu tolok ukur *benchmark* (dataset) terpenting dalam memacu ledakan riset mesin penjawab otomatis (Question Answering) di NLP bernama SQuAD (*Stanford Question Answering Dataset*). Karakteristik objektif klasifikasi dari pemecahan soal tipe SQuAD versi 1.0 mewajibkan mesin model untuk...
+
+[[A]] Mengarang jawaban kalimat esai abstrak bebas secara mandiri.
+[[B]] Mencari tautan URL rujukan referensi Wikipedia terkuat di baris web.
+[[C]] Mengekstraksi atau memprediksi indeks rentang mutlak (span / indeks start-end) dari potongan frasa teks di paragraf rujukan yang merupakan letak jawaban pastinya.
+[[D]] Menerjemahkan bahasa sumber pertanyaan ke bahasa referensi sasaran.
+[[E]] Melakukan konversi teks interogatif lisan menjadi struktur query SQL terstruktur.
+
+ANSWER: C
+DISCUSSION: Format tugas *Machine Reading Comprehension* (MRC) klasik standar ala SQuAD tidak menuntut agen AI menjawab pertanyaan dengan membual secara naratif generatif (abstraksi). Sebaliknya, *objective* latih jaringan saraf hanyalah menebak 2 bilangan numerik indeks posisi (Token_Awal dan Token_Akhir) dari "potongan teks spesifik di dalam paragraf rujukan" (*span extraction task*).
+TIPS_THEORY: Jika paragraf teks berisikan "Presiden Soekarno memproklamasikan di Jakarta pada hari Jumat", pertanyaan "Di kota mana proklamasi terjadi?", model dilatih menghasilkan pointer tebakan klasifikasi probabilitas tertinggi untuk posisi *start index* pada token "Jakarta" dan *end index* pada "Jakarta".
+TIPS_PRACTICE: BERT SQuAD QA = Prediksi Token Start + Prediksi Token End. Bukan model Seq2Seq.
+
+# Q74 (PILGAN)
+Mengakali kebiasaan model mesin *Language Model Generative* (seperti ChatGPT) untuk tidak mengeluarkan teks yang basi repetitif, kaku, dan melingkar, pengguna NLP menggunakan pengaturan sampling suhu parameter probabilitas. Apabila Anda menekan laju modifikasi komputasi sampling menjadi *Top-p Sampling (Nucleus Sampling)*, algoritma yang dieksekusi bermakna...
+
+[[A]] Model akan selalu mengambil sampel dari 10 kata yang menduduki probabilitas teratas absolut.
+[[B]] Model akan mengambil sampel kandidat dari kelompok kosakata teratas yang *jumlah kumulatif persentase* probabilitasnya telah genap melampaui rentang ambang batas desimal *p* tertentu (misal $p = 0.90$).
+[[C]] Model hanya boleh menebak kelas *Part-of-Speech* verba dan nomina.
+[[D]] Model murni merandom seluruh probabilitas leksikon kata seakan distribusi nilai berseragam konstan.
+[[E]] Model menghapus sisa output kalimat bila telah mendeteksi token *Padding*.
+
+ANSWER: B
+DISCUSSION: Di dalam dunia *Sequence Generation Text*, *Top-k Sampling* (merandom keras dari tebakan "X kata tertinggi", misal k=50) acap kali merusak kualitas teks: ada momen dimana probabilitas merata (*flat distribution*), namun ada kalanya jawaban mutlak sangat curam (*sharp* hanya ke 1 kata logis tertentu) namun dipaksa ditarik melebar ke daftar 50 kata probabilitas sampah. Parameter inovatif *Top-p Sampling* (Holtzman dkk, 2019) menyelesaikan asimetri ini dengan menyeleksi dinamis batas kandidat sampel secara memotong populasi di batas *cumulative mass*. Jika ambang $p=0.9$ dan 2 kata teratas probabilitas totalnya sudah berjumlah 91%, mesin menyunat drastis sampelnya menjadi 2 kandidat mutlak di langkah tersebut.
+TIPS_THEORY: *Nucleus Sampling* bersifat elastis lentur, kadang menyeleksi 100 kosakata tebakan jika tidak yakin, dan kadang menyeleksi 1 vokabulari saja jika konteksnya sudah teramat spesifik benderang.
+TIPS_PRACTICE: Ingat Top-p = Pemotongan berdasarkan Jumlah Total Akumulasi Probabilitas Mass (%).
+
+# Q75 (PILGAN)
+Faktor kritis dimensi ukuran matriks vektor di blok *Scaled Dot-Product Attention* memiliki rasionalitas kaku. Di antara matriks fitur representasional $Q$ (Query), $K$ (Key), dan $V$ (Value), manakah pernyataan matematis syarat ukuran dimensi yang diwajibkan absolut agar fungsi dot-product berhasil diimplementasikan tanpa *Error Syntax Komputasi* aljabar linear tensor?
+
+[[A]] Dimensi panjang elemen kolom *Query* dan elemen dimensi *Value* harus seirama sama identik.
+[[B]] Seluruh dimensi ketiganya (Q, K, V) harus merupakan matriks kuadrat persegi absolut di segala lapisan skenario blok Transformer.
+[[C]] Dimensi kolom vektor fitur *Query* harus sama sepadan nilainya dengan dimensi kolom matriks fitur *Key*.
+[[D]] Dimensi baris *Value* harus selaras dengan ketebalan layer dimensi *Key* dibagi metrik angka $\sqrt{d_{model}}$.
+[[E]] Matriks *Query* harus selalu satu baris lebih pendek dibanding baris *Key*.
+
+ANSWER: C
+DISCUSSION: Di dalam blok mekanisme atensi inti fungsi persamaan $Attention(Q, K, V) = \text{softmax} ( \frac{QK^T}{\sqrt{d_k}} ) V$, matriks fitur logistik tensor $Q$ menuntut komputasi absolut atas operasi *Dot-Product* matematis matriks yang ditranspose berpasangan melawan nilai $K$. Hukum aljabar mutlak mengharuskan ukuran fitur parameter kolom sumbu laten di Q ($\text{dimension}_k$) **harus identik** dengan sumbu fitur laten parameter di kolom K. Apabila tidak simetris seukuran, perkalian ruang vektor $QK^T$ dipastikan gagal total (Dimensi Matrix Invalid).
+TIPS_THEORY: Sementara dimensi kolom Value ($d_v$) secara konseptual bebas tak terikat panjang-lebar dimensi dari pasangan serasi *Query/Key* ($d_k$), meskipun demi efisiensi optimal pada praktek standarnya, Vaswani dkk mensetel mereka dengan ukuran homogen yang simetris bernilai identik ($\frac{d_{model}}{\text{num\_heads}}$).
+TIPS_PRACTICE: $Q$ dan $K$ di-*dot-product*-kan. Artinya ukuran kolom $Q$ harus pas dengan kolom $K$.
+
+# Q76 (PILGAN)
+Praktisi BERT konstan membubuhkan penyematan 2 buah jenis *Special Token* buatan pada titik *input* leksikal urutan sintaks yang dirangkaikan sebelum masuk ke model komputasi neural, yakni `[CLS]` dan `[SEP]`. Apa fungsionalitas murni khusus dari penggunaan tag khusus token pendahulu `[CLS]`?
+
+[[A]] Menandai dan mengisolasi di titik indeks karakter manakah sebuah kalimat putus batas sintaksnya.
+[[B]] Mengisyaratkan perintah pengaktifan *Layer Masking* untuk merusak model saat *training*.
+[[C]] Bertindak layaknya spasi artifisial penyambung karakter agar proses komputasi paralel tak tabrakan memori.
+[[D]] Vektor *embedding* hasil ektraksi *final hidden state* dari token ini diagregasikan dan digunakan sebagai penampung vektor ringkasan general atas keseluruhan kalimat tunggal demi keperluan *Sentence Classification*.
+[[E]] Bertugas sebagai detektor *Word-Sense Disambiguation* pendukung pada proses korpus kamus murni NLP.
+
+ANSWER: D
+DISCUSSION: BERT merepresentasikan rancangan arsitekturnya di posisi yang kaku terkait peletakan tanda artifisial. Pada model pra-latih BERT (Devlin et al., 2018), *Classifier Token* yang ditulis dengan sintaks kaku `[CLS]` disisipkan keras-keras murni berposisi di koordinat elemen urutan terdepan input berindeks nol. Tujuannya adalah mengkoleksi agregasi sinyal abstrak seluruh vektor representatif konteks kalimat saat menjaring aliran *Self-Attention*, sehingga vektor laten final berbobot tebal terkomputasi dari blok $C$ (representasi `[CLS]`) ditarik/diekstrak paksa untuk dikawinkan pada layer MLP aktivasi tambahan murni untuk keperluan memecahkan tugas klasifikasi paragraf makro / dokumen.
+TIPS_THEORY: `[SEP]` memilik tugas untuk membedakan perbatasan urutan spasi letak fisik putus antara dua buah kalimat referensi ganda.
+TIPS_PRACTICE: Ingat keyword: `[CLS]` = Sentence Level Representation (Aggregation Vector untuk *Classification*). `[SEP]` = Sentence Boundary Separator.
+
+# Q77 (PILGAN)
+Replikasi evolusi tingkat lanjut makalah turunan dari BERT dipublikasikan oleh *Facebook AI* di bawah manifestasi *RoBERTa* (Robustly Optimized BERT Approach). Modifikasi drastis algoritma perbaikan *training* apa yang secara strategis diterapkan RoBERTa di area *Masked Language Modeling* untuk memeras efisiensi performa yang sebelumnya terkekang di model asli BERT?
+
+[[A]] Mengonversi total bahasa kosa kata dari dimensi 512 ke 2048 karakter.
+[[B]] Menjatuhkan dan melenyapkan model fungsionalitas objektif *Next Sentence Prediction* (NSP) dan membebaskan operasi penutupan token `[MASK]` secara acak dinamis bergerak terus di setiap rentang epok waktu berbeda (*Dynamic Masking*).
+[[C]] Membuang token BPE dan kembali menggantinya dengan TF-IDF.
+[[D]] Merekonstruksi BERT menjadi RNN tipe hibrid *Transformer-Gated Cell*.
+[[E]] Menerapkan teknik pemotongan kalimat acak ke dimensi piksel gambar.
+
+ANSWER: B
+DISCUSSION: Riset validasi komprehensif dari tim RoBERTa (Liu et al., 2019) mengklaim dan membuktikan paper rilis pionir BERT dikalkulasikan pada posisi sangat *Under-Trained*. Inovasi raksasa di *RoBERTa* ada dua: **Pertama**, pemusnahan total terhadap fitur objektif sintaks klasifikasi *Next Sentence Prediction* (NSP) karena terbukti memperlambat metrik konvergensi akurasi. **Kedua**, di algoritma orisinal BERT, titik posisi penyensoran/penutupan 15% dari `[MASK]` dikunci posisi mati abadi tak berubah sejak masa awal pembentukan pra-data komputasional (*Static Masking*). Di model RoBERTa, korpus duplikasi dimasukkan kembali ke modul iterasi *training* dengan pengacakan titik kordinat masking `[MASK]` berpindah acak konstan selagi epok berputar ulang tiada henti (*Dynamic Masking*).
+TIPS_THEORY: Penutupan *Dynamic* memaksa otak konseptual mesin dipaparkan pada tantangan rumpang rumpang posisi struktur bahasa komprehensif tiada putus alih-alih terjebak menghapal mati letak titik konstan rumpang statis saja.
+TIPS_PRACTICE: RoBERTa = Dynamic Masking + No NSP + Batch size Raksasa + Hyperparameter disetel halus berulang-ulang.
+
+# Q78 (PILGAN)
+Di fondasi leksikografi pemrosesan komputasi *Linguistik Deskriptif* klasik (terutama era pra-statistik *Rule-Based NLP*), perangkat analisis morfologi pemecah struktur akar kata (misal penguraian format "Kucing-kucingan" -> "Kucing" + Reduplikasi + Afiks) diformulasikan ke format permesinan gerak komputasi mesin berstatus fasa terhingga. Model struktur logika *parsing* formal ini memetakan simbol bahasa satu-satu (input pita) berjenjang menjadi simbol sekunder (output pita) menggunakan otomasi abstrak yang dikenal sebagai...
+
+[[A]] Turing Machine Regulators
+[[B]] Random Forest Gini Classifier
+[[C]] Multi-Layer Markov Regressor
+[[D]] Finite State Transducers (FST)
+[[E]] Recursive Descent Context-Free Parsers
+
+ANSWER: D
+DISCUSSION: Automaton komputasional ber-tipe **Finite State Transducer (FST)** merupakan representasi struktur graf matematika mutlak yang sangat lincah secara logikal dalam pemrosesan transisi bahasa alami tipe morfologi. Berlawanan konsep statis murni deterministik FSM (*Finite State Machine*) biasa bertugas pasif yang cukup melontarkan indikator bendera sinyal YA/TIDAK kala validasi berakhir, spesifikasi mesin FST melahap pita pita masuk urutan simbol $X$ dan seketika langsung menerjemahkannya sembari melempar melontarkan baris hasil pita sekunder simbol ganda luaran representatif $Y$ pada setiap pergeseran rute graf negara latennya (contoh transisi: *input="membaca"* $\rightarrow$ *state traverse* $\rightarrow$ *output="me + N + baca"*).
+TIPS_THEORY: Keperkasaan utilitas model formal otomasi transduksi logis ini memungkinkannya dapat berjalan dwi arah mutlak (reversibel) layaknya rel berbalik arah: *Parsing* morfologi ke akar bahasa dasar murni vs *Generating* memutar pembentukan akar kata menjadi sintaks majemuk seketika kembali.
+TIPS_PRACTICE: Keyword teori bahasa klasik: Morfologi Komputasional = Finite State Transducer (FST).
+
+# Q79 (PILGAN)
+Kekakuan kaku algoritma matematis evaluasi sistem *Machine Translation* seperti BLEU bertumpu pada probabilitas kalkulasi mekanikal perbandingan percis tumpang-tindih pencocokan urutan unit kata (*N-Gram Exact Word Match*). Metrik rujukan apa yang di-desain mengintervensi titik buta (blind spot) kekurangan ini agar metrik tidak secara ngawur menghukum terjemahan akurat linguistik akibat variasi kata bersinonim (memperkenalkan rujukan referensi sinkron WordNet)?
+
+[[A]] ROUGE-L
+[[B]] WER (Word Error Rate)
+[[C]] METEOR
+[[D]] GLEU
+[[E]] Cross-Entropy Ratio
+
+ANSWER: C
+DISCUSSION: METEOR (*Metric for Evaluation of Translation with Explicit ORdering*) menyematkan komponen analisis linguistik fundamental dalam proses perhitungannya. Tidak seperti kalkulator metrik algoritma *BLEU* konvensional absolut yang kaku membabi-buta memberikan hadiah nilai kosong mutlak jika teks mesin memprediksi kata "menawan" namun referensi patokan target manusia menuntut kosa kata "indah", arsitektur *METEOR* merajut proses pencocokan aliansi kata (unigram alignment) pada 3 fasa: kecocokan seragam presisi identik (*exact match*), kecocokan irisan akar kata kasar (*stem match* via pengakarnya), dan murni toleransi penyelarasan rujukan kamus bersinonim (*synonymy match* ditenagai pustaka global WordNet).
+TIPS_THEORY: METEOR juga membubuhkan modifikasi kalkulasi kejam *Fragmentation Penalty* sebagai hukuman atas kekacauan susunan lompatan tata bahasa (*order / continuity of alignment*). Nilai Recall (bukan Presisi) diregulasi berbobot lebih dominan pada hasil final METEOR.
+TIPS_PRACTICE: METEOR = Precision + Recall (lebih ditonjolkan) + WordNet Synonym + Stemming + Fragmentation Penalty.
+
+# Q80 (PILGAN)
+Saat ini korporasi global tidak sekadar memuaskan diri via pengategorian klasifikasi *Sentiment Analysis* berdimensi umum statis konstan makro absolut dari suatu naskah ("Positif" atau "Negatif" secara utuh). Di bidang analitik bisnis restoran komersial misal, ulasan berupa "Makanannya sangat lezat meriah namun sayang kebersihan toilet menjijikkan kotor" mewajibkan sistem pemrosesan NLP untuk menelusuri memilah spesifik label sentimen "Positif" dialamatkan percis tertuju pada fitur frasa target "Makanan", dan kutub sentimen "Negatif" difokuskan percis untuk unit "Toilet". Sub-disiplin fungsional tingkat mikroskopik lanjutan ini secara standar komunal disingkat industri sebagai...
+
+[[A]] Subjectivity Word Sense Evaluation
+[[B]] Aspect-Based Sentiment Analysis (ABSA)
+[[C]] Intent Topic Context Clustering
+[[D]] Named Entity Emotion Parsing (NEEP)
+[[E]] Bidirectional Evaluator Analysis
+
+ANSWER: B
+DISCUSSION: Domain turunan granular di ranah eksplorasi NLP yang berevolusi khusus melacak probabilitas emosi/opini yang digabungkan ketat secara silang memetakan entitas fungsional elemen variabel rincian entitasnya dijuluki **Aspect-Based Sentiment Analysis (ABSA)**. Metodologi arsitektur sistem ABSA beroperasi wajib menjalankan fase dua tingkat deteksi murni independen: (1) Ekstraksi Aspect Term (*"kamera", "harga", "pelayanan"*), disusul fase (2) Pemetaan Prediksi Kelas Sentimen Term Polaritas (*Polarity Classification*) khusus murni untuk elemen tersegmen ekstraksi target kata tersebut.
+TIPS_THEORY: Di zaman modern pra-Transformer, arsitektur populer ABSA melibatkan Attention berbasis Target (*Target-Dependent Target-Connection Attention*), memusatkan fokus lensa probabilitas matriks *Attention* secara absolut diletakkan sentral dari jangkar posisi indeks posisi token sang Aspek di tengah susunan kalimat.
+TIPS_PRACTICE: Ulasan Restoran Kompleks = "Food: +1", "Service: -1", "Price: 0". Tugas mikro granular ini disebut ABSA (Analisis Sentimen Berbasis Aspek).
+
+# Q81 (PILGAN)
+Dalam domain *Machine Learning* yang diterapkan di NLP, model matematis dikategorikan menjadi *Generative Models* dan *Discriminative Models*. Manakah dari pernyataan di bawah ini yang mendefinisikan perbedaan esensial dari kedua paradigma tersebut?
+
+[[A]] Model generatif mempelajari batas pemisah antar kelas probabilitas (decision boundary), sedangkan model diskriminatif mempelajari distribusi distribusi data untuk setiap kelas secara independen.
+[[B]] Model generatif mempelajari *Joint Probability* $P(X, Y)$, sedangkan model diskriminatif langsung memodelkan *Conditional Probability* $P(Y|X)$.
+[[C]] Model generatif hanya digunakan untuk teks gambar, sedangkan model diskriminatif untuk suara.
+[[D]] Model generatif menggunakan arsitektur statis tanpa parameter *loss*, sedangkan model diskriminatif membutuhkan kalkulus gradien turunan.
+[[E]] Naive Bayes adalah model diskriminatif, sedangkan Support Vector Machine (SVM) adalah model generatif.
+
+ANSWER: B
+DISCUSSION: Perbedaan matematis absolut: Model **Generatif** (seperti *Naive Bayes, Hidden Markov Model*) berupaya memahami bagaimana data itu diciptakan/didistribusikan secara utuh dengan memodelkan distribusi probabilitas gabungan $P(X, Y)$. Model **Diskriminatif** (seperti *Logistic Regression, SVM, Conditional Random Fields*) tidak peduli tentang bagaimana data tercipta, ia hanya mencari tahu secara langsung probabilitas prediksi label jika diberikan data tertentu $P(Y|X)$ demi mengoptimalkan batas pisah (margin/boundary).
+TIPS_THEORY: Jika disuruh membedakan gajah dan jerapah, model generatif akan menghafal anatomi lengkap gajah dan anatomi lengkap jerapah. Model diskriminatif hanya menghafal 1 hal: "yang lehernya panjang itu jerapah".
+TIPS_PRACTICE: Diskriminatif biasanya menghasilkan akurasi klasifikasi klasifikasi teks yang jauh lebih superior karena secara algoritmik "lebih malas" (lebih efisien).
+
+# Q82 (PILGAN)
+Dalam arsitektur *Dialogue Systems* (Sistem Percakapan/Chatbot), terdapat dua kategori payung besar, yakni *Task-Oriented Spoken Dialogue Systems* dan *Chit-Chat (Open-domain) Dialogue Systems*. Salah satu karakteristik utama yang HANYA dimiliki oleh sistem *Task-Oriented* murni adalah keberadaan komponen...
+
+[[A]] Generative Seq2Seq Decoder.
+[[B]] Word2Vec Embedding Layer.
+[[C]] Dialog State Tracker (DST) dan integrasi eksternal pemanggilan API *Database*.
+[[D]] Transformer Attention Mechanism.
+[[E]] Modul *Beam Search Decoding* di layer paling atas.
+
+ANSWER: C
+DISCUSSION: *Task-Oriented Dialogue Systems* dibangun untuk membantu pengguna menyelesaikan tugas spesifik (seperti memesan tiket pesawat, mereservasi hotel, menyalakan lampu rumah). Oleh karenanya, sistem *Task-Oriented* mutlak membutuhkan **Dialog State Tracking (DST)** untuk terus menghafal dan memperbarui parameter permintaan user ("Tiket ke Bali", "Tanggal 20", "Kelas Ekonomi") dari waktu ke waktu (*slots filling*). Setelah parameter dirasa penuh, sistem akan merutekan *Query* ke API/Basis Data Eksternal dunia nyata.
+TIPS_THEORY: Sebaliknya, agen *Chit-Chat* (seperti Replika atau ChatGPT murni awal) hanyalah generator auto-regresif probabilitas kata yang dirancang untuk mengobrol luwes ke sana kemari tanpa tujuan transaksional objektif yang spesifik.
+TIPS_PRACTICE: Task-Oriented = NLU $\rightarrow$ Dialog State Tracking (DST) $\rightarrow$ Dialog Policy $\rightarrow$ NLG.
+
+# Q83 (PILGAN)
+Terdapat dua representasi struktural paling dominan dalam bidang *Syntactic Parsing* di NLP komputasional: *Constituency Parsing* dan *Dependency Parsing*. Analisis hierarki yang merepresentasikan kalimat ke dalam himpunan rekursif bersarang yang dibentuk dari frasa spesifik (seperti *Noun Phrase / NP*, *Verb Phrase / VP*) dari akar hingga menjadi kata per kata di level daun, diklasifikasikan sebagai representasi...
+
+[[A]] Dependency Parsing
+[[B]] Morphological Parsing
+[[C]] Semantic Role Labeling
+[[D]] Constituency Parsing
+[[E]] Part-of-Speech Tagging
+
+ANSWER: D
+DISCUSSION: *Constituency Parsing* (sering disebut *Phrase Structure Parsing* turunan kaidah tata bahasa Chomsky) membagi untaian kalimat menjadi blok-blok konstituen yang saling menyusun struktur (*nesting*). Kalimat utuh (S) dipecah menjadi Frasa Benda (NP) dan Frasa Kerja (VP), dan dipecah terus menerus hingga berakhir pada kata mentah di ujung daun *tree*.
+TIPS_THEORY: *Dependency Parsing*, di kubu sebaliknya, tidak mengelompokkan kata menjadi frasa bersarang. Ia merajut hubungan asimetris struktural relasional secara 1-ke-1 langsung (panah biner) antar kata (misalnya kata sifat "kuning" memodifikasi kata benda "bebek").
+TIPS_PRACTICE: Jika Anda melihat *tag* NP, VP, PP di atas cabang-cabangnya, itu pasti *Constituency Parsing*.
+
+# Q84 (PILGAN)
+Di ranah perbandingan metrik evaluasi otomatis linguistik makro, dua metrik raksasa yang saling berdampingan adalah BLEU dan ROUGE. Secara konseptual heuristik, BLEU sangat ketat mementingkan aspek **(X)**, sedangkan mayoritas varian ROUGE didesain untuk menitikberatkan aspek probabilitas **(Y)**.
+
+[[A]] X = Recall, Y = Precision
+[[B]] X = F1-Score, Y = Accuracy
+[[C]] X = Precision, Y = Recall
+[[D]] X = Syntax, Y = Semantics
+[[E]] X = Generative, Y = Extractive
+
+ANSWER: C
+DISCUSSION: Filosofi perumusan formula **BLEU** menitikberatkan metrik *N-Gram Precision*. Logikanya: di tugas Terjemahan Mesin (MT), kita tidak ingin mesin mengucapkan kata halusinasi sembarangan, kita ingin mesin dipastikan benar atas "apapun yang diucapkannya" (Precision / Presisi tinggi).
+Sebaliknya, **ROUGE** didesain untuk *Summarization* (Peringkasan Teks). Ringkasan yang baik dinilai dari seberapa besar materi *keyword* di korpus asli berhasil disedot ke dalam ringkasan tanpa ada materi vital yang tertinggal (Fokus ke *Coverage* atau *Recall*).
+TIPS_THEORY: Jika terjemahan terlalu pendek, BLEU memberikan *Brevity Penalty*. Karena ROUGE fokus ke *Recall*, varian ROUGE tertentu menghukum ringkasan yang terlalu bertele-tele melampaui batas referensi kata.
+TIPS_PRACTICE: Rumusan Paten: BLEU = Fokus *Precision* (MT). ROUGE = Fokus *Recall* (Summarization).
+
+# Q85 (PILGAN)
+Metode menyelaraskan (*aligning*) dua ruang padat *Word Embeddings* dari dua bahasa yang terisolasi secara terpisah (misalnya Word2Vec bahasa Inggris dan Word2Vec bahasa Indonesia) ke dalam satu semesta laten yang sama disebut *Multilingual Word Embeddings* (seperti MUSE). Teknik paling elegan dan cepat untuk mencapai penjajaran ini tanpa membutuhkan miliaran pasangan dokumen penerjemah sejajar (parallel corpus) adalah dengan memanfaatkan...
+
+[[A]] Pembelajaran Supervised dengan jaringan *Deep Belief Networks*.
+[[B]] Pemetaan Linier Ortogonal menggunakan *Bilingual Dictionary* kecil, diselesaikan menggunakan metode aljabar matriks Procrustes.
+[[C]] *Byte-Pair Encoding* dengan ukuran vocabulary seragam di seluruh bahasa.
+[[D]] *Latent Dirichlet Allocation* silang bahasa.
+[[E]] Menyatukan kedua korpus dalam 1 file txt dan menjalankan TF-IDF gabungan.
+
+ANSWER: B
+DISCUSSION: Struktur hierarkis konsep spasial di *word embeddings* secara mengejutkan identik antar bahasa manusia (misal: jarak matematis antara kata "King" dan "Queen" di vektor Inggris bentuk transformasinya *isomorphic* / mirip secara absolut dengan jarak "Raja" dan "Ratu" di vektor Indonesia). Oleh karena itu, kita cukup menggunakan fungsi matematis regresi pemetaan Linier (sering menggunakan *Orthogonal Procrustes problem*) dari vektor titik awal ke vektor target, dipandu dengan kamus *Bilingual* mini berjumlah ribuan kata.
+TIPS_THEORY: Jika kamus pun tidak ada (*Zero-Resource / Unsupervised Alignment*), riset modern MUSE menggunakan *Generative Adversarial Networks* (GAN) di mana Generator mencoba merotasi vektor bahasa X agar mirip matriks Y, sementara Diskriminator membedakannya.
+TIPS_PRACTICE: "MUSE" = Teknik memutar / mengalihkan matriks spasial bahasa A ke ruang matriks spasial bahasa B.
+
+# Q86 (PILGAN)
+Sebuah korpus mini berisi 100 buah dokumen. Anda sedang memproses dokumen $D_{13}$ yang memuat total 50 patah kata di dalamnya. Kata "Kalkulus" muncul persis 5 kali di dalam dokumen $D_{13}$ tersebut. Apabila kata "Kalkulus" secara global muncul setidaknya satu kali di dalam 10 dokumen berbeda di korpus tersebut, berapa nilai Term Frequency (TF) dan nilai metrik Inverse Document Frequency (IDF) secara logaritma basis 10?
+
+[[A]] $TF = \frac{10}{50}, IDF = \log_{10}(\frac{100}{5})$
+[[B]] $TF = \frac{5}{50}, IDF = \log_{10}(\frac{100}{10})$
+[[C]] $TF = 5, IDF = 10$
+[[D]] $TF = \frac{5}{10}, IDF = \log_{10}(100)$
+[[E]] $TF = \frac{50}{5}, IDF = \log_{10}(\frac{10}{100})$
+
+ANSWER: B
+DISCUSSION: Pengukuran term frequency probabilitas ternormalisasi (TF) menghitung proporsi intensitas frekuensi internal kata spesifik dalam wadah dokumennya: $TF = \frac{5}{50} = 0.1$.
+*Inverse Document Frequency* (IDF) tidak peduli berapa kali kata diucap di setiap dokumen, melainkan peduli pada probabilitas global "berapa proporsi eksklusif jumlah total dokumen yang menampung kata ini": $IDF = \log_{10}\left(\frac{\text{Total Dokumen}}{\text{Total Dokumen mengandung target}}\right) = \log_{10}\left(\frac{100}{10}\right) = \log_{10}(10) = 1$.
+Maka hasil kalkulasi $TF \times IDF$ untuk kata "Kalkulus" di dokumen tersebut bernilai $0.1 \times 1 = 0.1$.
+TIPS_THEORY: Metrik $TF$ memuji kata yang sering terulang dalam satu dokumen lokal. Metrik $IDF$ menghukum kata yang muncul di mana-mana di segala ragam dokumen eksternal.
+TIPS_PRACTICE: TF = (frekuensi kata / total kata dlm doc). IDF = $\log$(Total Doc / Jumlah Doc dgn kata itu).
+
+# Q87 (PILGAN)
+Algoritma *Naive Bayes* bersandar total pada rantai operasi perkalian gabungan *likelihood* fitur ($P(w_1|C) \cdot P(w_2|C) \cdot ...$). Jika salah satu kata di dalam teks pengujian tidak pernah diobservasi oleh mesin saat tahap komputasi latih (sehingga probabilitasnya nol mutlak di kamus), seluruh hasil perkalian sistem akan rontok musnah menjadi nol ("Zero Frequency Problem"). Selain menggunakan aditif *Laplace Smoothing*, strategi komputasional apa yang mutlak direkomendasikan secara programatik aljabar agar sistem klasifikasi ini terhindar dari krisis *Numerical Underflow*?
+
+[[A]] Mengalikan seluruh matriks hasil awal dengan konstanta bernilai 1 juta.
+[[B]] Melakukan Transformasi Fourier.
+[[C]] Menjumlahkan nilai logaritma dari semua probabilitas fitur ketimbang melakukan perkalian kasar (*Log-Probabilities Addition*).
+[[D]] Membuang operasi probabilitas dan menggantinya dengan SVM 2 dimensi.
+[[E]] Membagi nilai vektor matriks dengan determinannya.
+
+ANSWER: C
+DISCUSSION: Di dalam ranah komputasi numerik (*floating point* 32-bit GPU/CPU), mengalikan rangkaian rantai desimal panjang di bawah nilai nol (misal $0.001 \times 0.00032 \times 0.0000001$) perlahan akan memicu bencana *Arithmetic Underflow* komputasional di mana CPU menyerah dan menganggap sisa desimalnya sebagai angka mutlak $0$. Formula dasar aritmatika $\log(A \times B) = \log(A) + \log(B)$ menyelamatkan mesin dengan mengubah seluruh operasi rentan *Perkalian Probabilitas* yang kerdil menjadi rentetan operasi *Penjumlahan* yang jauh lebih stabil, tahan uji, dan dihindarkan dari kebinasaan angka nol mutlak.
+TIPS_THEORY: Klasifikasi kelas Naive Bayes tetap sahih sempurna secara matematis dihitung di ranah logaritmik karena logaritma merupakan fungsi *monotonik* murni (tidak mengubah derajat peringkat perbandingan nilai asli).
+TIPS_PRACTICE: Ingat rumus praktis $P(c|d) \propto \log P(c) + \sum \log P(w_i|c)$. Selalu gunakan log-probabilitas di dunia NLP Bayes!
+
+# Q88 (PILGAN)
+Arsitektur *Generative Pre-trained Transformer* (GPT) seri original didesain khusus sebagai representasi model sintaks autoregresif (Autoregressive Language Modeling). Secara definitif mekanikal, apa yang diimplikasikan dalam istilah model memproduksi kata secara "Autoregresif"?
+
+[[A]] Model harus memusnahkan kata lama sebelum dapat merangkai prediksi kalimat baru di memori.
+[[B]] Mesin secara iteratif memprediksi satu langkah titik token masa depan di setiap perulangan siklus, lalu tebakan mutakhir mesin itu dimasukkan kembali digabung ke dalam jejak input masa lalu (*past context*) di langkah berikutnya.
+[[C]] Model menyisir input maju dan mundur bolak-balik menyamai algoritma bi-directional seutuhnya secara auto-simetris.
+[[D]] Mesin mengaktifkan penyesuaian (*fine-tuning*) bobot secara seketika (*online*) ketika fase prediksi terjadi.
+[[E]] Komputasi *Dropout* dilakukan otomatis di akhir algoritma tanpa campur tangan hiperparameter.
+
+ANSWER: B
+DISCUSSION: Sifat *Autoregresif* di *Language Modeling* (khas seperti di GPT atau RNN LM generatif) bermakna spesifik bahwa algoritma memproduksi prediksi sekuel elemen baru berdasar fungsi eksklusif himpunan observasi elemen di masa lalu dari silsilahnya sendiri. Jika di $t_1$ model menerima input "Kucing" dan meramal output "Hitam", maka pada fase perputaran iterasi komputasional ke-$t_2$ selanjutnya, kata "Hitam" hasil prediksi murninya ini diseret paksa ditempel masuk kembali sebagai bagian input sistem yang baru (menjadi input: "Kucing Hitam") demi meramal sekuel kata ketiga, begitu seterusnya.
+TIPS_THEORY: Siklus re-injeksi paksa (memakan output-nya sendiri) inilah yang menyebabkan model autoregresif rawan terkena halusinasi (snowball of errors) jika tebakan awal kalimat sudah melenceng salah fatal.
+TIPS_PRACTICE: Autoregressive = Input -> Output -> Output ditarik dijadikan Input baru.
+
+# Q89 (PILGAN)
+Terkait manipulasi korpus dengan *Byte-Pair Encoding* (BPE). Jika kita mendapati susunan kamus subword BPE dari sebuah teks latih medis telah membekukan 3 deret token subword berikut di dalam direktorinya: `["kard", "io", "logi"]`. Kemudian di fase *Inference* waktu nyata di masa depan, sistem menjumpai kata sangat langka dari bahasa jurnal Prancis "Kardiologia". Apa reaksi teknis mekanikal algoritma tokenisasi BPE?
+
+[[A]] Model mesin membuang kata dan menggantinya ke dalam token hampa `<UNK>`.
+[[B]] Model mendeteksi ejaan Prancis, lalu merutekannya ke jaringan penerjemah perantara terpisah.
+[[C]] Model memutilasi kata target tersebut menjadi unit perakitan terkecil dari kamus subword yang tersedia: `["kard", "io", "logi", "a"]`.
+[[D]] Model memotong 1 karakter sisa 'a' tanpa ampun dan menyingkirkannya.
+[[E]] Model memanggil algoritma *Levenshtein Distance* untuk mengoreksi paksa "Kardiologia" menjadi "Kardiologi".
+
+ANSWER: C
+DISCUSSION: Tujuan utama filosofis model *Subword Tokenization* seperti BPE adalah mengamputasi kelemahan statis masalah klasifikasi Out-Of-Vocabulary (OOV). Saat BPE disuap oleh susunan *string* kata alien eksotis tidak dikenal, ia akan mengeksekusi operasi penelusuran hierarkis pemecahan struktur mundur (fallback). Mesin mengekstrak penggalan unit leksikal terpanjang yang eksis di kamusnya ("kard", "io", "logi"), menyisakan sisa satu huruf "a". Berhubung BPE dalam algoritma paling dasarnya meracik unit penyusunan huruf tunggal alfabet sebagai basis murni atomik fondasional, "a" dibaca legal sebagai token terpisah.
+TIPS_THEORY: Teks "Kardiologia" dapat dimodelkan utuh secara 100% *Lossless* ke mesin tanpa menderita *Information Loss* sepotong pun.
+TIPS_PRACTICE: Sistem BPE = Mutilasi kata ke unit *string* logis paling masif yang kompatibel. OOV tidak pernah lagi diganti token `<UNK>`.
+
+# Q90 (PILGAN)
+Di ranah pengujian komprehensif *Benchmark* untuk *Question Answering* sistem standar kriteria (misal dataset SQuAD), metrik evaluasi absolut dikomputasi menggunakan dua pilar: metrik F1-score sintaks per token dan...
+
+[[A]] Cosine Similarity (CS)
+[[B]] Jaccard Evaluation Ratio
+[[C]] Exact Match (EM)
+[[D]] Binary Relevance Match
+[[E]] Latent Semantic Tolerance (LST)
+
+ANSWER: C
+DISCUSSION: Standar evaluasi internasional sistem *Reading Comprehension / QA* dinilai dari sepasang indeks performa: **Exact Match (EM)** dan skor F1. Metrik EM merupakan penilaian algoritma puritan biner kejam: Prediksi jawaban dari jaringan mesin Neural wajib mencocokkan sinkronisitas absolut huruf-per-huruf terhadap teks referensi *Ground Truth* penyusun manusia murni tanpa meleset 1 token pun untuk memenangkan skor poin 1. Jika kurang satu kata (misal rujukan manusia "Sungai Kapuas", tebakan mesin "di Sungai Kapuas"), skor EM anjlok menjadi nol mutlak karena tak setara persis sempurna.
+TIPS_THEORY: Itulah sebabnya skor F1 selalu mendampingi EM. F1 menilai sistem *Overlapping* kemiripan kata di level parsial fleksibel sehingga mesin yang menebak "di Sungai Kapuas" masih dihargai secara logis parsial.
+TIPS_PRACTICE: SQuAD Metrics = Exact Match (Benar Persis 100%) dan F1-Score (Benar Proporsional).
+
+# Q91 (PILGAN)
+Algoritma "Hobbs' Tree Search Algorithm" merupakan representasi aturan *Syntax-Based Heuristic Rule* pionir (era 1970-an) yang hingga kini diajarkan di kelas perkenalan ilmu...
+
+[[A]] Pengurutan Dokumen Leksikal Berbasis Trie
+[[B]] Viterbi Transducer Optimisasi
+[[C]] Part-Of-Speech Tree-Tagger
+[[D]] Coreference Resolution (Pronomina Rujukan)
+[[E]] Algoritma Rujukan Sentiment Negasi
+
+ANSWER: D
+DISCUSSION: Algoritma Hobbs (1978) adalah prosedur penelusuran algoritma statis pencarian pohon murni (*parse tree*) legendaris dari cabang lingusitik mekanik guna memecahkan tugas **Coreference Resolution** (mencari induk nominatif asal usul kata ganti). Ia beroperasi menelusuri penataan cabang-cabang konstituen pohon Parsing secara *Left-to-Right*, *Breadth-First* dari lokasi Noun Phrase asal pronomina (misal "He/She"), lalu menjalar melacak hierarki mundur menuju puncak akar demi mengidentifikasi target entitas nominatif berjenjang paling tepat.
+TIPS_THEORY: Karena tak memakai parameter memori komputasional (*learning parameters*), performanya terbatas mutlak oleh kebenaran struktur validasi pohon sintaks awal *Tree Parser*-nya.
+TIPS_PRACTICE: Di zaman Deep Learning, Hobbs Algorithm tetap populer dijadikan komponen pemicu penambah porsi probabilitas rujukan arsitektur *Neural Coreference*.
+
+# Q92 (PILGAN)
+Dilema mendasar di cabang ilmu linguistik komputer sering berkaitan dengan konsep *Polysemy* dan *Homonymy*. Apa pembedaan linguistik klasik kedua taksonomi tersebut ketika diterapkan dalam masalah pendeteksian dis-ambiguasi NLP?
+
+[[A]] *Polysemy* artinya satu kalimat punya multi kata kerja. *Homonymy* artinya kalimat tidak ada tata bahasanya.
+[[B]] Pada *Polysemy*, sebuah wujud kata bersumber dari silsilah kata yang persis sama namun mekar mengeksplorasi cabang-cabang makna kerabat berkaitan (seperti "mulut botol" dan "mulut gua"). Di *Homonymy*, dua makna bertolak belakang kebetulan hanya berbagi untaian ortografi huruf kebetulan identik yang terpisah riwayat tak ada sangkut-pautnya (contoh: "bisa" mampu dan "bisa" ular).
+[[C]] *Polysemy* adalah kebalikan dari asimilasi morfologi, *Homonymy* adalah ejaan fonetik fonologis tak bersuara vokal.
+[[D]] Mesin hanya mampu men-klasifikasikan *Homonymy* karena polanya berbasis TF-IDF.
+[[E]] Keduanya merupakan sinonim murni absolut dari istilah *Synonymy* secara universal.
+
+ANSWER: B
+DISCUSSION: Diferensiasi fundamental ini adalah pilar teori fondasi penyusunan kamus WordNet dan taksonomi *Word Sense Disambiguation* (WSD). **Polisemi (Polysemy)** menggambarkan makna yang meluas bercabang (*sense extension*) dan bertransformasi fungsi majemuk figuratif namun secara sejarah (*etymology*) terhubung masuk akal ("kaki meja" terinspirasi "kaki manusia"). **Homonim (Homonymy)** hanyalah wujud penipuan statistik murni komputasi di mana silsilah bahasa berbeda tergabung ke dalam kebetulan bentuk susunan huruf (*spelling*) berstatus kebetulan yang sama kembar.
+TIPS_THEORY: Sistem WSD tradisional amat rentan merusak kalkulasi saat berjumpa kata *Homonym*, inilah alasannya mesin mutlak butuh analisis konteks parameter jendela kata yang lebar di NLP modern.
+TIPS_PRACTICE: Hati-hati menukar kedua ini di kacamata vektor. Bagi mesin Word2Vec, Keduanya memporak-porandakan kemurnian ruang embedding tanpa pandang bulu.
+
+# Q93 (PILGAN)
+Dalam komputasi fungsional jaringan *Neural Network Word2Vec* spesifikasi arsitektur murni *Skip-gram*, tujuan absolut rumusan objektif matematis pelatihan algoritma difokuskan pada operasi maksimalisasi dari probabilitas...
+
+[[A]] Terbentuknya seluruh deretan paragraf secara presisi linear struktural.
+[[B]] Tingkat kesalahan ejaan dari korpus Wikipedia.
+[[C]] *Co-occurrence* (kemunculan berdampingan) simultan antara pusat matriks kata jangkar (center word) menebak probabilitas memanggil kehadiran seluruh jajaran susunan kata target konteks penyerta di sisi radius kanvas/window batas *t* secara spasial laten.
+[[D]] Mengkompresi ukuran *vocabulary* dari korpus asal.
+[[E]] Mendekomposisi matriks ukuran masif $V \times V$ menjadi *Singular Values*.
+
+ANSWER: C
+DISCUSSION: Mesin model Skip-Gram beroperasi berlawanan arus berbalik arah dari CBOW, ia mengisolasi paksa probabilitas parameter $P(\text{Context\_Words} | \text{Center\_Word})$ secara simultan ke seluruh barisan token yang ditangkap jaring di radius sekitar parameter *Window Size*-nya (misal jangkauan $m$ kata kiri dan $m$ kata kanan). Objektif komputasional akhirnya tak lain adalah *memaksimalkan probabilitas* kombinasi pasangan-pasangan leksikal fiktif ini yang ada di data *training* dunia nyata (*likelihood maximization* via gradient ascent / gradient descent murni untuk meminimalkan loss kebalikannya).
+TIPS_THEORY: Formula objektifnya: $J(\theta) = - \frac{1}{T} \sum_{t=1}^T \sum_{-m \le j \le m, j \ne 0} \log P(w_{t+j} | w_t)$.
+TIPS_PRACTICE: Skip-gram: $1$ Kata ditengah melempar jaring prediksi meramal kemunculan berderet $2m$ Konteks di sisinya.
+
+# Q94 (PILGAN)
+Kompilasi pra-pemrosesan standardisasi korpus mentah NLP melibatkan fasa *Text Normalization*. Operasi mutlak manakah yang tergolong dalam *Normalization* dasar yang sering dilakukan untuk menghomogenisasi keragaman entitas murni komputasi?
+
+[[A]] Deteksi pola Regex ekstrak alamat IP, Unicode Encoding konversi karakter ganjil tak terlihat (seperti "\xa0"), serta eksekusi standardisasi *Lowercasing*.
+[[B]] Mengaktifkan algoritma regresi linier murni ke dimensi matriks.
+[[C]] Evaluasi panjang maksimal karakter sebelum masuk memori GPU (Out of memory prevention).
+[[D]] Proses membelah spasi dengan subword BPE.
+[[E]] Mentransformasikan parameter aktivasi ke layer distribusi Sigmoid di nilai $0-1$.
+
+ANSWER: A
+DISCUSSION: Istilah *Text Normalization* menyangkut semua rutinitas "kerja kasar pembersih sanitasi leksikal" yang wajib meratakan/menyelaraskan teks masuk mentah (*dirty data*) sebelum mendarat ke parameter tokenisasi statistik matematis yang canggih. Konversi pelik alfabet ke kapital terstruktur atau pemaafan murni kapital (*Lowercasing*), pembasmian karakter unik aneh Unicode *invisible spaces* menjadi standar ASCII regular whitespace, hingga pengelompokan ekspresi rutin Regex URL (`http://...`) yang mengganti tautan menjadi penanda tunggal `[URL]` merupakan taksonomi mutlak dari *Normalisasi Teks*.
+TIPS_THEORY: Mengabaikan proses Normalisasi dapat membuat komputer mengekstradisi memori fitur terpisah untuk "Makan", "makan", dan "makan " padahal muatan dimensi semantiknya sama 100%.
+TIPS_PRACTICE: Raw Text $\rightarrow$ Normalization (Sanitizing/Regex/Case) $\rightarrow$ Tokenization $\rightarrow$ Model Input.
+
+# Q95 (PILGAN)
+Model pendeteksian identitas linguistik bahasa dari deret susunan kata asing rahasia atau lazim dipanggil mesin *Language Identification* (contoh: mendeteksi dokumen tersebut berbahasa Spanyol, Indonesia, atau Korea), mendasari kalkulasinya secara masif probabilistik melalui algoritma tradisional yang sangat diandalkan sebelum Neural Networks, yaitu...
+
+[[A]] Part-of-Speech Tagging
+[[B]] Fast-Text Hierarchical Analysis
+[[C]] N-gram Character Models
+[[D]] Dependency Parse Graph
+[[E]] BERT Translation Output
+
+ANSWER: C
+DISCUSSION: Menyelaraskan probabilitas jenis leksikal antar bahasa raksasa amat krusial dan secara fungsional sistem identifikasi deteksi bahasa komersial terkuat yang dieksekusi secara super efisien dibangun berdasarkan **Character N-gram Profile Modeling** (Cavnar & Trenkle, 1994). Model memecah seluruh dokumen asing mentah ke deretan n-gram per susunan alfabet dasar (contoh panjang huruf trigram 3, e.g. "`_es`", "`est`", "`sta`"). Frekuensi jejak tanda tangan statistik sub-alfabet inilah yang dicocokkan terhadap profil data sidik jari trigram masing-masing bahasa target rujukan tanpa harus mesin mengerti sintaksis grammar bahasa tersebut sama sekali.
+TIPS_THEORY: Di setiap bahasa unik di dunia, distribusi huruf tertentu dan penggalan suku kata (seperti probabilitas kehadiran huruf `-tion` di Inggris atau `-ing`) membawa profil kurva kemiringan Zipfian yang identik per bahasanya.
+TIPS_PRACTICE: Analisis Language ID jarang butuh *Word* (Kata utuh). Cukup hitung probabilitas kombinasi deret 3-5 alfabet murni.
+
+# Q96 (PILGAN)
+Di fasa penghujung arsitektur Transformer seksi Decoder *Language Model* standar (menghasilkan *output text*), hasil konversi akhir nilai laten parameter *context embedding array* dari blok pamungkas mesti digabungkan dan diproyeksikan menggunakan operasi...
+
+[[A]] Layer Matriks Konvolusi CNN diikuti aktivasi ReLU.
+[[B]] Layer Transformasi Matriks *Linear Projection* disusul oleh penghitungan *Softmax Distribution* berdimensi lebar setara jumlah elemen *Vocabulary Size*.
+[[C]] Evaluasi SVM untuk mengklasifikasi sentimen terakhir.
+[[D]] Evaluasi *Reinforcement Learning Reward Metric*.
+[[E]] Perkalian *Dot-Product* ke sesama sisa matriks Q,K,V memori masa lalunya.
+
+ANSWER: B
+DISCUSSION: Di tahapan puncak pemuntahan kognitif sistem arsitektur prediksi bahasa dari Decoder Transformer (kalkulasi *Head Language Model Output*), lapisan teratas mengeluarkan serangkaian Vektor Fitur Representasi Padat kontinu. Deret angka ajaib laten ini sama sekali bukan bahasa literal linguistik. Karena itu, model mewajibkan integrasi proyektor filter layar **Linear layer** yang berfungsi melipatgandakan/merentangkan ruang matriks kembali dari ukuran dimensi laten mungil ($d_{model}$) menjadi bentangan raksasa probabilitas selebar jumlah kamus perbendaharaan *Vocabulary* bahasa (misal 50.000 vektor sumbu). Array angka raksasa ini lalu disuapkan ke filter fungsi **Softmax** untuk menjustifikasi 1 indeks pemenang probabilitas tertingginya.
+TIPS_THEORY: Elemen logit raksasa yang masuk *Softmax layer* tersebut tidak memuat huruf; ia direpresentasikan oleh angka murni. Label *Index String* pemenang (indeks nilai terbesar / argmax) dari barisan itu barulah di-decode/dicocokkan menyilang ke indeks kamus aslinya.
+TIPS_PRACTICE: Decoder akhir = Projection Layer (Dense/Linear ke dimensi Vocabulary) + Softmax (menghasilkan 1 token tebakan probabilitas murni).
+
+# Q97 (PILGAN)
+Ledakan terobosan pergeseran paradigma metode NLP era *Deep Learning* diawali oleh eksistensi adopsi parameter algoritma ganda di model korpus *Transfer Learning* (misal: ELMo, ULMFiT, dan utamanya BERT), dimana siklus hidup implementasi aplikasinya mutlak terpecah secara fasa ke dalam dua kutub terminologi...
+
+[[A]] Forward Pass dan Backward Pass.
+[[B]] Encoding dan Decoding.
+[[C]] Pre-Training dan Fine-Tuning.
+[[D]] Corpus Scraping dan Text Generation.
+[[E]] Zero-Shot dan Few-Shot.
+
+ANSWER: C
+DISCUSSION: Mesin NLP raksasa *Deep Learning Transfer Learning* era revolusioner mengkristalkan fasa dikotomi abadi. (1) **Pre-training:** Mesin rakus dibiarkan menghabiskan jutaan dolar GPU untuk menelan miliaran parameter triliunan kalimat mentah di Wikipedia/BookCorpus tanpa diawasi label manusia secara generik liar (Unsupervised/Self-Supervised MLM objektif) murni untuk menyerap esensi intuisi koherensi "tata bahasa". (2) **Fine-Tuning:** Hasil lelehan neuron model mesin komprehensif jenius yang sudah tamat sekolah tadi lalu disempurnakan pelatihannya pada ranah yang jauh lebih dangkal memakai dataset spesifik mungil di ranah label supervisi domain terbatas (Supervised Learning untuk Deteksi Spam/Sentiment analisis, dll).
+TIPS_THEORY: Anda tidak melatih arsitektur BERT dari titik parameter matriks nol absolut murni. Mesin BERT telah pra-latih (*Pre-Trained*) dan Anda sekadar menyempurnakan orientasinya (*Fine-Tune*).
+TIPS_PRACTICE: Transfer Learning = Pre-Train (miliaran data tak berlabel) + Fine-Tune (ribuan data berlabel spesifik).
+
+# Q98 (PILGAN)
+Perangkat fungsional relasional tak-berstruktur (*Knowledge Graph / KG*) memetakan hubungan entitas trinitas komprehensif *(Kepala, Relasi, Ekor)* menjadi himpunan vektor di sebuah ruang metrik berkelanjutan berdimensi rendah. Algoritma pionir paling representasional dan sederhana yang merumuskan persamaan matematika intuitif $\text{Kepala} + \text{Relasi} \approx \text{Ekor}$ ($h + r \approx t$) di ruang metrik vektor *Knowledge Graph Embedding* disebut...
+
+[[A]] ResNet
+[[B]] Word2Vec
+[[C]] TransE
+[[D]] Latent Semantic Analysis (LSA)
+[[E]] Singular Value Decomposition
+
+ANSWER: C
+DISCUSSION: *TransE* (Translating Embeddings for Modeling Multi-relational Data - Bordes dkk, 2013) mengubah paradigma ekstraksi penalaran mesin pangkalan relasional *Knowledge Graph*. Algoritma ini memvisualisasikan kaitan relasional secara harfiah merujuk translasi pemindahan arah geometri vektor dalam ruang metrik fitur laten. Logikanya: Vektor lokasi identitas awal entitas ("Rome") jika ditambah melangkah maju mengikuti vektor *Relation* ("is-capital-of") akan mendarat di koordinat geometri presisi ujung berhimpit pada vektor identitas entitas Ekor target ("Italy"). Jika digeser, jarak L1/L2 nol mutlak: $h + r \approx t$.
+TIPS_THEORY: TransE sangat digemari peneliti dan direplikasi karena kejelitaan elegan fungsinya dan kalkulasinya amat efisien dibanding dekomposisi matriks klasik.
+TIPS_PRACTICE: $h + r \approx t$ adalah sidik jari mutlak dari TransE (Translation Embedding).
+
+# Q99 (PILGAN)
+Apabila mengevaluasi performa fungsional komputasi NLP di sebuah pangkalan data dengan kategori imbalan ekstrem (contoh: Deteksi Penyakit Langka, 99% data wajar sehat & 1% positif murni). Model AI sintetik yang cacat secara logikal bisa saja memvonis buta "SEHAT SEMUA 100%" lalu memanen nilai Metrik akurasi tinggi meroket ke persentase fantastis 99%. Anomali probabilitas ilusi kesesatan ini dikenal tajam dengan terminologi klasifikasi metrik...
+
+[[A]] Accuracy Paradox
+[[B]] Precision Underflow
+[[C]] Recall Divergence
+[[D]] The Curse of Dimensionality
+[[E]] Gradient Explosion Syndrome
+
+ANSWER: A
+DISCUSSION: Fenomena *Accuracy Paradox* muncul di mana-mana sebagai hantu statistika di ranah klasifikasi distribusi *Imbalanced Dataset*. Algoritma pemburu rasio perbandingan Akurasi (Total Prediksi Benar dibagi Total Seluruh Sampel murni) di ranah target minoritas rentan menyimpulkan performa brilian palsu meskipun sistem sesungguhnya lumpuh membedakan anomali, murni akibat model mengeksploitasi keputusannya menebak buta selalu menempel kelas mayoritas mutlak dominan konstan ("Dummy Classifier").
+TIPS_THEORY: Di sinilah F1-Score dan kurva presisi murni Area Under the Precision-Recall Curve (AUPRC) mengambil alih kursi validasi evaluasi akurasi klasik demi menimbang distribusi bias algoritma di ranah asimetris.
+TIPS_PRACTICE: Akurasi = Tidak bisa diandalkan pada dataset minoritas.
+
+# Q100 (PILGAN)
+Di penghujung fondasi epistemologis kecerdasan buatan, visi suci historikal pendorong evolusi algoritma simulasi percakapan NLP (mulai dari ELIZA 1960an hingga era LLM ChatGPT) adalah mengarsiteki mesin yang kapabilitas sintaks pragmatiknya tak dapat lagi dibedakan dari pikiran operasional manusia manakala dihakimi via bilik percakapan obrolan buta eksternal oleh pakar interogator logis. Tes esensial imajinatif legendaris peninggalan bapak komputasi Inggris berjuluk luhur ini adalah...
+
+[[A]] The Turing Test
+[[B]] Moore's Law Paradigm
+[[C]] Chomsky Grammar Hierarchy Evaluator
+[[D]] Boolean Satisfiability Theory
+[[E]] Church-Turing Thesis
+
+ANSWER: A
+DISCUSSION: Jauh sebelum ranah komputasi silikon era Neural Network, di jurnal akademis *Computing Machinery and Intelligence* (1950), Alan Turing merumuskan konsep *The Imitation Game* (kini dinamai kekal **The Turing Test**). Paradigma uji coba behavioralis empiris yang pragmatis ini menihilkan kebutuhan medefinisikan "Apa itu kecerdasan sadar murni?" dan sekadar melombakan kemampuan mesin untuk melakoni trik muslihat probabilitas sintaks percakapan alami melalui interaksi bahasa murni (Natural Language Processing terminal) agar sukses mengecoh akal waras evaluator manusiawi tulen. Keberhasilan murni ini menandakan kemenangan NLP mencapai *Artificial General Intelligence* sejati di kacamata komunikasi antarmuka simulasi sintaksis.
+TIPS_THEORY: Turing test tidak membutuhkan mesin memiliki tubuh robot (visi atau motorik fisik eksternal), fasa kelulusan ini hanya mengandalkan simulasi komputasional di kanvas transmisi perantara media perbendaharaan Bahasa Alami Teks Murni semata.
+TIPS_PRACTICE: Turing Test = Ujian kelulusan tertinggi NLP yang pernah diciptakan secara filosofis.
+```

@@ -1,0 +1,145 @@
+# Q1 (PILGAN)
+Dalam ekstraksi fitur teks, *Term Frequency-Inverse Document Frequency* (TF-IDF) digunakan untuk mengukur seberapa penting sebuah kata dalam suatu dokumen di dalam korpus. Jika $TF(t, d)$ adalah frekuensi term $t$ dalam dokumen $d$, dan $N$ adalah total dokumen, manakah rumus $IDF(t)$ yang paling tepat?
+
+[[A]] $IDF(t) = \log \left( \frac{N}{df(t)} \right)$
+[[B]] $IDF(t) = \frac{N}{df(t)}$
+[[C]] $IDF(t) = \log (N \times df(t))$
+[[D]] $IDF(t) = 1 - \log \left( \frac{N}{df(t)} \right)$
+[[E]] $IDF(t) = e^{\frac{N}{df(t)}}$
+
+ANSWER: A
+DISCUSSION: Formula IDF (Inverse Document Frequency) standar yang paling sering digunakan untuk meredam bobot kata yang terlalu sering muncul di banyak dokumen adalah logaritma dari total dokumen dibagi jumlah dokumen yang mengandung kata tersebut:
+$$IDF(t) = \log \left( \frac{N}{df(t)} \right)$$
+TIPS_THEORY: Logaritma digunakan agar nilai IDF tidak meledak (terlalu besar) ketika $N$ sangat besar dibandingkan $df(t)$.
+TIPS_PRACTICE: Ingat bahwa kata umum seperti "dan", "di" akan memiliki $df(t) \approx N$, sehingga $\log(1) = 0$.
+
+# Q2 (PILGAN)
+Sebuah model bahasa *bigram* menghitung probabilitas kalimat berdasarkan probabilitas transisi antar kata. Probabilitas kalimat $P(w_1, w_2, w_3)$ menurut asumsi Markov *first-order* (bigram) adalah...
+
+[[A]] $P(w_1) \times P(w_2) \times P(w_3)$
+[[B]] $P(w_1) \times P(w_2|w_1) \times P(w_3|w_2)$
+[[C]] $P(w_3|w_1, w_2)$
+[[D]] $P(w_1|w_2) \times P(w_2|w_3)$
+[[E]] $P(w_1, w_2) \times P(w_2, w_3)$
+
+ANSWER: B
+DISCUSSION: Model N-gram mengasumsikan sifat Markov, di mana probabilitas suatu kata hanya bergantung pada $N-1$ kata sebelumnya. Untuk bigram ($N=2$), kata saat ini hanya bergantung pada 1 kata sebelumnya:
+$$P(w_1, w_2, w_3) = P(w_1) \times P(w_2|w_1) \times P(w_3|w_2)$$
+TIPS_THEORY: Aturan rantai (chain rule) probabilitas asli adalah $P(w_1)P(w_2|w_1)P(w_3|w_1,w_2)$. Model bigram menyederhanakan $P(w_3|w_1,w_2) \approx P(w_3|w_2)$.
+TIPS_PRACTICE: Fokus pada definisi bigram = melihat 1 kata ke belakang.
+
+# Q3 (PILGAN)
+Dalam klasifikasi teks menggunakan *Multinomial Naive Bayes*, kita menggunakan *Laplace Smoothing* (add-one smoothing) untuk menghindari probabilitas nol jika kata $w$ tidak pernah muncul di kelas $c$. Jika $count(w, c)$ adalah frekuensi kata, $V$ adalah ukuran *vocabulary*, dan $N_c$ adalah total kata di kelas $c$, maka rumus probabilitas smoothed $P(w|c)$ adalah:
+
+[[A]] $P(w|c) = \frac{count(w, c) + 1}{N_c + V}$
+[[B]] $P(w|c) = \frac{count(w, c)}{N_c + 1}$
+[[C]] $P(w|c) = \frac{count(w, c) + 1}{N_c}$
+[[D]] $P(w|c) = \frac{count(w, c) + 1}{N_c + 1}$
+[[E]] $P(w|c) = \frac{count(w, c) + V}{N_c + 1}$
+
+ANSWER: A
+DISCUSSION: Laplace smoothing menambahkan 1 pada pembilang untuk semua kata, dan karena kita menambahkan 1 ke seluruh $V$ kata dalam vocabulary, kita harus menambahkan $V$ pada penyebut agar total probabilitas tetap berjumlah 1.
+$$P(w|c) = \frac{count(w, c) + 1}{N_c + V}$$
+TIPS_THEORY: Jika tidak di-smooth, satu kata yang probabilitasnya 0 akan membuat keseluruhan probabilitas dokumen $P(d|c)$ menjadi 0 karena Naive Bayes mengalikan semua probabilitas kata.
+TIPS_PRACTICE: Ingat rumus "tambah 1 di atas, tambah V di bawah".
+
+# Q4 (PILGAN)
+Dalam arsitektur *Transformer* (Vaswani et al., 2017), mekanisme *Scaled Dot-Product Attention* dihitung dengan rumus:
+
+[[A]] $\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V$
+[[B]] $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$
+[[C]] $\text{Attention}(Q, K, V) = \left(\frac{QK^T}{\sqrt{d_k}}\right)V$
+[[D]] $\text{Attention}(Q, K, V) = \text{softmax}(Q \cdot K) \cdot V$
+[[E]] $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QV^T}{\sqrt{d_k}}\right)K$
+
+ANSWER: B
+DISCUSSION: Mekanisme *self-attention* menghitung skor *alignment* antara *Query* ($Q$) dan *Key* ($K$) menggunakan perkalian dot (*dot product*). Hasil ini kemudian dibagi dengan akar dari dimensi key $\sqrt{d_k}$ (scaling) untuk mencegah nilai gradien yang terlalu kecil pada softmax.
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+TIPS_THEORY: *Scaling* diperlukan karena jika $d_k$ besar, *dot product* $QK^T$ bisa menjadi sangat besar nilainya, yang membuat fungsi *softmax* masuk ke area dengan gradien sangat kecil (saturasi).
+TIPS_PRACTICE: Ingat urutannya: Query dikali transpose Key, dibagi akar dimensi, baru di-softmax, lalu dikali Value.
+
+# Q5 (PILGAN)
+Metrik BLEU (*Bilingual Evaluation Understudy*) sering digunakan untuk mengevaluasi sistem *Machine Translation*. BLEU score didasarkan pada...
+
+[[A]] Kesamaan semantik (berbasis vektor) antara terjemahan mesin dan referensi.
+[[B]] Jumlah kata yang salah dieja oleh sistem mesin.
+[[C]] *N-gram precision* (kecocokan n-gram) antara kandidat terjemahan dan terjemahan referensi.
+[[D]] Kecepatan komputasi saat *inference*.
+[[E]] Evaluasi manual oleh manusia (MOS).
+
+ANSWER: C
+DISCUSSION: BLEU score mengevaluasi kualitas teks hasil terjemahan mesin dengan cara menghitung *precision* dari kecocokan *N-gram* (unigram, bigram, trigram, 4-gram) antara kalimat kandidat (mesin) dengan satu atau lebih kalimat referensi (manusia), ditambah dengan *Brevity Penalty* jika kalimat kandidat terlalu pendek.
+TIPS_THEORY: BLEU tidak mengerti semantik. Kalimat "Kucing mengejar anjing" dan "Anjing mengejar kucing" memiliki kata yang sama (unigram overlap tinggi), sehingga bisa mendapat skor keliru jika tidak pakai n-gram yang lebih tinggi.
+TIPS_PRACTICE: Ingat *keyword*: BLEU = N-gram Precision + Brevity Penalty.
+
+# Q6 (PILGAN)
+Untuk menghitung jarak atau kesamaan semantik antara dua *word embedding* (misalnya dari Word2Vec), metrik yang paling umum digunakan adalah *Cosine Similarity*. Jika kita memiliki vektor kata $A$ dan $B$, rumusnya adalah:
+
+[[A]] $\text{cosine\_similarity}(A, B) = \frac{A \cdot B}{||A|| + ||B||}$
+[[B]] $\text{cosine\_similarity}(A, B) = ||A - B||_2$
+[[C]] $\text{cosine\_similarity}(A, B) = \frac{A \cdot B}{||A|| ||B||}$
+[[D]] $\text{cosine\_similarity}(A, B) = \sum |A_i - B_i|$
+[[E]] $\text{cosine\_similarity}(A, B) = \text{softmax}(A \cdot B)$
+
+ANSWER: C
+DISCUSSION: *Cosine similarity* mengukur kosinus dari sudut antara dua vektor bukan nol di sebuah ruang dimensi dalam. Rumusnya adalah perkalian titik (*dot product*) dari kedua vektor dibagi dengan perkalian norma (*magnitude*) dari masing-masing vektor.
+$$\text{cosine\_similarity}(A, B) = \frac{A \cdot B}{||A|| ||B||}$$
+TIPS_THEORY: Nilai cosine similarity berkisar antara -1 (berlawanan arah sempurna) hingga 1 (searah sempurna). Pada *word embedding*, nilai mendekati 1 berarti kedua kata memiliki konteks makna yang mirip.
+TIPS_PRACTICE: Ini pada dasarnya adalah proyeksi vektor yang sudah dinormalisasi (panjang vektor diabaikan, hanya arah yang penting).
+
+# Q7 (PILGAN)
+Dalam model *Continuous Bag-of-Words* (CBOW) pada Word2Vec, apa yang menjadi *input* dan *output* dari arsitektur *neural network* tersebut?
+
+[[A]] Input: Kata target (center word) | Output: Kata-kata konteks sekitarnya.
+[[B]] Input: Kata-kata konteks sekitarnya | Output: Kata target (center word).
+[[C]] Input: Karakter demi karakter | Output: Sebuah kata utuh.
+[[D]] Input: Dokumen penuh | Output: Topik dokumen.
+[[E]] Input: Pasangan kata | Output: Nilai cosine similarity.
+
+ANSWER: B
+DISCUSSION: Pada arsitektur CBOW (*Continuous Bag-of-Words*), model mencoba memprediksi sebuah kata tengah (target) berdasarkan kata-kata konteks di sekitarnya. Sebaliknya, arsitektur *Skip-Gram* memprediksi kata-kata konteks berdasarkan satu kata tengah.
+TIPS_THEORY: Analogi mudah: CBOW itu seperti mengisi titik-titik (fill-in-the-blank) pada kalimat "Kucing itu melompat ke atas ___ untuk tidur."
+TIPS_PRACTICE: Ingat CBOW = Context -> Bag -> Output Target Word. Skip-gram = Word -> Skip -> Output Context.
+
+# Q8 (PILGAN)
+Salah satu permasalahan utama pada jaringan *Recurrent Neural Network* (RNN) konvensional saat memproses kalimat yang sangat panjang adalah...
+
+[[A]] *Vanishing Gradient*, di mana model kesulitan mengingat informasi dari awal kalimat saat mencapai akhir kalimat.
+[[B]] Membutuhkan data dengan label *image* untuk inisialisasi bobot.
+[[C]] Hanya bisa melakukan *generative text*, tidak bisa untuk klasifikasi teks.
+[[D]] Model tidak bisa memproses input berupa angka/vektor.
+[[E]] Arsitekturnya yang sepenuhnya *feed-forward* tanpa koneksi rekursif.
+
+ANSWER: A
+DISCUSSION: Jaringan RNN konvensional rentan terhadap masalah *vanishing gradient* (atau *exploding gradient*) saat di-*training* dengan algoritma *Backpropagation Through Time* (BPTT). Gradien yang dikalikan berkali-kali melintasi *time steps* (kata) akan menyusut mendekati nol, membuat model lupa akan konteks awal di kalimat panjang.
+TIPS_THEORY: Arsitektur LSTM (*Long Short-Term Memory*) dan GRU (*Gated Recurrent Unit*) diciptakan secara spesifik untuk mengatasi masalah *vanishing gradient* di RNN menggunakan mekanisme gerbang (*gates*).
+TIPS_PRACTICE: Kata kunci untuk kelemahan RNN murni adalah "Gagal memproses long-term dependencies" karena "Vanishing Gradient".
+
+# Q9 (PILGAN)
+Teknik *Byte-Pair Encoding* (BPE) merupakan salah satu algoritma *subword tokenization* yang sangat populer di model-model bahasa modern (seperti GPT dan BERT). Algoritma dasar BPE pada saat pelatihan adalah:
+
+[[A]] Memecah kalimat berdasarkan spasi, lalu menghilangkan semua huruf vokal.
+[[B]] Memulai dengan vocabulary berupa karakter individual, lalu secara iteratif menggabungkan pasangan karakter/subword yang paling sering muncul berdampingan.
+[[C]] Menggunakan jaringan saraf konvolusi (CNN) untuk mengekstrak bentuk kata.
+[[D]] Mencocokkan kata dengan kamus (dictionary) dari *Part-of-Speech tagger*.
+[[E]] Hanya menyimpan 10.000 kata dengan TF-IDF tertinggi.
+
+ANSWER: B
+DISCUSSION: *Byte-Pair Encoding* (BPE) awalnya adalah algoritma kompresi data. Dalam NLP, BPE menginisialisasi *vocabulary* dengan semua karakter dasar, kemudian pada setiap iterasi, mencari pasangan simbol yang paling sering berdampingan di korpus dan menggabungkannya menjadi simbol baru.
+TIPS_THEORY: Keuntungan utama BPE dan *subword tokenization* adalah mengatasi masalah *Out-Of-Vocabulary* (OOV). Kata yang belum pernah dilihat model dapat dipecah menjadi *subword* yang sudah dikenal.
+TIPS_PRACTICE: Ingat kata kuncinya: "Merge most frequent adjacent pairs" (Gabungkan pasangan teratas).
+
+# Q10 (PILGAN)
+Jika fungsi aktivasi *Softmax* diaplikasikan pada vektor logit $Z = [z_1, z_2, ..., z_K]$ untuk menghasilkan distribusi probabilitas, rumus $P(y_i)$ untuk elemen ke-$i$ adalah:
+
+[[A]] $\frac{z_i}{\sum z_k}$
+[[B]] $\frac{e^{z_i}}{\sum_{k=1}^K e^{z_k}}$
+[[C]] $\frac{1}{1 + e^{-z_i}}$
+[[D]] $\max(0, z_i)$
+[[E]] $\frac{e^{z_i}}{K}$
+
+ANSWER: B
+DISCUSSION: Fungsi *Softmax* mengubah sekumpulan skor mentah (logit) menjadi distribusi probabilitas yang jumlah totalnya selalu 1. Rumusnya menggunakan fungsi eksponensial untuk menonjolkan nilai maksimum dan mengubah skor negatif menjadi probabilitas positif.
+$$P(y_i) = \text{softmax}(z)_i = \frac{e^{z_i}}{\sum_{k=1}^K e^{z_k}}$$
+TIPS_THEORY: Pembilang $e^{z_i}$ selalu positif, dan penyebut adalah total dari semua eksponensial logit. Ini memastikan properti probabilitas terpenuhi: semua output positif dan berjumlah 1.
+TIPS_PRACTICE: Opsi C adalah fungsi Sigmoid (hanya untuk 2 kelas), sedangkan Softmax digunakan untuk *multiclass classification*.

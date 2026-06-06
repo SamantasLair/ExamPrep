@@ -407,8 +407,6 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
     let ctx = promptContext.trim() ? `- Konteks Penting:\\n  ${promptContext}\\n` : '';
     let oth = promptOther.trim() ? `- Catatan Tambahan:\\n  ${promptOther}\\n` : '';
     
-    const difficultyStr = promptLabels.difficulty.length > 0 ? `[Tingkat Kesulitan: ${promptLabels.difficulty.join(', ')}]` : '';
-    
     // Group consecutive "Kelas X"
     const formatAgeRange = (selected: string[]) => {
        const nums: number[] = [];
@@ -440,13 +438,23 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
        return [...ranges, ...others].join(', ');
     };
 
-    const ageStr = promptLabels.ageRange.length > 0 ? `[Range Umur/Kelas: ${formatAgeRange(promptLabels.ageRange)}]` : '';
-    const subjectStr = promptLabels.subject.length > 0 ? `[Topik: ${promptLabels.subject.join(', ')}]` : '';
-    const labelContext = (difficultyStr || ageStr || subjectStr) 
-      ? `- Label Prioritas (Sertakan di output JSON/Markdown):\\n  ${[difficultyStr, ageStr, subjectStr].filter(Boolean).join(' ')}\\n` 
-      : '';
+    const ageStr = promptLabels.ageRange.length > 0 ? `RangeUmur=${formatAgeRange(promptLabels.ageRange)}` : '';
+    const subjectStr = promptLabels.subject.length > 0 ? `Subject=${promptLabels.subject.join(', ')}` : '';
+    const diffStr = promptLabels.difficulty.length > 0 ? `Difficulty=${promptLabels.difficulty.join(', ')}` : 'Difficulty=Sedang';
     
-    return systemRules + "\\n\\n" + requestDetails + labelContext + ctx + oth + `\\nSilakan buatkan soal sesuai panduan di atas.`;
+    const requiredLabels = [diffStr, ageStr, subjectStr].filter(Boolean).join(', ');
+
+    const criticalDirective = `
+<CRITICAL_DIRECTIVE>
+WARNING: KEGAGALAN MENYERTAKAN LABEL AKAN MENYEBABKAN SISTEM GAGAL MEMBACA SOAL ANDA.
+PADA SETIAP SOAL YANG ANDA BUAT, SETELAH BARIS \`DISCUSSION:\` (ATAU SETELAH TIPS JIKA ADA), ANDA **WAJIB SECARA ABSOLUT** MENAMBAHKAN SATU BARIS BARU DENGAN FORMAT BERIKUT:
+LABELS: ${requiredLabels ? requiredLabels : 'Subject=General, Difficulty=Medium'}
+
+JANGAN MENGUBAH NAMA KEY LABEL. GUNAKAN FORMAT EXACT SEPERTI CONTOH DI ATAS.
+</CRITICAL_DIRECTIVE>
+`;
+    
+    return systemRules + "\\n\\n" + requestDetails + ctx + oth + criticalDirective + `\\nSilakan buatkan soal sesuai panduan di atas.`;
   }, [promptType, promptCount, promptLang, promptLevel, promptContext, promptOther, promptLabels, tipsRange]);
 
   const handleCopyPrompt = () => {

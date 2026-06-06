@@ -1,0 +1,284 @@
+```text
+# Q81 (PILGAN)
+Dalam domain *Machine Learning* yang diterapkan di NLP, model matematis dikategorikan menjadi *Generative Models* dan *Discriminative Models*. Manakah dari pernyataan di bawah ini yang mendefinisikan perbedaan esensial dari kedua paradigma tersebut?
+
+[[A]] Model generatif mempelajari batas pemisah antar kelas probabilitas (decision boundary), sedangkan model diskriminatif mempelajari distribusi distribusi data untuk setiap kelas secara independen.
+[[B]] Model generatif mempelajari *Joint Probability* $P(X, Y)$, sedangkan model diskriminatif langsung memodelkan *Conditional Probability* $P(Y|X)$.
+[[C]] Model generatif hanya digunakan untuk teks gambar, sedangkan model diskriminatif untuk suara.
+[[D]] Model generatif menggunakan arsitektur statis tanpa parameter *loss*, sedangkan model diskriminatif membutuhkan kalkulus gradien turunan.
+[[E]] Naive Bayes adalah model diskriminatif, sedangkan Support Vector Machine (SVM) adalah model generatif.
+
+ANSWER: B
+DISCUSSION: Perbedaan matematis absolut: Model **Generatif** (seperti *Naive Bayes, Hidden Markov Model*) berupaya memahami bagaimana data itu diciptakan/didistribusikan secara utuh dengan memodelkan distribusi probabilitas gabungan $P(X, Y)$. Model **Diskriminatif** (seperti *Logistic Regression, SVM, Conditional Random Fields*) tidak peduli tentang bagaimana data tercipta, ia hanya mencari tahu secara langsung probabilitas prediksi label jika diberikan data tertentu $P(Y|X)$ demi mengoptimalkan batas pisah (margin/boundary).
+TIPS_THEORY: Jika disuruh membedakan gajah dan jerapah, model generatif akan menghafal anatomi lengkap gajah dan anatomi lengkap jerapah. Model diskriminatif hanya menghafal 1 hal: "yang lehernya panjang itu jerapah".
+TIPS_PRACTICE: Diskriminatif biasanya menghasilkan akurasi klasifikasi klasifikasi teks yang jauh lebih superior karena secara algoritmik "lebih malas" (lebih efisien).
+
+# Q82 (PILGAN)
+Dalam arsitektur *Dialogue Systems* (Sistem Percakapan/Chatbot), terdapat dua kategori payung besar, yakni *Task-Oriented Spoken Dialogue Systems* dan *Chit-Chat (Open-domain) Dialogue Systems*. Salah satu karakteristik utama yang HANYA dimiliki oleh sistem *Task-Oriented* murni adalah keberadaan komponen...
+
+[[A]] Generative Seq2Seq Decoder.
+[[B]] Word2Vec Embedding Layer.
+[[C]] Dialog State Tracker (DST) dan integrasi eksternal pemanggilan API *Database*.
+[[D]] Transformer Attention Mechanism.
+[[E]] Modul *Beam Search Decoding* di layer paling atas.
+
+ANSWER: C
+DISCUSSION: *Task-Oriented Dialogue Systems* dibangun untuk membantu pengguna menyelesaikan tugas spesifik (seperti memesan tiket pesawat, mereservasi hotel, menyalakan lampu rumah). Oleh karenanya, sistem *Task-Oriented* mutlak membutuhkan **Dialog State Tracking (DST)** untuk terus menghafal dan memperbarui parameter permintaan user ("Tiket ke Bali", "Tanggal 20", "Kelas Ekonomi") dari waktu ke waktu (*slots filling*). Setelah parameter dirasa penuh, sistem akan merutekan *Query* ke API/Basis Data Eksternal dunia nyata.
+TIPS_THEORY: Sebaliknya, agen *Chit-Chat* (seperti Replika atau ChatGPT murni awal) hanyalah generator auto-regresif probabilitas kata yang dirancang untuk mengobrol luwes ke sana kemari tanpa tujuan transaksional objektif yang spesifik.
+TIPS_PRACTICE: Task-Oriented = NLU $\rightarrow$ Dialog State Tracking (DST) $\rightarrow$ Dialog Policy $\rightarrow$ NLG.
+
+# Q83 (PILGAN)
+Terdapat dua representasi struktural paling dominan dalam bidang *Syntactic Parsing* di NLP komputasional: *Constituency Parsing* dan *Dependency Parsing*. Analisis hierarki yang merepresentasikan kalimat ke dalam himpunan rekursif bersarang yang dibentuk dari frasa spesifik (seperti *Noun Phrase / NP*, *Verb Phrase / VP*) dari akar hingga menjadi kata per kata di level daun, diklasifikasikan sebagai representasi...
+
+[[A]] Dependency Parsing
+[[B]] Morphological Parsing
+[[C]] Semantic Role Labeling
+[[D]] Constituency Parsing
+[[E]] Part-of-Speech Tagging
+
+ANSWER: D
+DISCUSSION: *Constituency Parsing* (sering disebut *Phrase Structure Parsing* turunan kaidah tata bahasa Chomsky) membagi untaian kalimat menjadi blok-blok konstituen yang saling menyusun struktur (*nesting*). Kalimat utuh (S) dipecah menjadi Frasa Benda (NP) dan Frasa Kerja (VP), dan dipecah terus menerus hingga berakhir pada kata mentah di ujung daun *tree*.
+TIPS_THEORY: *Dependency Parsing*, di kubu sebaliknya, tidak mengelompokkan kata menjadi frasa bersarang. Ia merajut hubungan asimetris struktural relasional secara 1-ke-1 langsung (panah biner) antar kata (misalnya kata sifat "kuning" memodifikasi kata benda "bebek").
+TIPS_PRACTICE: Jika Anda melihat *tag* NP, VP, PP di atas cabang-cabangnya, itu pasti *Constituency Parsing*.
+
+# Q84 (PILGAN)
+Di ranah perbandingan metrik evaluasi otomatis linguistik makro, dua metrik raksasa yang saling berdampingan adalah BLEU dan ROUGE. Secara konseptual heuristik, BLEU sangat ketat mementingkan aspek **(X)**, sedangkan mayoritas varian ROUGE didesain untuk menitikberatkan aspek probabilitas **(Y)**.
+
+[[A]] X = Recall, Y = Precision
+[[B]] X = F1-Score, Y = Accuracy
+[[C]] X = Precision, Y = Recall
+[[D]] X = Syntax, Y = Semantics
+[[E]] X = Generative, Y = Extractive
+
+ANSWER: C
+DISCUSSION: Filosofi perumusan formula **BLEU** menitikberatkan metrik *N-Gram Precision*. Logikanya: di tugas Terjemahan Mesin (MT), kita tidak ingin mesin mengucapkan kata halusinasi sembarangan, kita ingin mesin dipastikan benar atas "apapun yang diucapkannya" (Precision / Presisi tinggi).
+Sebaliknya, **ROUGE** didesain untuk *Summarization* (Peringkasan Teks). Ringkasan yang baik dinilai dari seberapa besar materi *keyword* di korpus asli berhasil disedot ke dalam ringkasan tanpa ada materi vital yang tertinggal (Fokus ke *Coverage* atau *Recall*).
+TIPS_THEORY: Jika terjemahan terlalu pendek, BLEU memberikan *Brevity Penalty*. Karena ROUGE fokus ke *Recall*, varian ROUGE tertentu menghukum ringkasan yang terlalu bertele-tele melampaui batas referensi kata.
+TIPS_PRACTICE: Rumusan Paten: BLEU = Fokus *Precision* (MT). ROUGE = Fokus *Recall* (Summarization).
+
+# Q85 (PILGAN)
+Metode menyelaraskan (*aligning*) dua ruang padat *Word Embeddings* dari dua bahasa yang terisolasi secara terpisah (misalnya Word2Vec bahasa Inggris dan Word2Vec bahasa Indonesia) ke dalam satu semesta laten yang sama disebut *Multilingual Word Embeddings* (seperti MUSE). Teknik paling elegan dan cepat untuk mencapai penjajaran ini tanpa membutuhkan miliaran pasangan dokumen penerjemah sejajar (parallel corpus) adalah dengan memanfaatkan...
+
+[[A]] Pembelajaran Supervised dengan jaringan *Deep Belief Networks*.
+[[B]] Pemetaan Linier Ortogonal menggunakan *Bilingual Dictionary* kecil, diselesaikan menggunakan metode aljabar matriks Procrustes.
+[[C]] *Byte-Pair Encoding* dengan ukuran vocabulary seragam di seluruh bahasa.
+[[D]] *Latent Dirichlet Allocation* silang bahasa.
+[[E]] Menyatukan kedua korpus dalam 1 file txt dan menjalankan TF-IDF gabungan.
+
+ANSWER: B
+DISCUSSION: Struktur hierarkis konsep spasial di *word embeddings* secara mengejutkan identik antar bahasa manusia (misal: jarak matematis antara kata "King" dan "Queen" di vektor Inggris bentuk transformasinya *isomorphic* / mirip secara absolut dengan jarak "Raja" dan "Ratu" di vektor Indonesia). Oleh karena itu, kita cukup menggunakan fungsi matematis regresi pemetaan Linier (sering menggunakan *Orthogonal Procrustes problem*) dari vektor titik awal ke vektor target, dipandu dengan kamus *Bilingual* mini berjumlah ribuan kata.
+TIPS_THEORY: Jika kamus pun tidak ada (*Zero-Resource / Unsupervised Alignment*), riset modern MUSE menggunakan *Generative Adversarial Networks* (GAN) di mana Generator mencoba merotasi vektor bahasa X agar mirip matriks Y, sementara Diskriminator membedakannya.
+TIPS_PRACTICE: "MUSE" = Teknik memutar / mengalihkan matriks spasial bahasa A ke ruang matriks spasial bahasa B.
+
+# Q86 (PILGAN)
+Sebuah korpus mini berisi 100 buah dokumen. Anda sedang memproses dokumen $D_{13}$ yang memuat total 50 patah kata di dalamnya. Kata "Kalkulus" muncul persis 5 kali di dalam dokumen $D_{13}$ tersebut. Apabila kata "Kalkulus" secara global muncul setidaknya satu kali di dalam 10 dokumen berbeda di korpus tersebut, berapa nilai Term Frequency (TF) dan nilai metrik Inverse Document Frequency (IDF) secara logaritma basis 10?
+
+[[A]] $TF = \frac{10}{50}, IDF = \log_{10}(\frac{100}{5})$
+[[B]] $TF = \frac{5}{50}, IDF = \log_{10}(\frac{100}{10})$
+[[C]] $TF = 5, IDF = 10$
+[[D]] $TF = \frac{5}{10}, IDF = \log_{10}(100)$
+[[E]] $TF = \frac{50}{5}, IDF = \log_{10}(\frac{10}{100})$
+
+ANSWER: B
+DISCUSSION: Pengukuran term frequency probabilitas ternormalisasi (TF) menghitung proporsi intensitas frekuensi internal kata spesifik dalam wadah dokumennya: $TF = \frac{5}{50} = 0.1$.
+*Inverse Document Frequency* (IDF) tidak peduli berapa kali kata diucap di setiap dokumen, melainkan peduli pada probabilitas global "berapa proporsi eksklusif jumlah total dokumen yang menampung kata ini": $IDF = \log_{10}\left(\frac{\text{Total Dokumen}}{\text{Total Dokumen mengandung target}}\right) = \log_{10}\left(\frac{100}{10}\right) = \log_{10}(10) = 1$.
+Maka hasil kalkulasi $TF \times IDF$ untuk kata "Kalkulus" di dokumen tersebut bernilai $0.1 \times 1 = 0.1$.
+TIPS_THEORY: Metrik $TF$ memuji kata yang sering terulang dalam satu dokumen lokal. Metrik $IDF$ menghukum kata yang muncul di mana-mana di segala ragam dokumen eksternal.
+TIPS_PRACTICE: TF = (frekuensi kata / total kata dlm doc). IDF = $\log$(Total Doc / Jumlah Doc dgn kata itu).
+
+# Q87 (PILGAN)
+Algoritma *Naive Bayes* bersandar total pada rantai operasi perkalian gabungan *likelihood* fitur ($P(w_1|C) \cdot P(w_2|C) \cdot ...$). Jika salah satu kata di dalam teks pengujian tidak pernah diobservasi oleh mesin saat tahap komputasi latih (sehingga probabilitasnya nol mutlak di kamus), seluruh hasil perkalian sistem akan rontok musnah menjadi nol ("Zero Frequency Problem"). Selain menggunakan aditif *Laplace Smoothing*, strategi komputasional apa yang mutlak direkomendasikan secara programatik aljabar agar sistem klasifikasi ini terhindar dari krisis *Numerical Underflow*?
+
+[[A]] Mengalikan seluruh matriks hasil awal dengan konstanta bernilai 1 juta.
+[[B]] Melakukan Transformasi Fourier.
+[[C]] Menjumlahkan nilai logaritma dari semua probabilitas fitur ketimbang melakukan perkalian kasar (*Log-Probabilities Addition*).
+[[D]] Membuang operasi probabilitas dan menggantinya dengan SVM 2 dimensi.
+[[E]] Membagi nilai vektor matriks dengan determinannya.
+
+ANSWER: C
+DISCUSSION: Di dalam ranah komputasi numerik (*floating point* 32-bit GPU/CPU), mengalikan rangkaian rantai desimal panjang di bawah nilai nol (misal $0.001 \times 0.00032 \times 0.0000001$) perlahan akan memicu bencana *Arithmetic Underflow* komputasional di mana CPU menyerah dan menganggap sisa desimalnya sebagai angka mutlak $0$. Formula dasar aritmatika $\log(A \times B) = \log(A) + \log(B)$ menyelamatkan mesin dengan mengubah seluruh operasi rentan *Perkalian Probabilitas* yang kerdil menjadi rentetan operasi *Penjumlahan* yang jauh lebih stabil, tahan uji, dan dihindarkan dari kebinasaan angka nol mutlak.
+TIPS_THEORY: Klasifikasi kelas Naive Bayes tetap sahih sempurna secara matematis dihitung di ranah logaritmik karena logaritma merupakan fungsi *monotonik* murni (tidak mengubah derajat peringkat perbandingan nilai asli).
+TIPS_PRACTICE: Ingat rumus praktis $P(c|d) \propto \log P(c) + \sum \log P(w_i|c)$. Selalu gunakan log-probabilitas di dunia NLP Bayes!
+
+# Q88 (PILGAN)
+Arsitektur *Generative Pre-trained Transformer* (GPT) seri original didesain khusus sebagai representasi model sintaks autoregresif (Autoregressive Language Modeling). Secara definitif mekanikal, apa yang diimplikasikan dalam istilah model memproduksi kata secara "Autoregresif"?
+
+[[A]] Model harus memusnahkan kata lama sebelum dapat merangkai prediksi kalimat baru di memori.
+[[B]] Mesin secara iteratif memprediksi satu langkah titik token masa depan di setiap perulangan siklus, lalu tebakan mutakhir mesin itu dimasukkan kembali digabung ke dalam jejak input masa lalu (*past context*) di langkah berikutnya.
+[[C]] Model menyisir input maju dan mundur bolak-balik menyamai algoritma bi-directional seutuhnya secara auto-simetris.
+[[D]] Mesin mengaktifkan penyesuaian (*fine-tuning*) bobot secara seketika (*online*) ketika fase prediksi terjadi.
+[[E]] Komputasi *Dropout* dilakukan otomatis di akhir algoritma tanpa campur tangan hiperparameter.
+
+ANSWER: B
+DISCUSSION: Sifat *Autoregresif* di *Language Modeling* (khas seperti di GPT atau RNN LM generatif) bermakna spesifik bahwa algoritma memproduksi prediksi sekuel elemen baru berdasar fungsi eksklusif himpunan observasi elemen di masa lalu dari silsilahnya sendiri. Jika di $t_1$ model menerima input "Kucing" dan meramal output "Hitam", maka pada fase perputaran iterasi komputasional ke-$t_2$ selanjutnya, kata "Hitam" hasil prediksi murninya ini diseret paksa ditempel masuk kembali sebagai bagian input sistem yang baru (menjadi input: "Kucing Hitam") demi meramal sekuel kata ketiga, begitu seterusnya.
+TIPS_THEORY: Siklus re-injeksi paksa (memakan output-nya sendiri) inilah yang menyebabkan model autoregresif rawan terkena halusinasi (snowball of errors) jika tebakan awal kalimat sudah melenceng salah fatal.
+TIPS_PRACTICE: Autoregressive = Input -> Output -> Output ditarik dijadikan Input baru.
+
+# Q89 (PILGAN)
+Terkait manipulasi korpus dengan *Byte-Pair Encoding* (BPE). Jika kita mendapati susunan kamus subword BPE dari sebuah teks latih medis telah membekukan 3 deret token subword berikut di dalam direktorinya: `["kard", "io", "logi"]`. Kemudian di fase *Inference* waktu nyata di masa depan, sistem menjumpai kata sangat langka dari bahasa jurnal Prancis "Kardiologia". Apa reaksi teknis mekanikal algoritma tokenisasi BPE?
+
+[[A]] Model mesin membuang kata dan menggantinya ke dalam token hampa `<UNK>`.
+[[B]] Model mendeteksi ejaan Prancis, lalu merutekannya ke jaringan penerjemah perantara terpisah.
+[[C]] Model memutilasi kata target tersebut menjadi unit perakitan terkecil dari kamus subword yang tersedia: `["kard", "io", "logi", "a"]`.
+[[D]] Model memotong 1 karakter sisa 'a' tanpa ampun dan menyingkirkannya.
+[[E]] Model memanggil algoritma *Levenshtein Distance* untuk mengoreksi paksa "Kardiologia" menjadi "Kardiologi".
+
+ANSWER: C
+DISCUSSION: Tujuan utama filosofis model *Subword Tokenization* seperti BPE adalah mengamputasi kelemahan statis masalah klasifikasi Out-Of-Vocabulary (OOV). Saat BPE disuap oleh susunan *string* kata alien eksotis tidak dikenal, ia akan mengeksekusi operasi penelusuran hierarkis pemecahan struktur mundur (fallback). Mesin mengekstrak penggalan unit leksikal terpanjang yang eksis di kamusnya ("kard", "io", "logi"), menyisakan sisa satu huruf "a". Berhubung BPE dalam algoritma paling dasarnya meracik unit penyusunan huruf tunggal alfabet sebagai basis murni atomik fondasional, "a" dibaca legal sebagai token terpisah.
+TIPS_THEORY: Teks "Kardiologia" dapat dimodelkan utuh secara 100% *Lossless* ke mesin tanpa menderita *Information Loss* sepotong pun.
+TIPS_PRACTICE: Sistem BPE = Mutilasi kata ke unit *string* logis paling masif yang kompatibel. OOV tidak pernah lagi diganti token `<UNK>`.
+
+# Q90 (PILGAN)
+Di ranah pengujian komprehensif *Benchmark* untuk *Question Answering* sistem standar kriteria (misal dataset SQuAD), metrik evaluasi absolut dikomputasi menggunakan dua pilar: metrik F1-score sintaks per token dan...
+
+[[A]] Cosine Similarity (CS)
+[[B]] Jaccard Evaluation Ratio
+[[C]] Exact Match (EM)
+[[D]] Binary Relevance Match
+[[E]] Latent Semantic Tolerance (LST)
+
+ANSWER: C
+DISCUSSION: Standar evaluasi internasional sistem *Reading Comprehension / QA* dinilai dari sepasang indeks performa: **Exact Match (EM)** dan skor F1. Metrik EM merupakan penilaian algoritma puritan biner kejam: Prediksi jawaban dari jaringan mesin Neural wajib mencocokkan sinkronisitas absolut huruf-per-huruf terhadap teks referensi *Ground Truth* penyusun manusia murni tanpa meleset 1 token pun untuk memenangkan skor poin 1. Jika kurang satu kata (misal rujukan manusia "Sungai Kapuas", tebakan mesin "di Sungai Kapuas"), skor EM anjlok menjadi nol mutlak karena tak setara persis sempurna.
+TIPS_THEORY: Itulah sebabnya skor F1 selalu mendampingi EM. F1 menilai sistem *Overlapping* kemiripan kata di level parsial fleksibel sehingga mesin yang menebak "di Sungai Kapuas" masih dihargai secara logis parsial.
+TIPS_PRACTICE: SQuAD Metrics = Exact Match (Benar Persis 100%) dan F1-Score (Benar Proporsional).
+
+# Q91 (PILGAN)
+Algoritma "Hobbs' Tree Search Algorithm" merupakan representasi aturan *Syntax-Based Heuristic Rule* pionir (era 1970-an) yang hingga kini diajarkan di kelas perkenalan ilmu...
+
+[[A]] Pengurutan Dokumen Leksikal Berbasis Trie
+[[B]] Viterbi Transducer Optimisasi
+[[C]] Part-Of-Speech Tree-Tagger
+[[D]] Coreference Resolution (Pronomina Rujukan)
+[[E]] Algoritma Rujukan Sentiment Negasi
+
+ANSWER: D
+DISCUSSION: Algoritma Hobbs (1978) adalah prosedur penelusuran algoritma statis pencarian pohon murni (*parse tree*) legendaris dari cabang lingusitik mekanik guna memecahkan tugas **Coreference Resolution** (mencari induk nominatif asal usul kata ganti). Ia beroperasi menelusuri penataan cabang-cabang konstituen pohon Parsing secara *Left-to-Right*, *Breadth-First* dari lokasi Noun Phrase asal pronomina (misal "He/She"), lalu menjalar melacak hierarki mundur menuju puncak akar demi mengidentifikasi target entitas nominatif berjenjang paling tepat.
+TIPS_THEORY: Karena tak memakai parameter memori komputasional (*learning parameters*), performanya terbatas mutlak oleh kebenaran struktur validasi pohon sintaks awal *Tree Parser*-nya.
+TIPS_PRACTICE: Di zaman Deep Learning, Hobbs Algorithm tetap populer dijadikan komponen pemicu penambah porsi probabilitas rujukan arsitektur *Neural Coreference*.
+
+# Q92 (PILGAN)
+Dilema mendasar di cabang ilmu linguistik komputer sering berkaitan dengan konsep *Polysemy* dan *Homonymy*. Apa pembedaan linguistik klasik kedua taksonomi tersebut ketika diterapkan dalam masalah pendeteksian dis-ambiguasi NLP?
+
+[[A]] *Polysemy* artinya satu kalimat punya multi kata kerja. *Homonymy* artinya kalimat tidak ada tata bahasanya.
+[[B]] Pada *Polysemy*, sebuah wujud kata bersumber dari silsilah kata yang persis sama namun mekar mengeksplorasi cabang-cabang makna kerabat berkaitan (seperti "mulut botol" dan "mulut gua"). Di *Homonymy*, dua makna bertolak belakang kebetulan hanya berbagi untaian ortografi huruf kebetulan identik yang terpisah riwayat tak ada sangkut-pautnya (contoh: "bisa" mampu dan "bisa" ular).
+[[C]] *Polysemy* adalah kebalikan dari asimilasi morfologi, *Homonymy* adalah ejaan fonetik fonologis tak bersuara vokal.
+[[D]] Mesin hanya mampu men-klasifikasikan *Homonymy* karena polanya berbasis TF-IDF.
+[[E]] Keduanya merupakan sinonim murni absolut dari istilah *Synonymy* secara universal.
+
+ANSWER: B
+DISCUSSION: Diferensiasi fundamental ini adalah pilar teori fondasi penyusunan kamus WordNet dan taksonomi *Word Sense Disambiguation* (WSD). **Polisemi (Polysemy)** menggambarkan makna yang meluas bercabang (*sense extension*) dan bertransformasi fungsi majemuk figuratif namun secara sejarah (*etymology*) terhubung masuk akal ("kaki meja" terinspirasi "kaki manusia"). **Homonim (Homonymy)** hanyalah wujud penipuan statistik murni komputasi di mana silsilah bahasa berbeda tergabung ke dalam kebetulan bentuk susunan huruf (*spelling*) berstatus kebetulan yang sama kembar.
+TIPS_THEORY: Sistem WSD tradisional amat rentan merusak kalkulasi saat berjumpa kata *Homonym*, inilah alasannya mesin mutlak butuh analisis konteks parameter jendela kata yang lebar di NLP modern.
+TIPS_PRACTICE: Hati-hati menukar kedua ini di kacamata vektor. Bagi mesin Word2Vec, Keduanya memporak-porandakan kemurnian ruang embedding tanpa pandang bulu.
+
+# Q93 (PILGAN)
+Dalam komputasi fungsional jaringan *Neural Network Word2Vec* spesifikasi arsitektur murni *Skip-gram*, tujuan absolut rumusan objektif matematis pelatihan algoritma difokuskan pada operasi maksimalisasi dari probabilitas...
+
+[[A]] Terbentuknya seluruh deretan paragraf secara presisi linear struktural.
+[[B]] Tingkat kesalahan ejaan dari korpus Wikipedia.
+[[C]] *Co-occurrence* (kemunculan berdampingan) simultan antara pusat matriks kata jangkar (center word) menebak probabilitas memanggil kehadiran seluruh jajaran susunan kata target konteks penyerta di sisi radius kanvas/window batas *t* secara spasial laten.
+[[D]] Mengkompresi ukuran *vocabulary* dari korpus asal.
+[[E]] Mendekomposisi matriks ukuran masif $V \times V$ menjadi *Singular Values*.
+
+ANSWER: C
+DISCUSSION: Mesin model Skip-Gram beroperasi berlawanan arus berbalik arah dari CBOW, ia mengisolasi paksa probabilitas parameter $P(\text{Context\_Words} | \text{Center\_Word})$ secara simultan ke seluruh barisan token yang ditangkap jaring di radius sekitar parameter *Window Size*-nya (misal jangkauan $m$ kata kiri dan $m$ kata kanan). Objektif komputasional akhirnya tak lain adalah *memaksimalkan probabilitas* kombinasi pasangan-pasangan leksikal fiktif ini yang ada di data *training* dunia nyata (*likelihood maximization* via gradient ascent / gradient descent murni untuk meminimalkan loss kebalikannya).
+TIPS_THEORY: Formula objektifnya: $J(\theta) = - \frac{1}{T} \sum_{t=1}^T \sum_{-m \le j \le m, j \ne 0} \log P(w_{t+j} | w_t)$.
+TIPS_PRACTICE: Skip-gram: $1$ Kata ditengah melempar jaring prediksi meramal kemunculan berderet $2m$ Konteks di sisinya.
+
+# Q94 (PILGAN)
+Kompilasi pra-pemrosesan standardisasi korpus mentah NLP melibatkan fasa *Text Normalization*. Operasi mutlak manakah yang tergolong dalam *Normalization* dasar yang sering dilakukan untuk menghomogenisasi keragaman entitas murni komputasi?
+
+[[A]] Deteksi pola Regex ekstrak alamat IP, Unicode Encoding konversi karakter ganjil tak terlihat (seperti "\xa0"), serta eksekusi standardisasi *Lowercasing*.
+[[B]] Mengaktifkan algoritma regresi linier murni ke dimensi matriks.
+[[C]] Evaluasi panjang maksimal karakter sebelum masuk memori GPU (Out of memory prevention).
+[[D]] Proses membelah spasi dengan subword BPE.
+[[E]] Mentransformasikan parameter aktivasi ke layer distribusi Sigmoid di nilai $0-1$.
+
+ANSWER: A
+DISCUSSION: Istilah *Text Normalization* menyangkut semua rutinitas "kerja kasar pembersih sanitasi leksikal" yang wajib meratakan/menyelaraskan teks masuk mentah (*dirty data*) sebelum mendarat ke parameter tokenisasi statistik matematis yang canggih. Konversi pelik alfabet ke kapital terstruktur atau pemaafan murni kapital (*Lowercasing*), pembasmian karakter unik aneh Unicode *invisible spaces* menjadi standar ASCII regular whitespace, hingga pengelompokan ekspresi rutin Regex URL (`http://...`) yang mengganti tautan menjadi penanda tunggal `[URL]` merupakan taksonomi mutlak dari *Normalisasi Teks*.
+TIPS_THEORY: Mengabaikan proses Normalisasi dapat membuat komputer mengekstradisi memori fitur terpisah untuk "Makan", "makan", dan "makan " padahal muatan dimensi semantiknya sama 100%.
+TIPS_PRACTICE: Raw Text $\rightarrow$ Normalization (Sanitizing/Regex/Case) $\rightarrow$ Tokenization $\rightarrow$ Model Input.
+
+# Q95 (PILGAN)
+Model pendeteksian identitas linguistik bahasa dari deret susunan kata asing rahasia atau lazim dipanggil mesin *Language Identification* (contoh: mendeteksi dokumen tersebut berbahasa Spanyol, Indonesia, atau Korea), mendasari kalkulasinya secara masif probabilistik melalui algoritma tradisional yang sangat diandalkan sebelum Neural Networks, yaitu...
+
+[[A]] Part-of-Speech Tagging
+[[B]] Fast-Text Hierarchical Analysis
+[[C]] N-gram Character Models
+[[D]] Dependency Parse Graph
+[[E]] BERT Translation Output
+
+ANSWER: C
+DISCUSSION: Menyelaraskan probabilitas jenis leksikal antar bahasa raksasa amat krusial dan secara fungsional sistem identifikasi deteksi bahasa komersial terkuat yang dieksekusi secara super efisien dibangun berdasarkan **Character N-gram Profile Modeling** (Cavnar & Trenkle, 1994). Model memecah seluruh dokumen asing mentah ke deretan n-gram per susunan alfabet dasar (contoh panjang huruf trigram 3, e.g. "`_es`", "`est`", "`sta`"). Frekuensi jejak tanda tangan statistik sub-alfabet inilah yang dicocokkan terhadap profil data sidik jari trigram masing-masing bahasa target rujukan tanpa harus mesin mengerti sintaksis grammar bahasa tersebut sama sekali.
+TIPS_THEORY: Di setiap bahasa unik di dunia, distribusi huruf tertentu dan penggalan suku kata (seperti probabilitas kehadiran huruf `-tion` di Inggris atau `-ing`) membawa profil kurva kemiringan Zipfian yang identik per bahasanya.
+TIPS_PRACTICE: Analisis Language ID jarang butuh *Word* (Kata utuh). Cukup hitung probabilitas kombinasi deret 3-5 alfabet murni.
+
+# Q96 (PILGAN)
+Di fasa penghujung arsitektur Transformer seksi Decoder *Language Model* standar (menghasilkan *output text*), hasil konversi akhir nilai laten parameter *context embedding array* dari blok pamungkas mesti digabungkan dan diproyeksikan menggunakan operasi...
+
+[[A]] Layer Matriks Konvolusi CNN diikuti aktivasi ReLU.
+[[B]] Layer Transformasi Matriks *Linear Projection* disusul oleh penghitungan *Softmax Distribution* berdimensi lebar setara jumlah elemen *Vocabulary Size*.
+[[C]] Evaluasi SVM untuk mengklasifikasi sentimen terakhir.
+[[D]] Evaluasi *Reinforcement Learning Reward Metric*.
+[[E]] Perkalian *Dot-Product* ke sesama sisa matriks Q,K,V memori masa lalunya.
+
+ANSWER: B
+DISCUSSION: Di tahapan puncak pemuntahan kognitif sistem arsitektur prediksi bahasa dari Decoder Transformer (kalkulasi *Head Language Model Output*), lapisan teratas mengeluarkan serangkaian Vektor Fitur Representasi Padat kontinu. Deret angka ajaib laten ini sama sekali bukan bahasa literal linguistik. Karena itu, model mewajibkan integrasi proyektor filter layar **Linear layer** yang berfungsi melipatgandakan/merentangkan ruang matriks kembali dari ukuran dimensi laten mungil ($d_{model}$) menjadi bentangan raksasa probabilitas selebar jumlah kamus perbendaharaan *Vocabulary* bahasa (misal 50.000 vektor sumbu). Array angka raksasa ini lalu disuapkan ke filter fungsi **Softmax** untuk menjustifikasi 1 indeks pemenang probabilitas tertingginya.
+TIPS_THEORY: Elemen logit raksasa yang masuk *Softmax layer* tersebut tidak memuat huruf; ia direpresentasikan oleh angka murni. Label *Index String* pemenang (indeks nilai terbesar / argmax) dari barisan itu barulah di-decode/dicocokkan menyilang ke indeks kamus aslinya.
+TIPS_PRACTICE: Decoder akhir = Projection Layer (Dense/Linear ke dimensi Vocabulary) + Softmax (menghasilkan 1 token tebakan probabilitas murni).
+
+# Q97 (PILGAN)
+Ledakan terobosan pergeseran paradigma metode NLP era *Deep Learning* diawali oleh eksistensi adopsi parameter algoritma ganda di model korpus *Transfer Learning* (misal: ELMo, ULMFiT, dan utamanya BERT), dimana siklus hidup implementasi aplikasinya mutlak terpecah secara fasa ke dalam dua kutub terminologi...
+
+[[A]] Forward Pass dan Backward Pass.
+[[B]] Encoding dan Decoding.
+[[C]] Pre-Training dan Fine-Tuning.
+[[D]] Corpus Scraping dan Text Generation.
+[[E]] Zero-Shot dan Few-Shot.
+
+ANSWER: C
+DISCUSSION: Mesin NLP raksasa *Deep Learning Transfer Learning* era revolusioner mengkristalkan fasa dikotomi abadi. (1) **Pre-training:** Mesin rakus dibiarkan menghabiskan jutaan dolar GPU untuk menelan miliaran parameter triliunan kalimat mentah di Wikipedia/BookCorpus tanpa diawasi label manusia secara generik liar (Unsupervised/Self-Supervised MLM objektif) murni untuk menyerap esensi intuisi koherensi "tata bahasa". (2) **Fine-Tuning:** Hasil lelehan neuron model mesin komprehensif jenius yang sudah tamat sekolah tadi lalu disempurnakan pelatihannya pada ranah yang jauh lebih dangkal memakai dataset spesifik mungil di ranah label supervisi domain terbatas (Supervised Learning untuk Deteksi Spam/Sentiment analisis, dll).
+TIPS_THEORY: Anda tidak melatih arsitektur BERT dari titik parameter matriks nol absolut murni. Mesin BERT telah pra-latih (*Pre-Trained*) dan Anda sekadar menyempurnakan orientasinya (*Fine-Tune*).
+TIPS_PRACTICE: Transfer Learning = Pre-Train (miliaran data tak berlabel) + Fine-Tune (ribuan data berlabel spesifik).
+
+# Q98 (PILGAN)
+Perangkat fungsional relasional tak-berstruktur (*Knowledge Graph / KG*) memetakan hubungan entitas trinitas komprehensif *(Kepala, Relasi, Ekor)* menjadi himpunan vektor di sebuah ruang metrik berkelanjutan berdimensi rendah. Algoritma pionir paling representasional dan sederhana yang merumuskan persamaan matematika intuitif $\text{Kepala} + \text{Relasi} \approx \text{Ekor}$ ($h + r \approx t$) di ruang metrik vektor *Knowledge Graph Embedding* disebut...
+
+[[A]] ResNet
+[[B]] Word2Vec
+[[C]] TransE
+[[D]] Latent Semantic Analysis (LSA)
+[[E]] Singular Value Decomposition
+
+ANSWER: C
+DISCUSSION: *TransE* (Translating Embeddings for Modeling Multi-relational Data - Bordes dkk, 2013) mengubah paradigma ekstraksi penalaran mesin pangkalan relasional *Knowledge Graph*. Algoritma ini memvisualisasikan kaitan relasional secara harfiah merujuk translasi pemindahan arah geometri vektor dalam ruang metrik fitur laten. Logikanya: Vektor lokasi identitas awal entitas ("Rome") jika ditambah melangkah maju mengikuti vektor *Relation* ("is-capital-of") akan mendarat di koordinat geometri presisi ujung berhimpit pada vektor identitas entitas Ekor target ("Italy"). Jika digeser, jarak L1/L2 nol mutlak: $h + r \approx t$.
+TIPS_THEORY: TransE sangat digemari peneliti dan direplikasi karena kejelitaan elegan fungsinya dan kalkulasinya amat efisien dibanding dekomposisi matriks klasik.
+TIPS_PRACTICE: $h + r \approx t$ adalah sidik jari mutlak dari TransE (Translation Embedding).
+
+# Q99 (PILGAN)
+Apabila mengevaluasi performa fungsional komputasi NLP di sebuah pangkalan data dengan kategori imbalan ekstrem (contoh: Deteksi Penyakit Langka, 99% data wajar sehat & 1% positif murni). Model AI sintetik yang cacat secara logikal bisa saja memvonis buta "SEHAT SEMUA 100%" lalu memanen nilai Metrik akurasi tinggi meroket ke persentase fantastis 99%. Anomali probabilitas ilusi kesesatan ini dikenal tajam dengan terminologi klasifikasi metrik...
+
+[[A]] Accuracy Paradox
+[[B]] Precision Underflow
+[[C]] Recall Divergence
+[[D]] The Curse of Dimensionality
+[[E]] Gradient Explosion Syndrome
+
+ANSWER: A
+DISCUSSION: Fenomena *Accuracy Paradox* muncul di mana-mana sebagai hantu statistika di ranah klasifikasi distribusi *Imbalanced Dataset*. Algoritma pemburu rasio perbandingan Akurasi (Total Prediksi Benar dibagi Total Seluruh Sampel murni) di ranah target minoritas rentan menyimpulkan performa brilian palsu meskipun sistem sesungguhnya lumpuh membedakan anomali, murni akibat model mengeksploitasi keputusannya menebak buta selalu menempel kelas mayoritas mutlak dominan konstan ("Dummy Classifier").
+TIPS_THEORY: Di sinilah F1-Score dan kurva presisi murni Area Under the Precision-Recall Curve (AUPRC) mengambil alih kursi validasi evaluasi akurasi klasik demi menimbang distribusi bias algoritma di ranah asimetris.
+TIPS_PRACTICE: Akurasi = Tidak bisa diandalkan pada dataset minoritas.
+
+# Q100 (PILGAN)
+Di penghujung fondasi epistemologis kecerdasan buatan, visi suci historikal pendorong evolusi algoritma simulasi percakapan NLP (mulai dari ELIZA 1960an hingga era LLM ChatGPT) adalah mengarsiteki mesin yang kapabilitas sintaks pragmatiknya tak dapat lagi dibedakan dari pikiran operasional manusia manakala dihakimi via bilik percakapan obrolan buta eksternal oleh pakar interogator logis. Tes esensial imajinatif legendaris peninggalan bapak komputasi Inggris berjuluk luhur ini adalah...
+
+[[A]] The Turing Test
+[[B]] Moore's Law Paradigm
+[[C]] Chomsky Grammar Hierarchy Evaluator
+[[D]] Boolean Satisfiability Theory
+[[E]] Church-Turing Thesis
+
+ANSWER: A
+DISCUSSION: Jauh sebelum ranah komputasi silikon era Neural Network, di jurnal akademis *Computing Machinery and Intelligence* (1950), Alan Turing merumuskan konsep *The Imitation Game* (kini dinamai kekal **The Turing Test**). Paradigma uji coba behavioralis empiris yang pragmatis ini menihilkan kebutuhan medefinisikan "Apa itu kecerdasan sadar murni?" dan sekadar melombakan kemampuan mesin untuk melakoni trik muslihat probabilitas sintaks percakapan alami melalui interaksi bahasa murni (Natural Language Processing terminal) agar sukses mengecoh akal waras evaluator manusiawi tulen. Keberhasilan murni ini menandakan kemenangan NLP mencapai *Artificial General Intelligence* sejati di kacamata komunikasi antarmuka simulasi sintaksis.
+TIPS_THEORY: Turing test tidak membutuhkan mesin memiliki tubuh robot (visi atau motorik fisik eksternal), fasa kelulusan ini hanya mengandalkan simulasi komputasional di kanvas transmisi perantara media perbendaharaan Bahasa Alami Teks Murni semata.
+TIPS_PRACTICE: Turing Test = Ujian kelulusan tertinggi NLP yang pernah diciptakan secara filosofis.
+```
