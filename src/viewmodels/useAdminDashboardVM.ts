@@ -5,47 +5,7 @@ import { supabase } from '@/lib/supabase';
 import type { TestRow, StudentRow } from '@/lib/types';
 import { useDebounce } from '@/hooks/useDebounce';
 
-export const SAMPLE_MARKDOWN = `# Q1 (PILGAN)
-Jika $f(x) = 2x^2 + 3x - 5$, maka nilai $f(2)$ adalah...
-
-[[A]] 5
-[[B]] 9
-[[C]] 7
-[[D]] 11
-[[E]] 13
-
-ANSWER: B
-DISCUSSION: Substitusi $x=2$ ke $f(x)$:
-$$f(2) = 2(4) + 3(2) - 5 = 8 + 6 - 5 = 9$$
-
-# Q2 (PILGAN)
-Perhatikan diagram penjualan berikut:
-
-[CHART:BAR] {"labels":["Jan","Feb","Mar","Apr"],"data":[120,200,150,300]} [/CHART]
-
-Bulan dengan penjualan tertinggi adalah...
-
-[[A]] Januari
-[[B]] Februari
-[[C]] Maret
-[[D]] April
-[[E]] Mei
-
-ANSWER: D
-DISCUSSION: Dari diagram batang, April memiliki nilai penjualan tertinggi yaitu 300.
-
-# Q3 (ESSAY)
-Tuliskan contoh object JSON dasar.
-
-ANSWER: ESSAY
-DISCUSSION: 
-\`\`\`json
-{
-  "key": "value",
-  "number": 42
-}
-\`\`\`
-`;
+export const SAMPLE_MARKDOWN = ``;
 
 function getTodayRange() {
   const now = new Date();

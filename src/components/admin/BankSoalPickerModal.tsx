@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { LabelSelector } from '@/components/exam/LabelSelector';
 import { Label } from '@/components/ui/label';
-import { Search, Database, CheckCircle2, X, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Search, Database, CheckCircle2, X, ChevronLeft, ChevronRight, Filter, Shuffle } from 'lucide-react';
 import type { QuestionRow } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
 
 interface BankSoalPickerModalProps {
   onClose: () => void;
@@ -28,6 +29,48 @@ export function BankSoalPickerModal({ onClose, onAddSelected }: BankSoalPickerMo
   } = useBankSoalVM();
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [randomCount, setRandomCount] = useState<string>('10');
+  const [isRandomizing, setIsRandomizing] = useState(false);
+
+  const handleRandomInject = async () => {
+    const count = parseInt(randomCount);
+    if (isNaN(count) || count <= 0) return alert('Jumlah soal tidak valid.');
+    
+    setIsRandomizing(true);
+    let query = supabase.from('questions').select('*');
+
+    if (searchTerm.trim()) {
+      query = query.ilike('body', `%${searchTerm.trim()}%`);
+    }
+    if (filterLabels.difficulty.length > 0) {
+      query = query.contains('labels', { difficulty: filterLabels.difficulty });
+    }
+    if (filterLabels.ageRange.length > 0) {
+      query = query.contains('labels', { ageRange: filterLabels.ageRange });
+    }
+    if (filterLabels.subject.length > 0) {
+      query = query.contains('labels', { subject: filterLabels.subject });
+    }
+    if (filterDate) {
+      const startOfDay = new Date(`${filterDate}T00:00:00`).toISOString();
+      const endOfDay = new Date(`${filterDate}T23:59:59.999`).toISOString();
+      query = query.gte('created_at', startOfDay).lte('created_at', endOfDay);
+    }
+
+    const { data, error } = await query;
+    setIsRandomizing(false);
+    
+    if (error) {
+      return alert('Gagal menarik data untuk acak: ' + error.message);
+    }
+    if (!data || data.length === 0) {
+      return alert('Tidak ada soal yang cocok dengan filter aktif saat ini.');
+    }
+
+    const shuffled = [...data].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, count);
+    onAddSelected(selected);
+  };
 
   const extractText = (bodyStr: string) => {
     try {
@@ -88,13 +131,31 @@ export function BankSoalPickerModal({ onClose, onAddSelected }: BankSoalPickerMo
               )}
             </Button>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto items-center border-l pl-4 border-border/50">
+            <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-xl border border-border/50">
+              <Input 
+                type="number" 
+                value={randomCount} 
+                onChange={(e) => setRandomCount(e.target.value)} 
+                className="w-16 h-8 text-center font-bold bg-background"
+                title="Jumlah soal yang ingin diacak"
+              />
+              <Button 
+                onClick={handleRandomInject} 
+                disabled={isRandomizing || totalQuestions === 0} 
+                variant="secondary"
+                className="h-8 px-4 font-bold text-xs gap-1.5"
+              >
+                <Shuffle className={`w-3.5 h-3.5 ${isRandomizing ? 'animate-spin' : ''}`} /> 
+                {isRandomizing ? 'Mengacak...' : 'Auto-Acak'}
+              </Button>
+            </div>
             <Button 
               onClick={handleAdd} 
               disabled={selectedIds.length === 0} 
-              className="w-full sm:w-auto h-10 px-8 font-black rounded-xl shadow-lg hover:shadow-xl transition-all bg-primary hover:bg-primary/90 gap-2"
+              className="w-full sm:w-auto h-10 px-6 font-black rounded-xl shadow-lg hover:shadow-xl transition-all bg-primary hover:bg-primary/90 gap-2 ml-2"
             >
-              <CheckCircle2 className="w-4 h-4" /> Tambahkan ({selectedIds.length}) Soal
+              <CheckCircle2 className="w-4 h-4" /> Masukkan ({selectedIds.length})
             </Button>
           </div>
         </div>
