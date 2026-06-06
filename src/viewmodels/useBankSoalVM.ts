@@ -12,7 +12,7 @@ export function useBankSoalVM() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalQuestions, setTotalQuestions] = useState(0);
-  const ITEMS_PER_PAGE = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Filtering (Server-Side)
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,8 +33,8 @@ export function useBankSoalVM() {
 
   const loadQuestions = useCallback(async (page: number = 1) => {
     setLoading(true);
-    const from = (page - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
+    const from = (page - 1) * itemsPerPage;
+    const to = from + itemsPerPage - 1;
 
     let query = supabase
       .from('questions')
@@ -71,10 +71,10 @@ export function useBankSoalVM() {
 
   useEffect(() => {
     loadQuestions(1);
-  }, [loadQuestions, searchTerm, filterLabels]);
+  }, [loadQuestions, searchTerm, filterLabels, itemsPerPage]);
 
   const handleNextPage = () => {
-    if (currentPage * ITEMS_PER_PAGE < totalQuestions) loadQuestions(currentPage + 1);
+    if (currentPage * itemsPerPage < totalQuestions) loadQuestions(currentPage + 1);
   };
 
   const handlePrevPage = () => {
@@ -194,7 +194,7 @@ export function useBankSoalVM() {
     questionsList,
     loading,
     errorMsg, setErrorMsg,
-    currentPage, totalQuestions, ITEMS_PER_PAGE,
+    currentPage, totalQuestions, itemsPerPage, setItemsPerPage,
     handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
     filterLabels, setFilterLabels,

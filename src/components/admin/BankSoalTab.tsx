@@ -14,7 +14,7 @@ export function BankSoalTab() {
     questionsList,
     loading,
     errorMsg, setErrorMsg,
-    currentPage, totalQuestions, ITEMS_PER_PAGE,
+    currentPage, totalQuestions, itemsPerPage, setItemsPerPage,
     handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
     filterLabels, setFilterLabels,
@@ -31,6 +31,16 @@ export function BankSoalTab() {
 
   const [bulkLabels, setBulkLabels] = useState({ difficulty: [], ageRange: [], subject: [] });
   const [activeImportLabels, setActiveImportLabels] = useState({ difficulty: [], ageRange: [], subject: [] });
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+
+  const removeFilterLabel = (category: string, value: string) => {
+    setFilterLabels((prev: any) => ({
+      ...prev,
+      [category]: prev[category].filter((v: string) => v !== value)
+    }));
+  };
 
   const extractText = (bodyStr: string) => {
     try {
@@ -102,13 +112,13 @@ export function BankSoalTab() {
                <div className="text-center p-8 text-muted-foreground">Tidak ada soal yang ditemukan.</div>
             ) : (
               questionsList.map((q, idx) => (
-                <div key={q.id} className={`flex gap-4 p-4 border rounded-lg transition-all ${selectedIds.includes(q.id) ? 'bg-primary/5 border-primary/40 shadow-sm' : 'hover:bg-muted/30'}`}>
-                  <div className="pt-1">
+                <div key={q.id} className={`flex gap-3 p-3 border rounded-lg transition-all ${selectedIds.includes(q.id) ? 'bg-primary/5 border-primary/40 shadow-sm' : 'hover:bg-muted/30'}`}>
+                  <div className="pt-0.5">
                     <input 
                       type="checkbox" 
                       checked={selectedIds.includes(q.id)} 
                       onChange={() => toggleSelection(q.id)} 
-                      className="w-5 h-5 accent-primary cursor-pointer"
+                      className="w-4 h-4 accent-primary cursor-pointer"
                     />
                   </div>
                   <div className="flex-1 overflow-hidden">
@@ -120,7 +130,7 @@ export function BankSoalTab() {
                         ))
                       )}
                     </div>
-                    <div className="text-sm font-serif text-muted-foreground bg-muted/10 p-3 rounded-md border border-dashed">
+                    <div className="text-xs font-serif text-muted-foreground bg-muted/10 p-2 rounded-md border border-dashed line-clamp-2">
                       {extractText(q.body)}
                     </div>
                   </div>
@@ -128,13 +138,27 @@ export function BankSoalTab() {
               ))
             )}
           </div>
-          <div className="p-4 border-t bg-muted/20 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              Hal {currentPage} (Total {totalQuestions} soal terfilter)
-            </span>
+          <div className="p-4 border-t bg-muted/20 flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Hal {currentPage} (Total {totalQuestions} soal)</span>
+              <span className="text-muted/50">|</span>
+              <label className="flex items-center gap-1">
+                Tampilkan
+                <select 
+                  className="bg-background border rounded px-1 py-0.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                >
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={200}>200</option>
+                </select>
+              </label>
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4 mr-1"/> Prev</Button>
-              <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage * ITEMS_PER_PAGE >= totalQuestions}>Next <ChevronRight className="w-4 h-4 ml-1"/></Button>
+              <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage * itemsPerPage >= totalQuestions}>Next <ChevronRight className="w-4 h-4 ml-1"/></Button>
             </div>
           </div>
         </div>
@@ -147,43 +171,102 @@ export function BankSoalTab() {
             <h3 className="font-bold flex items-center gap-2 mb-4"><BarChart className="w-5 h-5 text-primary"/> Statistik Kueri</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-muted/20 p-4 rounded-lg border text-center">
-                <span className="block text-2xl font-black text-primary">{totalQuestions}</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total Terfilter</span>
+                <span className="block text-3xl font-black text-primary">{totalQuestions}</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1 block">Total Terfilter</span>
               </div>
-              <div className="bg-muted/20 p-4 rounded-lg border text-center">
-                <span className="block text-2xl font-black text-primary">{selectedIds.length}</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Soal Dipilih</span>
+              <div className="bg-primary/5 border-primary/20 p-4 rounded-lg border text-center">
+                <span className="block text-3xl font-black text-primary">{selectedIds.length}</span>
+                <span className="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1 block">Soal Dipilih</span>
               </div>
             </div>
           </div>
 
           {/* FILTER DATABASE */}
-          <div className="bg-card border rounded-xl p-5 shadow-sm flex-1 overflow-hidden flex flex-col">
-            <h3 className="font-bold flex items-center gap-2 mb-4"><Filter className="w-5 h-5 text-primary"/> Filter Taksonomi</h3>
-            <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-lg p-3 bg-background">
-              <LabelSelector selectedLabels={filterLabels as any} onChange={setFilterLabels as any} />
+          <div className="bg-card border rounded-xl p-5 shadow-sm flex flex-col gap-3">
+            <h3 className="font-bold flex items-center gap-2"><Filter className="w-5 h-5 text-primary"/> Filter Taksonomi</h3>
+            <Button variant="outline" className="w-full justify-between" onClick={() => setFilterModalOpen(true)}>
+              <span>⚙️ Atur Filter Taksonomi</span>
+              <ChevronRight className="w-4 h-4 opacity-50"/>
+            </Button>
+            
+            {/* Active Pills */}
+            <div className="flex flex-wrap gap-1 mt-2">
+              {Object.entries(filterLabels).flatMap(([cat, vals]) => 
+                (vals as string[]).map(val => (
+                  <Badge key={`${cat}-${val}`} variant="secondary" className="flex items-center gap-1 text-[10px] pr-1 border-primary/20 bg-primary/5 text-primary">
+                    <span className="capitalize">{val}</span>
+                    <button onClick={() => removeFilterLabel(cat, val)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-3 h-3"/></button>
+                  </Badge>
+                ))
+              )}
+              {Object.values(filterLabels).every(arr => arr.length === 0) && (
+                <span className="text-xs text-muted-foreground italic">Belum ada filter aktif.</span>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground mt-3 text-center">Filter di atas membatasi hasil pencarian di database secara langsung.</p>
           </div>
 
           {/* BULK ACTION */}
-          <div className="bg-card border-2 border-primary/20 rounded-xl p-5 shadow-sm">
-            <h3 className="font-bold flex items-center gap-2 mb-3"><ShoppingCart className="w-5 h-5 text-primary"/> Bulk Labeling</h3>
-            <div className="space-y-3">
-              <div className="bg-background border rounded-lg p-3 max-h-40 overflow-y-auto custom-scrollbar">
-                <LabelSelector selectedLabels={bulkLabels as any} onChange={setBulkLabels as any} />
-              </div>
+          <div className="bg-card border rounded-xl p-5 shadow-sm flex flex-col gap-3">
+            <h3 className="font-bold flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary"/> Bulk Labeling</h3>
+            <Button 
+              className="w-full font-bold shadow-md shadow-primary/20 flex items-center justify-between" 
+              disabled={selectedIds.length === 0}
+              onClick={() => setBulkModalOpen(true)}
+            >
+              <span>🏷️ Injeksi Label Massal</span>
+              <Badge variant="secondary" className="bg-white/20 text-white">{selectedIds.length} terpilih</Badge>
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center">Menambahkan label ke seluruh soal yang Anda centang sekaligus.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* FILTER MODAL */}
+      {filterModalOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 border-b bg-muted/20">
+              <h3 className="font-bold flex items-center gap-2"><Filter className="w-4 h-4 text-primary"/> Atur Filter Database</h3>
+              <Button variant="ghost" size="icon" onClick={() => setFilterModalOpen(false)}><X className="w-4 h-4"/></Button>
+            </div>
+            <div className="p-4 bg-background max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <LabelSelector selectedLabels={filterLabels as any} onChange={setFilterLabels as any} />
+            </div>
+            <div className="p-4 border-t bg-muted/10 flex justify-end">
+              <Button onClick={() => setFilterModalOpen(false)} className="font-bold px-8">Terapkan Filter</Button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* BULK ACTION MODAL */}
+      {bulkModalOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border border-primary/30 shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 border-b bg-primary/5">
+              <h3 className="font-bold flex items-center gap-2 text-primary"><ShoppingCart className="w-4 h-4"/> Injeksi Label Massal</h3>
+              <Button variant="ghost" size="icon" onClick={() => setBulkModalOpen(false)}><X className="w-4 h-4"/></Button>
+            </div>
+            <div className="p-4 bg-background max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <p className="text-sm font-medium mb-4 text-muted-foreground text-center">Pilih label yang ingin disuntikkan ke <strong className="text-primary">{selectedIds.length} soal</strong>.</p>
+              <LabelSelector selectedLabels={bulkLabels as any} onChange={setBulkLabels as any} />
+            </div>
+            <div className="p-4 border-t bg-muted/10 flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setBulkModalOpen(false)}>Batal</Button>
               <Button 
-                className="w-full font-bold shadow-md shadow-primary/20" 
-                disabled={loading || selectedIds.length === 0 || (bulkLabels.difficulty.length === 0 && bulkLabels.subject.length === 0 && bulkLabels.ageRange.length === 0)}
-                onClick={() => handleBulkApplyLabels(bulkLabels as any)}
+                className="font-bold px-8 shadow-md"
+                disabled={loading || (bulkLabels.difficulty.length === 0 && bulkLabels.subject.length === 0 && bulkLabels.ageRange.length === 0)}
+                onClick={() => {
+                  handleBulkApplyLabels(bulkLabels as any);
+                  setBulkModalOpen(false);
+                }}
               >
-                {loading ? 'Menyimpan...' : `Inject Label ke ${selectedIds.length} Soal`}
+                {loading ? 'Menyimpan...' : 'Eksekusi Injeksi'}
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      , document.body)}
 
       {/* IMPORT M2M MODAL (Using Portal to bypass z-index issues) */}
       {importModalOpen && typeof document !== 'undefined' && createPortal(
