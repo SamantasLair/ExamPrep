@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { LabelSelector } from '@/components/exam/LabelSelector';
 import { useState } from 'react';
-import { Search, Database, ShoppingCart, PlusCircle, CheckCircle2, X, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
+import { Search, Database, ShoppingCart, PlusCircle, CheckCircle2, X, ChevronLeft, ChevronRight, LayoutGrid, Filter, BarChart } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 export function BankSoalTab() {
@@ -17,7 +17,8 @@ export function BankSoalTab() {
     currentPage, totalQuestions, ITEMS_PER_PAGE,
     handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
-    selectedIds, toggleSelection,
+    filterLabels, setFilterLabels,
+    selectedIds, toggleSelection, selectAllVisible,
     importModalOpen, setImportModalOpen,
     importText, setImportText,
     parsedImport,
@@ -31,13 +32,17 @@ export function BankSoalTab() {
   const [bulkLabels, setBulkLabels] = useState({ difficulty: [], ageRange: [], subject: [] });
   const [activeImportLabels, setActiveImportLabels] = useState({ difficulty: [], ageRange: [], subject: [] });
 
-  const filteredQuestions = questionsList.filter(q => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    const bodyStr = q.body.toLowerCase();
-    const labelStr = JSON.stringify(q.labels).toLowerCase();
-    return bodyStr.includes(term) || labelStr.includes(term);
-  });
+  const extractText = (bodyStr: string) => {
+    try {
+      const parsed = JSON.parse(bodyStr);
+      if (Array.isArray(parsed)) {
+        return parsed.map(p => p.content || '').join(' ').slice(0, 200) + '...';
+      }
+      return bodyStr.slice(0, 200) + '...';
+    } catch {
+      return bodyStr.slice(0, 200) + '...';
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24">
@@ -65,89 +70,120 @@ export function BankSoalTab() {
         </div>
       )}
 
-      {/* MAIN DATA TABLE */}
-      <div className="border rounded-xl bg-card overflow-hidden shadow-sm flex flex-col h-[600px]">
-        <div className="p-4 border-b bg-muted/20 flex gap-4 items-center">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Cari teks soal atau label (contoh: NLP, Matematika, Sulit)..." 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Badge variant="secondary" className="text-xs px-3 py-1.5">{filteredQuestions.length} Soal</Badge>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-          {loading && questionsList.length === 0 ? (
-             <div className="text-center p-8 text-muted-foreground animate-pulse">Memuat database...</div>
-          ) : filteredQuestions.length === 0 ? (
-             <div className="text-center p-8 text-muted-foreground">Tidak ada soal yang ditemukan.</div>
-          ) : (
-            filteredQuestions.map((q, idx) => (
-              <div key={q.id} className={`flex gap-4 p-4 border rounded-lg transition-all ${selectedIds.includes(q.id) ? 'bg-primary/5 border-primary/40 shadow-sm' : 'hover:bg-muted/30'}`}>
-                <div className="pt-1">
-                  <input 
-                    type="checkbox" 
-                    checked={selectedIds.includes(q.id)} 
-                    onChange={() => toggleSelection(q.id)} 
-                    className="w-5 h-5 accent-primary cursor-pointer"
-                  />
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <Badge variant="outline" className="bg-background text-xs font-mono">{q.type}</Badge>
-                    {q.labels && Object.entries(q.labels).map(([k, vals]) => 
-                      vals.map(v => (
-                        <Badge key={`${k}-${v}`} variant="secondary" className="text-xs capitalize">{v}</Badge>
-                      ))
-                    )}
-                  </div>
-                  {/* Note: In a real app we'd parse q.body to ContentBlock if it's stringified JSON, but for minimal UI we'll just show raw text preview */}
-                  <div className="text-sm font-serif line-clamp-3 text-muted-foreground bg-muted/10 p-3 rounded-md border border-dashed">
-                    {q.body.slice(0, 300)}...
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        <div className="p-4 border-t bg-muted/20 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
-            Menampilkan halaman {currentPage} (Total {totalQuestions} soal)
-          </span>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4 mr-1"/> Prev</Button>
-            <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage * ITEMS_PER_PAGE >= totalQuestions}>Next <ChevronRight className="w-4 h-4 ml-1"/></Button>
-          </div>
-        </div>
-      </div>
-
-      {/* PERSISTENT CART (Floating Bottom Right) */}
-      {selectedIds.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
-          <div className="bg-card border-2 border-primary/20 shadow-2xl rounded-2xl p-5 w-80 flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b pb-2">
-              <h3 className="font-bold flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary"/> Keranjang Seleksi</h3>
-              <Badge variant="default" className="text-sm px-2">{selectedIds.length}</Badge>
+      {/* SPLIT PANE LAYOUT */}
+      <div className="flex flex-col lg:flex-row gap-6 h-[700px]">
+        
+        {/* LEFT PANE (60%): SOAL CARDS */}
+        <div className="lg:w-[60%] flex flex-col border rounded-xl bg-card overflow-hidden shadow-sm">
+          <div className="p-4 border-b bg-muted/20 flex gap-4 items-center">
+            <div className="pt-1">
+              <input 
+                type="checkbox" 
+                onChange={selectAllVisible}
+                className="w-5 h-5 accent-primary cursor-pointer"
+                title="Select All Visible"
+              />
             </div>
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input 
+                placeholder="Cari teks soal (Server-side)..." 
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Badge variant="secondary" className="text-xs px-3 py-1.5">{questionsList.length} di Halaman</Badge>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+            {loading && questionsList.length === 0 ? (
+               <div className="text-center p-8 text-muted-foreground animate-pulse">Memuat database...</div>
+            ) : questionsList.length === 0 ? (
+               <div className="text-center p-8 text-muted-foreground">Tidak ada soal yang ditemukan.</div>
+            ) : (
+              questionsList.map((q, idx) => (
+                <div key={q.id} className={`flex gap-4 p-4 border rounded-lg transition-all ${selectedIds.includes(q.id) ? 'bg-primary/5 border-primary/40 shadow-sm' : 'hover:bg-muted/30'}`}>
+                  <div className="pt-1">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(q.id)} 
+                      onChange={() => toggleSelection(q.id)} 
+                      className="w-5 h-5 accent-primary cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <Badge variant="outline" className="bg-background text-xs font-mono">{q.type}</Badge>
+                      {q.labels && Object.entries(q.labels).map(([k, vals]) => 
+                        vals.map(v => (
+                          <Badge key={`${k}-${v}`} variant="secondary" className="text-xs capitalize">{v}</Badge>
+                        ))
+                      )}
+                    </div>
+                    <div className="text-sm font-serif text-muted-foreground bg-muted/10 p-3 rounded-md border border-dashed">
+                      {extractText(q.body)}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="p-4 border-t bg-muted/20 flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              Hal {currentPage} (Total {totalQuestions} soal terfilter)
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4 mr-1"/> Prev</Button>
+              <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage * ITEMS_PER_PAGE >= totalQuestions}>Next <ChevronRight className="w-4 h-4 ml-1"/></Button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANE (40%): CONTROL PANEL */}
+        <div className="lg:w-[40%] flex flex-col gap-4">
+          
+          {/* STATISTICS */}
+          <div className="bg-card border rounded-xl p-5 shadow-sm">
+            <h3 className="font-bold flex items-center gap-2 mb-4"><BarChart className="w-5 h-5 text-primary"/> Statistik Kueri</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted/20 p-4 rounded-lg border text-center">
+                <span className="block text-2xl font-black text-primary">{totalQuestions}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total Terfilter</span>
+              </div>
+              <div className="bg-muted/20 p-4 rounded-lg border text-center">
+                <span className="block text-2xl font-black text-primary">{selectedIds.length}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Soal Dipilih</span>
+              </div>
+            </div>
+          </div>
+
+          {/* FILTER DATABASE */}
+          <div className="bg-card border rounded-xl p-5 shadow-sm flex-1 overflow-hidden flex flex-col">
+            <h3 className="font-bold flex items-center gap-2 mb-4"><Filter className="w-5 h-5 text-primary"/> Filter Taksonomi</h3>
+            <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-lg p-3 bg-background">
+              <LabelSelector selectedLabels={filterLabels as any} onChange={setFilterLabels as any} />
+            </div>
+            <p className="text-xs text-muted-foreground mt-3 text-center">Filter di atas membatasi hasil pencarian di database secara langsung.</p>
+          </div>
+
+          {/* BULK ACTION */}
+          <div className="bg-card border-2 border-primary/20 rounded-xl p-5 shadow-sm">
+            <h3 className="font-bold flex items-center gap-2 mb-3"><ShoppingCart className="w-5 h-5 text-primary"/> Bulk Labeling</h3>
             <div className="space-y-3">
-              <Label className="text-xs font-semibold text-muted-foreground">Terapkan Label Massal (Bulk Action):</Label>
-              <div className="bg-background border rounded-lg p-3 max-h-48 overflow-y-auto custom-scrollbar">
+              <div className="bg-background border rounded-lg p-3 max-h-40 overflow-y-auto custom-scrollbar">
                 <LabelSelector selectedLabels={bulkLabels as any} onChange={setBulkLabels as any} />
               </div>
               <Button 
                 className="w-full font-bold shadow-md shadow-primary/20" 
-                disabled={loading || (bulkLabels.difficulty.length === 0 && bulkLabels.subject.length === 0 && bulkLabels.ageRange.length === 0)}
+                disabled={loading || selectedIds.length === 0 || (bulkLabels.difficulty.length === 0 && bulkLabels.subject.length === 0 && bulkLabels.ageRange.length === 0)}
                 onClick={() => handleBulkApplyLabels(bulkLabels as any)}
               >
-                {loading ? 'Menyimpan...' : 'Inject Label ke Database'}
+                {loading ? 'Menyimpan...' : `Inject Label ke ${selectedIds.length} Soal`}
               </Button>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* IMPORT M2M MODAL (Using Portal to bypass z-index issues) */}
       {importModalOpen && typeof document !== 'undefined' && createPortal(

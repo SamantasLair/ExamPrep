@@ -14,8 +14,13 @@ export function useBankSoalVM() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const ITEMS_PER_PAGE = 20;
 
-  // Filtering
+  // Filtering (Server-Side)
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterLabels, setFilterLabels] = useState<{ difficulty: string[], ageRange: string[], subject: string[] }>({
+    difficulty: [],
+    ageRange: [],
+    subject: []
+  });
   
   // Selection Cart
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -31,11 +36,28 @@ export function useBankSoalVM() {
     const from = (page - 1) * ITEMS_PER_PAGE;
     const to = from + ITEMS_PER_PAGE - 1;
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('questions')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .select('*', { count: 'exact' });
+
+    // Apply Filters
+    if (searchTerm.trim()) {
+      query = query.ilike('body', `%${searchTerm.trim()}%`);
+    }
+
+    if (filterLabels.difficulty.length > 0) {
+      query = query.contains('labels', { difficulty: filterLabels.difficulty });
+    }
+    if (filterLabels.ageRange.length > 0) {
+      query = query.contains('labels', { ageRange: filterLabels.ageRange });
+    }
+    if (filterLabels.subject.length > 0) {
+      query = query.contains('labels', { subject: filterLabels.subject });
+    }
+
+    query = query.order('created_at', { ascending: false }).range(from, to);
+
+    const { data, error, count } = await query;
       
     setLoading(false);
     if (error) {
@@ -49,7 +71,7 @@ export function useBankSoalVM() {
 
   useEffect(() => {
     loadQuestions(1);
-  }, [loadQuestions]);
+  }, [loadQuestions, searchTerm, filterLabels]);
 
   const handleNextPage = () => {
     if (currentPage * ITEMS_PER_PAGE < totalQuestions) loadQuestions(currentPage + 1);
@@ -63,6 +85,19 @@ export function useBankSoalVM() {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
+  };
+
+  const selectAllVisible = () => {
+    const visibleIds = questionsList.map(q => q.id);
+    const allSelected = visibleIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(prev => prev.filter(id => !visibleIds.includes(id)));
+    } else {
+      setSelectedIds(prev => {
+        const newSet = new Set([...prev, ...visibleIds]);
+        return Array.from(newSet);
+      });
+    }
   };
 
   const handleParseImport = () => {
@@ -162,7 +197,8 @@ export function useBankSoalVM() {
     currentPage, totalQuestions, ITEMS_PER_PAGE,
     handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
-    selectedIds, toggleSelection,
+    filterLabels, setFilterLabels,
+    selectedIds, toggleSelection, selectAllVisible,
     importModalOpen, setImportModalOpen,
     importText, setImportText,
     parsedImport,
