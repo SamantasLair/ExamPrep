@@ -1,5 +1,3 @@
-'use client';
-
 import { useBankSoalVM } from '@/viewmodels/useBankSoalVM';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,28 +6,30 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { LabelSelector } from '@/components/exam/LabelSelector';
 import { useState } from 'react';
-import { Search, Database, Trash2, ShoppingCart, PlusCircle, CheckCircle2, AlertTriangle, X } from 'lucide-react';
-import { QuestionRenderer } from '@/components/exam/QuestionRenderer';
+import { Search, Database, ShoppingCart, PlusCircle, CheckCircle2, X, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export function BankSoalTab() {
   const {
     questionsList,
     loading,
     errorMsg, setErrorMsg,
+    currentPage, totalQuestions, ITEMS_PER_PAGE,
+    handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
     selectedIds, toggleSelection,
     importModalOpen, setImportModalOpen,
     importText, setImportText,
     parsedImport,
+    activeImportIdx, setActiveImportIdx,
     handleParseImport,
     handleCommitImport,
-    dangerAction, setDangerAction,
-    dangerConfirmText, setDangerConfirmText,
-    executeWipe,
+    handleUpdateImportLabel,
     handleBulkApplyLabels,
   } = useBankSoalVM();
 
   const [bulkLabels, setBulkLabels] = useState({ difficulty: [], ageRange: [], subject: [] });
+  const [activeImportLabels, setActiveImportLabels] = useState({ difficulty: [], ageRange: [], subject: [] });
 
   const filteredQuestions = questionsList.filter(q => {
     if (!searchTerm) return true;
@@ -64,38 +64,6 @@ export function BankSoalTab() {
           <Button variant="ghost" size="sm" onClick={() => setErrorMsg('')}><X className="w-4 h-4"/></Button>
         </div>
       )}
-
-      {/* DANGER ZONE */}
-      <details className="group border border-destructive/30 rounded-xl bg-destructive/5 overflow-hidden shadow-sm [&_summary::-webkit-details-marker]:hidden">
-        <summary className="flex cursor-pointer items-center justify-between p-4 hover:bg-destructive/10 transition-colors font-bold text-sm text-destructive">
-          <div className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> DANGER ZONE (Area Berbahaya)</div>
-          <span className="text-xs group-open:hidden">Klik untuk melihat opsi Wipe Clean...</span>
-        </summary>
-        <div className="p-6 border-t border-destructive/20 space-y-6 bg-background">
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_QUESTIONS'); setDangerConfirmText(''); }}>Kosongkan Bank Soal</Button>
-            <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_TESTS'); setDangerConfirmText(''); }}>Kosongkan Daftar Ujian</Button>
-            <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_ATTEMPTS'); setDangerConfirmText(''); }}>Hapus Riwayat Nilai</Button>
-            <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_STUDENTS'); setDangerConfirmText(''); }}>Hapus Semua Siswa</Button>
-            <Button variant="destructive" className="ml-auto font-black shadow-lg shadow-destructive/20" onClick={() => { setDangerAction('WIPE_ALL'); setDangerConfirmText(''); }}>WIPE CLEAN ALL DATA</Button>
-          </div>
-
-          {dangerAction && (
-            <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/30 animate-in zoom-in-95">
-              <Label className="text-destructive font-bold mb-2 block">
-                Anda akan mengeksekusi: {dangerAction}. <br/>
-                Ketik <span className="font-mono bg-destructive text-white px-2 py-0.5 rounded mx-1">WIPE CLEAN</span> untuk melanjutkan.
-              </Label>
-              <div className="flex gap-2 max-w-md">
-                <Input value={dangerConfirmText} onChange={e => setDangerConfirmText(e.target.value)} placeholder="Ketik WIPE CLEAN di sini..." className="border-destructive/50 focus-visible:ring-destructive" />
-                <Button variant="destructive" disabled={dangerConfirmText !== 'WIPE CLEAN' || loading} onClick={() => executeWipe(dangerAction)}>
-                  {loading ? 'Memproses...' : 'Eksekusi Destruktif'}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </details>
 
       {/* MAIN DATA TABLE */}
       <div className="border rounded-xl bg-card overflow-hidden shadow-sm flex flex-col h-[600px]">
@@ -145,6 +113,15 @@ export function BankSoalTab() {
             ))
           )}
         </div>
+        <div className="p-4 border-t bg-muted/20 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            Menampilkan halaman {currentPage} (Total {totalQuestions} soal)
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4 mr-1"/> Prev</Button>
+            <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage * ITEMS_PER_PAGE >= totalQuestions}>Next <ChevronRight className="w-4 h-4 ml-1"/></Button>
+          </div>
+        </div>
       </div>
 
       {/* PERSISTENT CART (Floating Bottom Right) */}
@@ -172,72 +149,116 @@ export function BankSoalTab() {
         </div>
       )}
 
-      {/* IMPORT M2M MODAL */}
-      {importModalOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      {/* IMPORT M2M MODAL (Using Portal to bypass z-index issues) */}
+      {importModalOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-5 border-b bg-muted/20">
               <div>
-                <h3 className="font-bold text-lg">Verifikator Pra-Simpan M2M</h3>
-                <p className="text-xs text-muted-foreground">Paste hasil markdown AI di sini untuk diverifikasi sebelum masuk database.</p>
+                <h3 className="font-bold text-lg flex items-center gap-2"><LayoutGrid className="w-5 h-5 text-primary"/> Verifikator Pra-Simpan M2M</h3>
+                <p className="text-xs text-muted-foreground">Paste markdown soal di sini. Pastikan format mengandung # Q1...</p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setImportModalOpen(false)}><X className="w-5 h-5"/></Button>
             </div>
             <div className="flex-1 flex overflow-hidden">
-              {/* Left: Input */}
-              <div className="w-1/2 flex flex-col border-r">
+              {/* Panel 1: Input Markdown */}
+              <div className="w-1/3 flex flex-col border-r bg-muted/5">
                 <Textarea 
                   value={importText} 
                   onChange={e => setImportText(e.target.value)} 
-                  placeholder="Paste 50 soal Anda di sini..." 
-                  className="flex-1 resize-none border-0 focus-visible:ring-0 rounded-none p-4 font-mono text-xs"
+                  placeholder="Paste markdown soal di sini. Pastikan format mengandung # Q1..." 
+                  className="flex-1 resize-none border-0 focus-visible:ring-0 rounded-none p-4 font-mono text-xs custom-scrollbar"
                 />
-                <div className="p-3 border-t bg-muted/10">
-                  <Button className="w-full" onClick={handleParseImport}>Ekstrak & Validasi Teks</Button>
+                <div className="p-3 border-t bg-background">
+                  <Button className="w-full font-bold shadow-md shadow-primary/20" onClick={handleParseImport}>Ekstrak & Validasi Teks</Button>
                 </div>
               </div>
-              {/* Right: Verification */}
-              <div className="w-1/2 flex flex-col bg-muted/5">
-                <div className="p-3 border-b flex items-center justify-between bg-primary/5">
-                  <span className="text-sm font-bold text-primary">Hasil Ekstraksi: {parsedImport.length} Soal</span>
-                  {parsedImport.length > 0 && <Badge variant="default" className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1"/> Siap Simpan</Badge>}
+              
+              {/* Panel 2: Grid Navigasi Soal */}
+              <div className="w-1/3 flex flex-col border-r bg-background">
+                <div className="p-3 border-b flex items-center justify-between bg-muted/20">
+                  <span className="text-sm font-bold">Navigasi ({parsedImport.length} Soal)</span>
+                  {parsedImport.length > 0 && <Badge variant="default" className="bg-green-600">Siap</Badge>}
                 </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                   {parsedImport.length === 0 ? (
-                    <div className="text-center text-muted-foreground text-sm mt-10">Belum ada data terekstrak.</div>
+                    <div className="text-center text-muted-foreground text-sm mt-10">Belum ada data.</div>
                   ) : (
-                    parsedImport.map((q, i) => {
-                      const hasLabels = q.labels && q.labels.length > 0;
-                      return (
-                        <div key={i} className={`p-3 border rounded-lg text-sm ${hasLabels ? 'bg-background' : 'bg-destructive/5 border-destructive/30'}`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-bold">Q{q.id || i+1}</span>
-                            <Badge variant={hasLabels ? 'secondary' : 'destructive'} className="text-[10px]">
-                              {hasLabels ? `${q.labels?.length} Label Terdeteksi` : 'Nir-Label (AI Gagal)'}
-                            </Badge>
-                          </div>
-                          {hasLabels && (
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {q.labels?.map((l, lIdx) => <Badge key={lIdx} variant="outline" className="text-[10px]">{l}</Badge>)}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })
+                    <div className="grid grid-cols-5 gap-2">
+                      {parsedImport.map((q, i) => {
+                        const hasLabels = q.labels && q.labels.length > 0;
+                        const isActive = activeImportIdx === i;
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => setActiveImportIdx(i)}
+                            className={`aspect-square rounded-md flex items-center justify-center font-bold text-xs border-2 transition-all hover:scale-105 ${
+                              isActive ? 'ring-2 ring-primary ring-offset-1 border-primary bg-primary/10' :
+                              hasLabels ? 'border-green-500/50 text-green-600 bg-green-50' : 'border-destructive/50 text-destructive bg-destructive/10'
+                            }`}
+                          >
+                            {i + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
                 {parsedImport.length > 0 && (
-                  <div className="p-4 border-t bg-background">
-                    <Button className="w-full font-bold shadow-lg" onClick={handleCommitImport} disabled={loading}>
-                      {loading ? 'Menyimpan...' : `Commit ${parsedImport.length} Soal ke Bank`}
+                  <div className="p-4 border-t bg-muted/10">
+                    <Button className="w-full font-bold bg-green-600 hover:bg-green-700 shadow-lg text-white" onClick={handleCommitImport} disabled={loading}>
+                      {loading ? 'Menyimpan...' : `Commit ${parsedImport.length} Soal`}
                     </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Panel 3: Detail & Label Injector */}
+              <div className="w-1/3 flex flex-col bg-muted/5">
+                {activeImportIdx !== null && parsedImport[activeImportIdx] ? (
+                  <>
+                    <div className="p-3 border-b bg-muted/20 font-bold text-sm">
+                      Detail Soal #{activeImportIdx + 1}
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                      <div className="text-xs bg-background p-3 rounded border font-serif line-clamp-6 text-muted-foreground">
+                        {JSON.stringify(parsedImport[activeImportIdx].body)}
+                      </div>
+                      <div className="space-y-2 border-t pt-4">
+                        <Label className="text-xs font-bold text-primary">Injeksi Label Manual</Label>
+                        <p className="text-[10px] text-muted-foreground mb-2">Gunakan ini jika AI gagal melabeli soal (merah).</p>
+                        <div className="bg-background rounded border p-2 max-h-40 overflow-y-auto custom-scrollbar">
+                          <LabelSelector selectedLabels={activeImportLabels as any} onChange={setActiveImportLabels as any} />
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="w-full font-bold mt-2" 
+                          onClick={() => handleUpdateImportLabel(activeImportIdx, activeImportLabels)}
+                        >
+                          Simpan Label ke Soal #{activeImportIdx + 1}
+                        </Button>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-bold">Label Saat Ini:</Label>
+                        <div className="flex flex-wrap gap-1">
+                          {parsedImport[activeImportIdx].labels?.length ? 
+                            parsedImport[activeImportIdx].labels?.map(l => <Badge key={l} variant="secondary" className="text-[10px]">{l}</Badge>) 
+                            : <Badge variant="destructive" className="text-[10px]">Kosong</Badge>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm p-6 text-center">
+                    Klik salah satu kotak navigasi soal untuk melihat detail dan mengatur label.
                   </div>
                 )}
               </div>
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }

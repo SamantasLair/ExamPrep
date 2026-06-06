@@ -15,15 +15,19 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type, Database } from 'lucide-react';
+import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type, Database, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import { useAdminDashboardVM } from '@/viewmodels/useAdminDashboardVM';
 import { useAnalyticsVM } from '@/viewmodels/useAnalyticsVM';
 
 export function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState<'tests'|'attempts'|'students'|'editor'|'prompt'|'bank'|'analytics'|'danger'>('tests');
+  const [dangerAction, setDangerAction] = useState<string | null>(null);
+  const [dangerConfirmText, setDangerConfirmText] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
   const {
-    activeTab, setActiveTab,
     testList,
     attemptList,
     studentList,
@@ -89,6 +93,38 @@ export function AdminDashboard() {
     loadStudents,
     selectedTestId,
   } = useAdminDashboardVM();
+
+  const executeWipe = async (action: string) => {
+    setIsSaving(true);
+    let err = null;
+    if (action === 'WIPE_QUESTIONS') {
+      const { error } = await supabase.from('questions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      err = error;
+    } else if (action === 'WIPE_TESTS') {
+      const { error } = await supabase.from('tests').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      err = error;
+    } else if (action === 'WIPE_ATTEMPTS') {
+      const { error } = await supabase.from('attempts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      err = error;
+    } else if (action === 'WIPE_STUDENTS') {
+      const { error } = await supabase.from('students').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      err = error;
+    } else if (action === 'WIPE_ALL') {
+      await supabase.from('attempts').delete().neq('id', '0');
+      await supabase.from('tests').delete().neq('id', '0');
+      await supabase.from('questions').delete().neq('id', '0');
+      await supabase.from('students').delete().neq('id', '0');
+    }
+
+    setIsSaving(false);
+    if (err) {
+      alert(err.message);
+    } else {
+      setDangerAction(null);
+      setDangerConfirmText('');
+      alert('Eksekusi berhasil.');
+    }
+  };
 
   const { analysis, loading: analyticsLoading, error: analyticsError } = useAnalyticsVM(selectedTestId);
 
@@ -284,11 +320,6 @@ export function AdminDashboard() {
           </div>
 
           <div className="flex-1 overflow-y-auto bg-muted p-8 print:p-0 print:bg-white text-black print:text-black print:overflow-visible print:block print:h-auto print:w-full scroll-smooth">
-            {/* 
-               PRINT PREVIEW CONTAINER
-               - On screen: A scrollable area with shadow pages and balanced columns
-               - In print: A continuous flow that browser fragments naturally with auto-fill
-            */}
             <div 
               className={cn(
                 "mx-auto bg-white shadow-lg print:shadow-none print:max-w-none print:w-full print:p-0 print:m-0 print:bg-transparent relative print-container-root",
@@ -335,7 +366,6 @@ export function AdminDashboard() {
                 
                 {/* MAIN CONTENT AREA */}
                 {!printAnswersAtEnd ? (
-                  /* NORMAL OR SIDE-BY-SIDE MODE */
                   <div className={cn("column-balancing-fix", printColumns === '2' ? 'columns-2 gap-10' : '')}>
                     {questions.map((q, idx) => (
                       <div key={q.id}>
@@ -373,9 +403,7 @@ export function AdminDashboard() {
                     ))}
                   </div>
                 ) : (
-                  /* ANSWERS AT THE END MODE */
                   <>
-                    {/* Part 1: All Questions */}
                     <div className={cn("column-balancing-fix mb-10", printColumns === '2' ? 'columns-2 gap-10' : '')}>
                       {questions.map((q, idx) => (
                         <div key={`q-only-${q.id}`} className="mb-4 break-inside-avoid relative">
@@ -387,12 +415,10 @@ export function AdminDashboard() {
                       ))}
                     </div>
   
-                    {/* Part 2: Page Break & Answers List */}
                     <div className={cn(
                       "pt-10 break-before-page",
                       printColumns === '2' ? 'column-balancing-fix columns-2 gap-10' : ''
                     )}>
-                      {/* Removed Answer Key Header as requested */}
                       <div className="space-y-6">
                         {questions.map((q, idx) => (
                           <div key={`ans-only-${q.id}`} className="break-inside-avoid">
@@ -457,11 +483,17 @@ export function AdminDashboard() {
              <Button variant={activeTab === 'prompt' ? 'default' : 'ghost'} onClick={() => setActiveTab('prompt')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
                <Type className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Prompt Generator</span>
              </Button>
+             
+             <div className="mt-8 border-t border-destructive/20 pt-4">
+               <Button variant={activeTab === 'danger' ? 'destructive' : 'ghost'} onClick={() => setActiveTab('danger')} className={cn("w-full justify-start overflow-hidden transition-all active:scale-[0.98]", activeTab === 'danger' ? 'bg-destructive text-destructive-foreground' : 'text-destructive hover:bg-destructive/10')}>
+                 <AlertTriangle className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate font-bold">Danger Zone</span>
+               </Button>
+             </div>
            </nav>
         </aside>
 
         <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-muted/10 custom-scrollbar relative z-10">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="h-full flex flex-col">
             <TabsList className="hidden">
               <TabsTrigger value="tests">1</TabsTrigger>
               <TabsTrigger value="attempts">2</TabsTrigger>
@@ -469,11 +501,47 @@ export function AdminDashboard() {
               <TabsTrigger value="editor">4</TabsTrigger>
               <TabsTrigger value="prompt">5</TabsTrigger>
               <TabsTrigger value="bank">6</TabsTrigger>
+              <TabsTrigger value="danger">7</TabsTrigger>
             </TabsList>
 
           {/* TAB: BANK SOAL */}
           <TabsContent value="bank" className="flex-1 h-full">
             <BankSoalTab />
+          </TabsContent>
+
+          {/* TAB: DANGER ZONE */}
+          <TabsContent value="danger" className="flex-1 h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-6 h-6" /> Danger Zone
+              </h2>
+            </div>
+            <div className="p-6 border border-destructive/30 rounded-xl bg-destructive/5 space-y-6">
+              <p className="text-sm text-muted-foreground">Area ini digunakan untuk melakukan operasi pemusnahan massal secara absolut pada database Anda. Tindakan di sini TIDAK BISA DIBATALKAN.</p>
+              
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_QUESTIONS'); setDangerConfirmText(''); }}>Kosongkan Bank Soal</Button>
+                <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_TESTS'); setDangerConfirmText(''); }}>Kosongkan Daftar Ujian</Button>
+                <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_ATTEMPTS'); setDangerConfirmText(''); }}>Hapus Riwayat Nilai</Button>
+                <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white" onClick={() => { setDangerAction('WIPE_STUDENTS'); setDangerConfirmText(''); }}>Hapus Semua Siswa</Button>
+                <Button variant="destructive" className="ml-auto font-black shadow-lg shadow-destructive/20" onClick={() => { setDangerAction('WIPE_ALL'); setDangerConfirmText(''); }}>WIPE CLEAN ALL DATA</Button>
+              </div>
+
+              {dangerAction && (
+                <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/30 animate-in zoom-in-95">
+                  <Label className="text-destructive font-bold mb-2 block">
+                    Anda akan mengeksekusi: {dangerAction}. <br/>
+                    Ketik <span className="font-mono bg-destructive text-white px-2 py-0.5 rounded mx-1">WIPE CLEAN</span> untuk melanjutkan.
+                  </Label>
+                  <div className="flex gap-2 max-w-md">
+                    <Input value={dangerConfirmText} onChange={e => setDangerConfirmText(e.target.value)} placeholder="Ketik WIPE CLEAN di sini..." className="border-destructive/50 focus-visible:ring-destructive" />
+                    <Button variant="destructive" disabled={dangerConfirmText !== 'WIPE CLEAN' || isSaving} onClick={() => executeWipe(dangerAction)}>
+                      {isSaving ? 'Memproses...' : 'Eksekusi Destruktif'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* TAB: TEKS (DAFTAR UJIAN) */}

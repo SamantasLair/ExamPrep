@@ -9,6 +9,11 @@ export function useBankSoalVM() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const ITEMS_PER_PAGE = 20;
+
   // Filtering
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -19,25 +24,40 @@ export function useBankSoalVM() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [parsedImport, setParsedImport] = useState<Question[]>([]);
-  
-  // Danger Zone
-  const [dangerAction, setDangerAction] = useState<string | null>(null);
-  const [dangerConfirmText, setDangerConfirmText] = useState('');
+  const [activeImportIdx, setActiveImportIdx] = useState<number | null>(null);
 
-  const loadQuestions = useCallback(async () => {
+  const loadQuestions = useCallback(async (page: number = 1) => {
     setLoading(true);
-    const { data, error } = await supabase.from('questions').select('*').order('created_at', { ascending: false });
+    const from = (page - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+
+    const { data, error, count } = await supabase
+      .from('questions')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+      
     setLoading(false);
     if (error) {
       setErrorMsg(error.message);
-    } else if (data) {
-      setQuestionsList(data);
+    } else {
+      if (data) setQuestionsList(data);
+      if (count !== null) setTotalQuestions(count);
+      setCurrentPage(page);
     }
   }, []);
 
   useEffect(() => {
-    loadQuestions();
+    loadQuestions(1);
   }, [loadQuestions]);
+
+  const handleNextPage = () => {
+    if (currentPage * ITEMS_PER_PAGE < totalQuestions) loadQuestions(currentPage + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) loadQuestions(currentPage - 1);
+  };
 
   const toggleSelection = (id: string) => {
     setSelectedIds(prev => 
@@ -93,40 +113,21 @@ export function useBankSoalVM() {
       setImportModalOpen(false);
       setImportText('');
       setParsedImport([]);
-      loadQuestions();
+      setActiveImportIdx(null);
+      loadQuestions(1);
     }
   };
 
-  const executeWipe = async (action: string) => {
-    setLoading(true);
-    let err = null;
-    if (action === 'WIPE_QUESTIONS') {
-      const { error } = await supabase.from('questions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      err = error;
-    } else if (action === 'WIPE_TESTS') {
-      const { error } = await supabase.from('tests').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      err = error;
-    } else if (action === 'WIPE_ATTEMPTS') {
-      const { error } = await supabase.from('attempts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      err = error;
-    } else if (action === 'WIPE_STUDENTS') {
-      const { error } = await supabase.from('students').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      err = error;
-    } else if (action === 'WIPE_ALL') {
-      await supabase.from('attempts').delete().neq('id', '0');
-      await supabase.from('tests').delete().neq('id', '0');
-      await supabase.from('questions').delete().neq('id', '0');
-      await supabase.from('students').delete().neq('id', '0');
-    }
-
-    setLoading(false);
-    if (err) {
-      setErrorMsg(err.message);
-    } else {
-      setDangerAction(null);
-      setDangerConfirmText('');
-      loadQuestions();
-    }
+  const handleUpdateImportLabel = (idx: number, newLabels: any) => {
+    setParsedImport(prev => {
+      const copy = [...prev];
+      const flatLabels: string[] = [];
+      Object.entries(newLabels).forEach(([key, arr]) => {
+        (arr as string[]).forEach(val => flatLabels.push(`${key}=${val}`));
+      });
+      copy[idx] = { ...copy[idx], labels: flatLabels };
+      return copy;
+    });
   };
 
   const handleBulkApplyLabels = async (labelObj: Record<string, string[]>) => {
@@ -151,23 +152,24 @@ export function useBankSoalVM() {
     
     setLoading(false);
     setSelectedIds([]); // Clear cart
-    loadQuestions();
+    loadQuestions(currentPage);
   };
 
   return {
     questionsList,
     loading,
     errorMsg, setErrorMsg,
+    currentPage, totalQuestions, ITEMS_PER_PAGE,
+    handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
     selectedIds, toggleSelection,
     importModalOpen, setImportModalOpen,
     importText, setImportText,
     parsedImport,
+    activeImportIdx, setActiveImportIdx,
     handleParseImport,
     handleCommitImport,
-    dangerAction, setDangerAction,
-    dangerConfirmText, setDangerConfirmText,
-    executeWipe,
+    handleUpdateImportLabel,
     handleBulkApplyLabels,
   };
 }
