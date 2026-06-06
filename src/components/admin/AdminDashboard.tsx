@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type, Database, AlertTriangle } from 'lucide-react';
+import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type, Database, AlertTriangle, Plus, Target, LineChart, Edit2, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import { useAdminDashboardVM } from '@/viewmodels/useAdminDashboardVM';
@@ -593,40 +593,77 @@ export function AdminDashboard() {
 
           {/* TAB: TEKS (DAFTAR UJIAN) */}
           <TabsContent value="tests" className="flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Daftar Ujian Aktif</h2>
-              <Button onClick={handleCreateNew}>Buat Ujian Baru</Button>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight">Daftar Ujian Aktif</h2>
+                <p className="text-sm text-muted-foreground mt-1">Kelola dan pantau seluruh sesi ujian yang tersedia.</p>
+              </div>
+              <Button onClick={handleCreateNew} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all gap-2 h-10 px-6 font-bold rounded-full">
+                <Plus className="w-4 h-4" /> Buat Ujian Baru
+              </Button>
             </div>
-            <div className="rounded-md border bg-card">
-              {testList.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">Belum ada ujian yang dibuat.</div>
-              ) : (
-                <div className="divide-y">
-                  {testList.map((test) => (
-                    <div key={test.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                      <div>
-                        <h3 className="font-semibold">{test.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Durasi: {test.duration_minutes}m | KKM: {test.passing_grade} | 
-                          Opsi Review: {test.show_answer ? 'Lengkap' : 'Netral'}
-                        </p>
+            
+            {testList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-2xl bg-muted/10">
+                <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-bold">Belum ada ujian yang dibuat</h3>
+                <p className="text-sm text-muted-foreground mb-6">Mulai rakit sesi ujian pertama Anda sekarang.</p>
+                <Button onClick={handleCreateNew} variant="outline" className="gap-2 rounded-full"><Plus className="w-4 h-4"/> Buat Ujian</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {testList.map((test) => (
+                  <Card key={test.id} className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 hover:border-primary/50 overflow-hidden flex flex-col rounded-2xl bg-card">
+                    <CardHeader className="p-5 border-b bg-gradient-to-br from-muted/30 to-muted/10 group-hover:from-primary/5 group-hover:to-transparent transition-colors pb-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <CardTitle className="text-lg font-black line-clamp-2 leading-tight">{test.title}</CardTitle>
+                        <Badge variant={(!test.start_at && !test.end_at) ? "default" : "secondary"} className="shrink-0 font-bold tracking-wide">
+                          {(!test.start_at && !test.end_at) ? 'HARIAN' : 'TERJADWAL'}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleAnalytics(test.id)}>
-                          Analisis
+                    </CardHeader>
+                    <CardContent className="p-5 flex-1 space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Durasi</span>
+                          <span className="font-semibold text-foreground flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary" /> {test.duration_minutes} Menit</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">KKM</span>
+                          <span className="font-semibold text-foreground flex items-center gap-1.5"><Target className="w-3.5 h-3.5 text-primary" /> {test.passing_grade}</span>
+                        </div>
+                      </div>
+                      
+                      {(test.start_at || test.end_at) && (
+                        <div className="bg-muted/30 p-3 rounded-xl text-xs space-y-2 border border-border/50">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground font-medium">Mulai:</span>
+                            <span className="font-bold">{test.start_at ? new Date(test.start_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '-'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground font-medium">Selesai:</span>
+                            <span className="font-bold">{test.end_at ? new Date(test.end_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '-'}</span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                    <div className="p-4 border-t bg-muted/5 flex items-center justify-between gap-2 mt-auto">
+                      <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/10 hover:text-primary gap-1.5 font-bold" onClick={() => handleAnalytics(test.id)}>
+                        <LineChart className="w-4 h-4" /> Analisis
+                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="gap-1.5 bg-background hover:bg-muted font-semibold" onClick={() => handleEdit(test)}>
+                          <Edit2 className="w-3.5 h-3.5" /> Edit
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(test)}>
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete(test.id)}>
-                          Hapus
+                        <Button size="sm" variant="destructive" className="gap-1.5 shadow-sm" onClick={() => handleDelete(test.id)}>
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* TAB: ATTEMPTS (HASIL PESERTA) */}
@@ -818,122 +855,128 @@ export function AdminDashboard() {
           {/* TAB: EDITOR */}
           <TabsContent value="editor" className="flex-1 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {saveMsg && (
-              <div className="p-3 bg-primary/10 text-primary border border-primary/20 rounded-md text-sm font-medium">
+              <div className="p-4 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold shadow-sm flex items-center justify-center">
                 {saveMsg}
               </div>
             )}
             
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight">{editId ? 'Edit Konfigurasi Ujian' : 'Konfigurasi Ujian Baru'}</h2>
+                <p className="text-sm text-muted-foreground mt-1">Atur parameter ujian dan tulis soal markdown Anda di bawah.</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)} className="gap-2 rounded-full font-semibold">
+                <Settings2 className="w-4 h-4" /> {showSettings ? 'Sembunyikan Panel' : 'Tampilkan Panel'}
+              </Button>
+            </div>
+
             {showSettings && (
-              <details className="group border border-border/80 rounded-2xl bg-muted/10 overflow-hidden shadow-sm mb-6 animate-in fade-in slide-in-from-top-4 duration-500 [&_summary::-webkit-details-marker]:hidden" open>
-                <summary className="flex cursor-pointer items-center justify-between p-4 bg-muted/40 hover:bg-muted/60 transition-colors font-bold text-sm">
-                  <div className="flex items-center gap-2"><Settings2 className="w-4 h-4 text-primary" /> Pengaturan Ujian Lanjutan</div>
-                  <span className="text-xs text-muted-foreground group-open:hidden">Klik untuk melihat pengaturan...</span>
-                </summary>
-                <div className="p-6 border-t border-border/40 space-y-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-background/50">
-                  {/* Card 1: Identitas Ujian */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><FileText className="w-3.5 h-3.5" /> Identitas</h3>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="exam-title" className="text-[11px] font-semibold">Judul Ujian</Label>
-                      <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="h-8 text-xs bg-background" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="duration" className="text-[11px] font-semibold">Durasi (m)</Label>
-                        <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="h-8 text-xs bg-background" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="kkm" className="text-[11px] font-semibold">KKM</Label>
-                        <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} className="h-8 text-xs bg-background" />
-                      </div>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8 animate-in slide-in-from-top-4 duration-500">
+                {/* Card 1: Identitas Ujian */}
+                <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm space-y-4 hover:border-primary/30 transition-colors">
+                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary border-b border-border/50 pb-3"><FileText className="w-4 h-4" /> Identitas Dasar</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="exam-title" className="text-xs font-bold text-muted-foreground">Judul Ujian</Label>
+                    <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="h-10 text-sm bg-muted/30 focus-visible:bg-background transition-colors" />
                   </div>
-
-                  {/* Card 2: Akses & Penjadwalan */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><Calendar className="w-3.5 h-3.5" /> Penjadwalan</h3>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="start-at" className="text-[11px] font-semibold">Waktu Mulai</Label>
-                      <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="h-8 text-xs bg-background" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="duration" className="text-xs font-bold text-muted-foreground">Durasi (m)</Label>
+                      <Input id="duration" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="h-10 text-sm bg-muted/30 focus-visible:bg-background" />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="end-at" className="text-[11px] font-semibold">Waktu Selesai</Label>
-                      <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="h-8 text-xs bg-background" />
-                    </div>
-                    <label className="flex items-center gap-2 p-2 bg-background/50 rounded-lg border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors mt-2">
-                      <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-3.5 w-3.5 rounded border-input accent-primary" />
-                      <span className="text-[11px] font-bold">Setel Hari Ini Otomatis</span>
-                    </label>
-                  </div>
-
-                  {/* Card 3: Jawaban & Feedback */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><CheckCircle2 className="w-3.5 h-3.5" /> Feedback Ujian</h3>
-                    <label className="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg border bg-background hover:bg-muted/50 transition-all">
-                      <input type="checkbox" checked={showAnswer} onChange={(e) => setShowAnswer(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold">Kunci Jawaban</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Tampilkan di akhir ujian.</span>
-                      </div>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg border bg-background hover:bg-muted/50 transition-all">
-                      <input type="checkbox" checked={immediateFeedback} onChange={(e) => setImmediateFeedback(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold">Feedback Instan</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Langsung cek benar/salah.</span>
-                      </div>
-                    </label>
-                  </div>
-
-                  {/* Card 4: Pengaturan Bantuan Tips (AI) */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wide flex items-center gap-2 text-primary border-b pb-2"><HelpCircle className="w-3.5 h-3.5" /> Bantuan Tips AI</h3>
-                    <label className="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg border bg-background hover:bg-muted/50 transition-all">
-                      <input type="checkbox" checked={enableTipPenalty} onChange={(e) => setEnableTipPenalty(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold">Kurangi Nilai</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Berikan penalti jika tips dipakai.</span>
-                      </div>
-                    </label>
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] font-semibold text-muted-foreground">Teori (%)</Label>
-                      <Input value={penaltyTheoryConfig} onChange={(e) => setPenaltyTheoryConfig(e.target.value)} placeholder="10, 15, ..." className="h-7 text-xs bg-background" disabled={!enableTipPenalty}/>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] font-semibold text-muted-foreground">Praktik (%)</Label>
-                      <Input value={penaltyPracticeConfig} onChange={(e) => setPenaltyPracticeConfig(e.target.value)} placeholder="15, 20, ..." className="h-7 text-xs bg-background" disabled={!enableTipPenalty}/>
+                    <div className="space-y-2">
+                      <Label htmlFor="kkm" className="text-xs font-bold text-muted-foreground">KKM</Label>
+                      <Input id="kkm" type="number" min={0} max={100} value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} className="h-10 text-sm bg-muted/30 focus-visible:bg-background" />
                     </div>
                   </div>
                 </div>
-              </details>
+
+                {/* Card 2: Akses & Penjadwalan */}
+                <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm space-y-4 hover:border-primary/30 transition-colors">
+                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary border-b border-border/50 pb-3"><Calendar className="w-4 h-4" /> Penjadwalan</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="start-at" className="text-xs font-bold text-muted-foreground">Waktu Mulai</Label>
+                    <Input id="start-at" type="datetime-local" value={startAt} onChange={(e) => { setStartAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="h-10 text-sm bg-muted/30 focus-visible:bg-background disabled:opacity-50" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end-at" className="text-xs font-bold text-muted-foreground">Waktu Selesai</Label>
+                    <Input id="end-at" type="datetime-local" value={endAt} onChange={(e) => { setEndAt(e.target.value); setIsDaily(false); }} disabled={isDaily} className="h-10 text-sm bg-muted/30 focus-visible:bg-background disabled:opacity-50" />
+                  </div>
+                  <label className="flex items-center justify-between p-3 bg-primary/5 rounded-xl border border-primary/20 cursor-pointer hover:bg-primary/10 transition-colors mt-2 group">
+                    <span className="text-xs font-bold text-primary">Setel Sebagai Ujian Harian</span>
+                    <input type="checkbox" checked={isDaily} onChange={(e) => handleDailyToggle(e.target.checked)} className="h-4 w-4 rounded border-primary text-primary focus:ring-primary accent-primary" />
+                  </label>
+                </div>
+
+                {/* Card 3: Jawaban & Feedback */}
+                <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm space-y-4 hover:border-primary/30 transition-colors">
+                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary border-b border-border/50 pb-3"><CheckCircle2 className="w-4 h-4" /> Feedback & Review</h3>
+                  <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-border/50 bg-muted/10 hover:bg-muted/30 hover:border-primary/30 transition-all">
+                    <input type="checkbox" checked={showAnswer} onChange={(e) => setShowAnswer(e.target.checked)} className="mt-1 h-4 w-4 rounded border-input accent-primary" />
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-bold leading-none">Tampilkan Kunci</span>
+                      <span className="text-xs text-muted-foreground leading-tight">Berikan akses review komprehensif di akhir ujian.</span>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-border/50 bg-muted/10 hover:bg-muted/30 hover:border-primary/30 transition-all">
+                    <input type="checkbox" checked={immediateFeedback} onChange={(e) => setImmediateFeedback(e.target.checked)} className="mt-1 h-4 w-4 rounded border-input accent-primary" />
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-bold leading-none">Feedback Instan</span>
+                      <span className="text-xs text-muted-foreground leading-tight">Munculkan animasi benar/salah saat memilih jawaban.</span>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Card 4: Pengaturan Bantuan Tips (AI) */}
+                <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm space-y-4 hover:border-primary/30 transition-colors">
+                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary border-b border-border/50 pb-3"><HelpCircle className="w-4 h-4" /> Penalti AI Tips</h3>
+                  <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-border/50 bg-muted/10 hover:bg-muted/30 hover:border-primary/30 transition-all mb-4">
+                    <input type="checkbox" checked={enableTipPenalty} onChange={(e) => setEnableTipPenalty(e.target.checked)} className="mt-1 h-4 w-4 rounded border-input accent-primary" />
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-bold leading-none">Aktifkan Pengurangan Nilai</span>
+                      <span className="text-xs text-muted-foreground leading-tight">Pengurangan persentase spesifik tiap penggunaan tips.</span>
+                    </div>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3 opacity-100 transition-opacity" style={{ opacity: enableTipPenalty ? 1 : 0.4 }}>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-muted-foreground">Teori (%)</Label>
+                      <Input value={penaltyTheoryConfig} onChange={(e) => setPenaltyTheoryConfig(e.target.value)} placeholder="10, 15..." className="h-10 text-xs bg-muted/30 font-mono" disabled={!enableTipPenalty}/>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-muted-foreground">Praktik (%)</Label>
+                      <Input value={penaltyPracticeConfig} onChange={(e) => setPenaltyPracticeConfig(e.target.value)} placeholder="15, 20..." className="h-10 text-xs bg-muted/30 font-mono" disabled={!enableTipPenalty}/>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px] xl:h-[700px]">
-              <Card className="flex flex-col shadow-sm h-full">
-                <CardHeader className="py-3 border-b flex-none">
-                  <CardTitle className="text-sm flex items-center justify-between font-semibold">
-                    <span>Markdown Editor</span>
-                    <Badge variant="secondary" className="text-xs font-mono">{rawMarkdown.split('\n').length} baris</Badge>
+              <Card className="flex flex-col shadow-sm h-full border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-colors">
+                <CardHeader className="py-3 px-5 border-b flex-none bg-muted/10">
+                  <CardTitle className="text-sm flex items-center justify-between font-black">
+                    <span className="flex items-center gap-2"><Edit2 className="w-4 h-4 text-primary" /> Markdown Editor</span>
+                    <Badge variant="secondary" className="text-xs font-mono font-bold bg-muted/50">{rawMarkdown.split('\n').length} baris</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 p-0 overflow-hidden relative">
                   <Textarea
                     value={rawMarkdown}
                     onChange={(e) => setRawMarkdown(e.target.value)}
-                    className="absolute inset-0 h-full font-mono text-sm resize-none border-0 focus-visible:ring-0 rounded-none p-4"
+                    className="absolute inset-0 h-full font-mono text-sm resize-none border-0 focus-visible:ring-0 rounded-none p-5 bg-background/50 leading-relaxed"
                     placeholder="Tempel Markdown di sini..."
                   />
                 </CardContent>
               </Card>
 
-              <Card className="flex flex-col shadow-sm h-full">
-                <CardHeader className="py-3 border-b flex-none">
-                  <CardTitle className="text-sm flex items-center justify-between font-semibold">
-                    <span>Live Preview</span>
-                    <Badge variant="secondary" className="text-xs">{questions.length} soal</Badge>
+              <Card className="flex flex-col shadow-sm h-full border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-colors">
+                <CardHeader className="py-3 px-5 border-b flex-none bg-muted/10">
+                  <CardTitle className="text-sm flex items-center justify-between font-black">
+                    <span className="flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Live Preview</span>
+                    <Badge variant="secondary" className="text-xs font-bold bg-muted/50">{questions.length} soal</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
+                <CardContent className="flex-1 p-0 overflow-hidden flex flex-col bg-background/50">
                   {questions.length === 0 ? (
                     <div className="flex items-center justify-center flex-1 text-muted-foreground text-sm">
                       Belum ada soal terdeteksi. Pastikan format markdown benar.
