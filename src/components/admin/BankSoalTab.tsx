@@ -17,6 +17,7 @@ export function BankSoalTab() {
     currentPage, totalQuestions, itemsPerPage, setItemsPerPage,
     handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
+    filterDate, setFilterDate,
     filterLabels, setFilterLabels,
     selectedIds, toggleSelection, selectAllVisible,
     importModalOpen, setImportModalOpen,
@@ -229,7 +230,23 @@ export function BankSoalTab() {
               <h3 className="font-bold flex items-center gap-2"><Filter className="w-4 h-4 text-primary"/> Atur Filter Database</h3>
               <Button variant="ghost" size="icon" onClick={() => setFilterModalOpen(false)}><X className="w-4 h-4"/></Button>
             </div>
-            <div className="p-4 bg-background max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="p-4 bg-background max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
+              <div className="space-y-2 border-b pb-4">
+                <Label className="font-bold text-sm">Filter Berdasarkan Tanggal Pembuatan</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="date" 
+                    value={filterDate} 
+                    onChange={(e) => setFilterDate(e.target.value)} 
+                    className="w-full bg-muted/20"
+                  />
+                  {filterDate && (
+                    <Button variant="outline" size="icon" onClick={() => setFilterDate('')}>
+                      <X className="w-4 h-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              </div>
               <LabelSelector selectedLabels={filterLabels as any} onChange={setFilterLabels as any} />
             </div>
             <div className="p-4 border-t bg-muted/10 flex justify-end">

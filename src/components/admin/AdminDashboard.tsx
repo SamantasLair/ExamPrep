@@ -5,6 +5,7 @@ import { parseMarkdown } from '@/lib/parser';
 import { QuestionRenderer } from '@/components/exam/QuestionRenderer';
 import { LabelSelector, type LabelTaxonomy } from '@/components/exam/LabelSelector';
 import { BankSoalTab } from '@/components/admin/BankSoalTab';
+import { BankSoalPickerModal } from '@/components/admin/BankSoalPickerModal';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ export function AdminDashboard() {
   const [dangerAction, setDangerAction] = useState<string | null>(null);
   const [dangerConfirmText, setDangerConfirmText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [pickerModalOpen, setPickerModalOpen] = useState(false);
 
   const {
     testList,
@@ -124,6 +126,15 @@ export function AdminDashboard() {
       setDangerConfirmText('');
       alert('Eksekusi berhasil.');
     }
+  };
+
+  const handleAddFromBankSoal = (selectedQuestions: any[]) => {
+    let injectedText = '\n\n';
+    selectedQuestions.forEach(q => {
+      injectedText += `${q.body}\n\n`;
+    });
+    setRawMarkdown((prev: string) => prev + injectedText);
+    setPickerModalOpen(false);
   };
 
   const { analysis, loading: analyticsLoading, error: analyticsError } = useAnalyticsVM(selectedTestId);
@@ -955,7 +966,12 @@ export function AdminDashboard() {
               <Card className="flex flex-col shadow-sm h-full border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-colors">
                 <CardHeader className="py-3 px-5 border-b flex-none bg-muted/10">
                   <CardTitle className="text-sm flex items-center justify-between font-black">
-                    <span className="flex items-center gap-2"><Edit2 className="w-4 h-4 text-primary" /> Markdown Editor</span>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-2"><Edit2 className="w-4 h-4 text-primary" /> Markdown Editor</span>
+                      <Button variant="outline" size="sm" onClick={() => setPickerModalOpen(true)} className="h-6 text-[10px] px-2 ml-2 bg-primary/10 hover:bg-primary/20 text-primary border-primary/20">
+                        <Database className="w-3 h-3 mr-1" /> Ambil dari Bank Soal
+                      </Button>
+                    </div>
                     <Badge variant="secondary" className="text-xs font-mono font-bold bg-muted/50">{rawMarkdown.split('\n').length} baris</Badge>
                   </CardTitle>
                 </CardHeader>
@@ -1240,6 +1256,13 @@ export function AdminDashboard() {
         </Tabs>
       </main>
       </div>
+      {pickerModalOpen && (
+        <BankSoalPickerModal 
+          onClose={() => setPickerModalOpen(false)} 
+          onAddSelected={handleAddFromBankSoal} 
+        />
+      )}
+
     </motion.div>
   );
 }

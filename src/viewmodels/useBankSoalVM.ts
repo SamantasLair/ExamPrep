@@ -16,6 +16,7 @@ export function useBankSoalVM() {
 
   // Filtering (Server-Side)
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterDate, setFilterDate] = useState('');
   const [filterLabels, setFilterLabels] = useState<{ difficulty: string[], ageRange: string[], subject: string[] }>({
     difficulty: [],
     ageRange: [],
@@ -55,6 +56,13 @@ export function useBankSoalVM() {
       query = query.contains('labels', { subject: filterLabels.subject });
     }
 
+    if (filterDate) {
+      // Waktu lokal diatur dari 00:00:00 hingga 23:59:59 pada tanggal yang dipilih
+      const startOfDay = new Date(`${filterDate}T00:00:00`).toISOString();
+      const endOfDay = new Date(`${filterDate}T23:59:59.999`).toISOString();
+      query = query.gte('created_at', startOfDay).lte('created_at', endOfDay);
+    }
+
     query = query.order('created_at', { ascending: false }).range(from, to);
 
     const { data, error, count } = await query;
@@ -67,11 +75,11 @@ export function useBankSoalVM() {
       if (count !== null) setTotalQuestions(count);
       setCurrentPage(page);
     }
-  }, [itemsPerPage, searchTerm, filterLabels]);
+  }, [itemsPerPage, searchTerm, filterLabels, filterDate]);
 
   useEffect(() => {
     loadQuestions(1);
-  }, [loadQuestions, searchTerm, filterLabels, itemsPerPage]);
+  }, [loadQuestions, searchTerm, filterLabels, itemsPerPage, filterDate]);
 
   const handleNextPage = () => {
     if (currentPage * itemsPerPage < totalQuestions) loadQuestions(currentPage + 1);
@@ -206,6 +214,7 @@ export function useBankSoalVM() {
     currentPage, totalQuestions, itemsPerPage, setItemsPerPage,
     handleNextPage, handlePrevPage,
     searchTerm, setSearchTerm,
+    filterDate, setFilterDate,
     filterLabels, setFilterLabels,
     selectedIds, toggleSelection, selectAllVisible,
     importModalOpen, setImportModalOpen,
