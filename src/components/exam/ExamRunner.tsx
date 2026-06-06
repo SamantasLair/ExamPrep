@@ -12,15 +12,16 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Menu, X, CheckSquare, Square, AlertCircle } from 'lucide-react';
+import { Menu, X, CheckSquare, Square, AlertCircle, EyeOff, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useExamRunnerVM } from '@/viewmodels/useExamRunnerVM';
+import { useFocusTrackerVM } from '@/viewmodels/useFocusTrackerVM';
 
 interface ExamRunnerProps {
   questions: Question[];
   durationMinutes: number;
   examId: string;
-  onSubmit: (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>) => void;
+  onSubmit: (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>, violations: number) => void;
   immediateFeedback?: boolean;
   enableTipPenalty?: boolean;
   penaltyTheoryConfig?: string;
@@ -31,6 +32,11 @@ export function ExamRunner({
   questions, durationMinutes, examId, onSubmit, immediateFeedback = false,
   enableTipPenalty = false, penaltyTheoryConfig = '', penaltyPracticeConfig = ''
 }: ExamRunnerProps) {
+  const { isFocused, violationCount, maxViolations, acknowledgeWarning } = useFocusTrackerVM(examId, () => {
+    // If it reaches max violations, we auto submit
+    handleSubmit();
+  });
+
   const {
     answers,
     tipsUsed,
@@ -46,7 +52,7 @@ export function ExamRunner({
     progressPct,
     isTimeLow
   } = useExamRunnerVM({
-    questions, durationMinutes, examId, onSubmit, enableTipPenalty, penaltyTheoryConfig, penaltyPracticeConfig
+    questions, durationMinutes, examId, onSubmit, violationCount, enableTipPenalty, penaltyTheoryConfig, penaltyPracticeConfig
   });
 
   function formatTime(seconds: number): string {
@@ -80,6 +86,15 @@ export function ExamRunner({
     <div className="h-full flex overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-muted/10 relative transition-all duration-300">
+        
+        {/* Offline & Violation Banners */}
+        {violationCount > 0 && (
+          <div className="bg-destructive/10 text-destructive px-4 py-2 text-xs font-bold flex items-center justify-center gap-2 border-b border-destructive/20 z-20">
+            <AlertCircle className="w-4 h-4" />
+            Peringatan Integritas: Anda terdeteksi keluar dari ujian ({violationCount}/{maxViolations} kali). Jika melampaui batas, ujian akan dikumpulkan otomatis.
+          </div>
+        )}
+
         {/* Top Bar (Sticky, Denser) */}
         <div className="flex-none z-10 sticky top-0 bg-background/90 backdrop-blur border-b shadow-sm">
           <div className="py-2 px-3 md:px-6 flex items-center justify-between gap-3 flex-wrap">
@@ -233,6 +248,20 @@ export function ExamRunner({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Focus Tracker Overlay */}
+      {!isFocused && (
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex flex-col items-center justify-center p-4 text-center">
+          <EyeOff className="w-16 h-16 text-destructive mb-4 animate-pulse" />
+          <h2 className="text-2xl font-bold text-destructive mb-2">Peringatan Integritas Ujian!</h2>
+          <p className="max-w-md text-muted-foreground mb-6">
+            Anda terdeteksi berpindah tab atau meminimalkan browser. Tindakan ini dicatat sebagai pelanggaran.
+          </p>
+          <Button size="lg" onClick={acknowledgeWarning} className="font-bold">
+            Kembali ke Ujian
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

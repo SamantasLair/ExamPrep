@@ -16,6 +16,7 @@ export default function ExamPage() {
     error,
     submitted,
     finalScore,
+    isOfflineSync,
     handleSubmit,
     router
   } = useExamPageVM(examId);
@@ -42,6 +43,11 @@ export default function ExamPage() {
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center space-y-3">
           <h1 className="text-2xl font-bold">Ujian Selesai!</h1>
+          {isOfflineSync && (
+            <div className="bg-amber-100 text-amber-800 p-3 rounded-md text-sm mb-4 font-medium border border-amber-200">
+              Menunggu Koneksi Internet... Jawaban Anda tersimpan secara offline dan akan dikirim otomatis saat koneksi pulih.
+            </div>
+          )}
           <p className="text-4xl font-bold text-primary">{finalScore}</p>
           <p className={`text-sm font-semibold ${finalScore >= (test?.passing_grade ?? 70) ? 'text-green-600' : 'text-red-500'}`}>
             KKM: {test?.passing_grade ?? 70} {finalScore >= (test?.passing_grade ?? 70) ? 'LULUS' : 'BELUM LULUS'}

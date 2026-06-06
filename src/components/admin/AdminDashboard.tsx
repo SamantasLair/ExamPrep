@@ -16,9 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { TestRow, StudentRow } from '@/lib/types';
 import { motion } from 'framer-motion';
 import { useAdminDashboardVM } from '@/viewmodels/useAdminDashboardVM';
+import { useAnalyticsVM } from '@/viewmodels/useAnalyticsVM';
 
 export function AdminDashboard() {
   const {
@@ -28,10 +28,10 @@ export function AdminDashboard() {
     studentList,
     stuPrefix, setStuPrefix,
     stuCount, setStuCount,
-    generatingStu,
-    stuMsg,
+    generatingStu, setGeneratingStu,
+    stuMsg, setStuMsg,
     editId,
-    markdown, setMarkdown,
+    rawMarkdown, setRawMarkdown,
     examTitle, setExamTitle,
     duration, setDuration,
     passingGrade, setPassingGrade,
@@ -78,15 +78,17 @@ export function AdminDashboard() {
     handleDailyToggle,
     handleCreateNew,
     handleEdit,
+    handleAnalytics,
     handleDelete,
     handleSave,
     handleCopyPrompt,
     loadTests,
     loadAttempts,
     loadStudents,
-    setStuMsg,
-    setGeneratingStu,
+    selectedTestId,
   } = useAdminDashboardVM();
+
+  const { analysis, loading: analyticsLoading, error: analyticsError } = useAnalyticsVM(selectedTestId);
 
   return (
     <motion.div 
@@ -444,6 +446,9 @@ export function AdminDashboard() {
              <Button variant={activeTab === 'editor' ? 'default' : 'ghost'} onClick={() => setActiveTab('editor')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
                <Settings2 className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">{editId ? 'Edit Ujian' : 'Editor Baru'}</span>
              </Button>
+             <Button variant={activeTab === 'analytics' ? 'default' : 'ghost'} onClick={() => setActiveTab('analytics')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+               <Columns className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Analisis Butir Soal</span>
+             </Button>
              <Button variant={activeTab === 'prompt' ? 'default' : 'ghost'} onClick={() => setActiveTab('prompt')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
                <Type className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Prompt Generator</span>
              </Button>
@@ -481,6 +486,9 @@ export function AdminDashboard() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleAnalytics(test.id)}>
+                          Analisis
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => handleEdit(test)}>
                           Edit
                         </Button>
@@ -629,6 +637,58 @@ export function AdminDashboard() {
             </div>
           </TabsContent>
 
+          {/* TAB: ANALISIS SOAL (ITEM RESPONSE THEORY) */}
+          <TabsContent value="analytics" className="flex-1 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Analisis Butir Soal (IRT)</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Mengevaluasi tingkat kesukaran ($p$) dari ujian yang dipilih.
+                </p>
+              </div>
+              <Button variant="outline" onClick={() => setActiveTab('tests')}>Kembali ke Daftar</Button>
+            </div>
+
+            <div className="rounded-md border bg-card overflow-hidden">
+              {analyticsLoading ? (
+                <div className="p-8 text-center text-muted-foreground animate-pulse">Menghitung analitik...</div>
+              ) : analyticsError ? (
+                <div className="p-8 text-center text-destructive">{analyticsError}</div>
+              ) : analysis.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">Belum ada data pengerjaan yang cukup untuk dianalisis, atau ujian tidak dipilih.</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-5 gap-4 p-4 border-b bg-muted/30 font-semibold text-sm">
+                    <div>No. Soal (ID)</div>
+                    <div>Tipe Soal</div>
+                    <div className="text-center">Tingkat Kesukaran ($p$)</div>
+                    <div className="text-center">Status</div>
+                    <div className="text-right">Peserta Benar</div>
+                  </div>
+                  <div className="divide-y max-h-[600px] overflow-y-auto">
+                    {analysis.map((item, idx) => (
+                      <div key={item.questionId} className="grid grid-cols-5 gap-4 p-4 items-center text-sm hover:bg-muted/50 transition-colors">
+                        <div className="font-medium text-muted-foreground">Q{idx + 1} ({item.questionId})</div>
+                        <div className="text-xs">{item.type}</div>
+                        <div className="text-center font-mono font-bold">
+                          {(item.p).toFixed(2)}
+                        </div>
+                        <div className="text-center">
+                          {item.status === 'too_hard' && <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/20">Terlalu Sulit ($p &lt; 0.3$)</Badge>}
+                          {item.status === 'too_easy' && <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">Terlalu Mudah ($p &gt; 0.8$)</Badge>}
+                          {item.status === 'ideal' && <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">Ideal</Badge>}
+                        </div>
+                        <div className="text-right text-xs">
+                          {item.correctAttempts} / {item.totalAttempts}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </TabsContent>
+
           {/* TAB: EDITOR */}
           <TabsContent value="editor" className="flex-1 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {saveMsg && (
@@ -727,13 +787,13 @@ export function AdminDashboard() {
                 <CardHeader className="py-3 border-b flex-none">
                   <CardTitle className="text-sm flex items-center justify-between font-semibold">
                     <span>Markdown Editor</span>
-                    <Badge variant="secondary" className="text-xs font-mono">{markdown.split('\n').length} baris</Badge>
+                    <Badge variant="secondary" className="text-xs font-mono">{rawMarkdown.split('\n').length} baris</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 p-0 overflow-hidden relative">
                   <Textarea
-                    value={markdown}
-                    onChange={(e) => setMarkdown(e.target.value)}
+                    value={rawMarkdown}
+                    onChange={(e) => setRawMarkdown(e.target.value)}
                     className="absolute inset-0 h-full font-mono text-sm resize-none border-0 focus-visible:ring-0 rounded-none p-4"
                     placeholder="Tempel Markdown di sini..."
                   />

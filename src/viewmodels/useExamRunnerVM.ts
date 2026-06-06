@@ -20,7 +20,8 @@ export function useExamRunnerVM({
   questions: Question[];
   durationMinutes: number;
   examId: string;
-  onSubmit: (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>) => void;
+  violationCount: number;
+  onSubmit: (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>, violations: number) => void;
   enableTipPenalty?: boolean;
   penaltyTheoryConfig?: string;
   penaltyPracticeConfig?: string;
@@ -104,8 +105,8 @@ export function useExamRunnerVM({
     }
 
     localStorage.removeItem(getStorageKey(examId));
-    onSubmit(answers, score, tipsUsedObj);
-  }, [answers, calculateScore, examId, onSubmit, tipsUsed, questions]);
+    onSubmit(answers, score, tipsUsedObj, violationCount);
+  }, [answers, calculateScore, examId, onSubmit, tipsUsed, questions, violationCount]);
 
   useEffect(() => { submitRef.current = handleSubmit; }, [handleSubmit]);
 

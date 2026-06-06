@@ -3,6 +3,7 @@ import { parseMarkdown } from '@/lib/parser';
 import type { LabelTaxonomy } from '@/components/exam/LabelSelector';
 import { supabase } from '@/lib/supabase';
 import type { TestRow, StudentRow } from '@/lib/types';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export const SAMPLE_MARKDOWN = `# Q1 (PILGAN)
 Jika $f(x) = 2x^2 + 3x - 5$, maka nilai $f(2)$ adalah...
@@ -57,10 +58,10 @@ function getTodayRange() {
 export function useAdminDashboardVM() {
   const [activeTab, setActiveTab] = useState('tests'); // 'tests' | 'attempts' | 'editor'
   
-  // Lists
   const [testList, setTestList] = useState<TestRow[]>([]);
   const [attemptList, setAttemptList] = useState<any[]>([]);
   const [studentList, setStudentList] = useState<StudentRow[]>([]);
+  const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
 
   // Generator State
   const [stuPrefix, setStuPrefix] = useState('SMA-');
@@ -70,7 +71,8 @@ export function useAdminDashboardVM() {
 
   // Editor State
   const [editId, setEditId] = useState<string | null>(null);
-  const [markdown, setMarkdown] = useState(SAMPLE_MARKDOWN);
+  const [rawMarkdown, setRawMarkdown] = useState(SAMPLE_MARKDOWN);
+  const debouncedMarkdown = useDebounce(rawMarkdown, 500);
   const [examTitle, setExamTitle] = useState('');
   const [duration, setDuration] = useState(60);
   const [passingGrade, setPassingGrade] = useState(70);
@@ -86,7 +88,7 @@ export function useAdminDashboardVM() {
   const [currentPreviewIdx, setCurrentPreviewIdx] = useState(0);
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
   const prevQuestionsLen = useRef(0);
-  const previousMarkdownRef = useRef(markdown);
+  const previousMarkdownRef = useRef(debouncedMarkdown);
 
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
@@ -120,11 +122,11 @@ export function useAdminDashboardVM() {
 
   const questions = useMemo(() => {
     try {
-      return parseMarkdown(markdown);
+      return parseMarkdown(debouncedMarkdown);
     } catch {
       return [];
     }
-  }, [markdown]);
+  }, [debouncedMarkdown]);
 
   useEffect(() => {
     if (questions.length !== prevQuestionsLen.current) {
@@ -135,21 +137,21 @@ export function useAdminDashboardVM() {
 
   // Auto-Delete Watcher
   useEffect(() => {
-    if (markdown.includes('[Delete this]') && !previousMarkdownRef.current.includes('[Delete this]')) {
+    if (debouncedMarkdown.includes('[Delete this]') && !previousMarkdownRef.current.includes('[Delete this]')) {
       setTimeout(() => {
         const ok = window.confirm('Sistem mendeteksi tag "[Delete this]" (Kesalahan AI) di teks.\\n\\nApakah Anda ingin sistem menghapus otomatis soal-soal tersebut tanpa mengubah soal lainnya?');
         if (ok) {
-          const parts = markdown.split(/(?=#\\s*Q\\d+\\s*\\((?:PILGAN|ESSAY)\\)\\s*)/i);
+          const parts = debouncedMarkdown.split(/(?=#\\s*Q\\d+\\s*\\((?:PILGAN|ESSAY)\\)\\s*)/i);
           const cleanedParts = parts.filter(part => !part.includes('[Delete this]'));
-          setMarkdown(cleanedParts.join('').trimStart());
+          setRawMarkdown(cleanedParts.join('').trimStart());
         }
       }, 50);
     }
-    previousMarkdownRef.current = markdown;
-  }, [markdown]);
+    previousMarkdownRef.current = debouncedMarkdown;
+  }, [debouncedMarkdown]);
 
   const loadTests = async () => {
-    const { data } = await supabase.from('tests').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('tests').select('*').order('created_at', { ascending: false }).limit(50);
     if (data) setTestList(data as TestRow[]);
   };
 
@@ -157,12 +159,13 @@ export function useAdminDashboardVM() {
     const { data } = await supabase
       .from('attempts')
       .select('id, test_id, score, status, finished_at, tests(title)')
-      .order('finished_at', { ascending: false });
+      .order('finished_at', { ascending: false })
+      .limit(50);
     if (data) setAttemptList(data);
   };
 
   const loadStudents = async () => {
-    const { data } = await supabase.from('students').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('students').select('*').order('created_at', { ascending: false }).limit(50);
     if (data) setStudentList(data);
   };
 
@@ -217,7 +220,7 @@ export function useAdminDashboardVM() {
   const handleCreateNew = () => {
     setEditId(null);
     setExamTitle('');
-    setMarkdown(SAMPLE_MARKDOWN);
+    setRawMarkdown(SAMPLE_MARKDOWN);
     setDuration(60);
     setPassingGrade(70);
     setStartAt('');
@@ -236,7 +239,7 @@ export function useAdminDashboardVM() {
   const handleEdit = (t: TestRow) => {
     setEditId(t.id);
     setExamTitle(t.title);
-    setMarkdown(t.raw_markdown);
+    setRawMarkdown(t.raw_markdown);
     setDuration(t.duration_minutes);
     setPassingGrade(t.passing_grade);
     setStartAt(t.start_at ? t.start_at.slice(0, 16) : '');
@@ -252,6 +255,11 @@ export function useAdminDashboardVM() {
     setActiveTab('editor');
   };
 
+  const handleAnalytics = (id: string) => {
+    setSelectedTestId(id);
+    setActiveTab('analytics');
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('Yakin ingin menghapus ujian ini secara permanen?')) return;
     await supabase.from('tests').delete().eq('id', id);
@@ -263,9 +271,17 @@ export function useAdminDashboardVM() {
     setSaving(true);
     setSaveMsg('');
     
+    // Extract correct answers for BIG DATA Doctrine (IRT Analytics)
+    const correctAnswers: Record<string, string> = {};
+    questions.forEach(q => {
+      if (q.type === 'MCQ' && q.correctAnswer) {
+        correctAnswers[q.id.toString()] = q.correctAnswer;
+      }
+    });
+
     const payload = {
       title: examTitle.trim(),
-      raw_markdown: markdown,
+      raw_markdown: rawMarkdown,
       duration_minutes: duration,
       passing_grade: passingGrade,
       start_at: startAt || null,
@@ -275,6 +291,7 @@ export function useAdminDashboardVM() {
       enable_tip_penalty: enableTipPenalty,
       penalty_theory_config: penaltyTheoryConfig,
       penalty_practice_config: penaltyPracticeConfig,
+      correct_answers: correctAnswers
     };
 
     let errorObj = null;
@@ -306,7 +323,7 @@ export function useAdminDashboardVM() {
         setActiveTab('tests');
       }, 1500);
     }
-  }, [editId, examTitle, markdown, duration, passingGrade, startAt, endAt, showAnswer, immediateFeedback, enableTipPenalty, penaltyTheoryConfig, penaltyPracticeConfig]);
+  }, [editId, examTitle, rawMarkdown, questions, duration, passingGrade, startAt, endAt, showAnswer, immediateFeedback, enableTipPenalty, penaltyTheoryConfig, penaltyPracticeConfig]);
 
   // Generators
   const generatedPrompt = useMemo(() => {
@@ -463,7 +480,7 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
     generatingStu, setGeneratingStu,
     stuMsg, setStuMsg,
     editId,
-    markdown, setMarkdown,
+    rawMarkdown, setRawMarkdown,
     examTitle, setExamTitle,
     duration, setDuration,
     passingGrade, setPassingGrade,
@@ -503,15 +520,16 @@ ATURAN KRITIS (TIDAK BOLEH DILANGGAR)
     copiedPrompt,
     promptLabels, setPromptLabels,
     tipsRange, setTipsRange,
-    
     // Computed & Methods
     questions,
     generatedPrompt,
     printDocumentStyle,
+    selectedTestId, setSelectedTestId,
     handleGenerateStudents,
     handleDailyToggle,
     handleCreateNew,
     handleEdit,
+    handleAnalytics,
     handleDelete,
     handleSave,
     handleCopyPrompt,

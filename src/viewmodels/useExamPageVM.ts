@@ -12,6 +12,7 @@ export function useExamPageVM(examId: string) {
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [isOfflineSync, setIsOfflineSync] = useState(false);
 
   useEffect(() => {
     async function loadExam() {
@@ -36,14 +37,14 @@ export function useExamPageVM(examId: string) {
     loadExam();
   }, [examId]);
 
-  const handleSubmit = useCallback(async (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>) => {
+  const handleSubmit = useCallback(async (answers: Record<string, string>, score: number, tipsUsedData: Record<string, { theory: number; practice: number }>, violationCount: number) => {
     let studentId = null;
     try {
       const savedStudentStr = localStorage.getItem('exaprep_student');
       if (savedStudentStr) studentId = JSON.parse(savedStudentStr).id;
     } catch { /* ignore */ }
 
-    const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert({
+    const payload = {
       test_id: examId,
       student_id: studentId,
       responses: answers,
@@ -51,11 +52,36 @@ export function useExamPageVM(examId: string) {
       score,
       status: 'finished',
       finished_at: new Date().toISOString(),
-    }).select().single();
+      violation_count: violationCount
+    };
+
+    if (!navigator.onLine) {
+      // OFFLINE MODE
+      try {
+        localStorage.setItem(`exaprep_offline_sync_${examId}`, JSON.stringify(payload));
+        setIsOfflineSync(true);
+        setFinalScore(score);
+        setSubmitted(true);
+      } catch (e) {
+        alert('Gagal menyimpan mode offline (Storage penuh).');
+      }
+      return;
+    }
+
+    // ONLINE MODE
+    const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert(payload).select().single();
 
     if (attemptError || !attemptData) {
-      alert('Gagal Mengirim Ujian: RLS Supabase memblokir INSERT data ujian. Hubungi administrator (buat Policy INSERT untuk tabel attempts di Supabase).');
-      return; // Halt submission so they don't lose progress
+      if (attemptError.message.toLowerCase().includes('fetch') || attemptError.message.toLowerCase().includes('network')) {
+        // Network error during fetch
+        localStorage.setItem(`exaprep_offline_sync_${examId}`, JSON.stringify(payload));
+        setIsOfflineSync(true);
+        setFinalScore(score);
+        setSubmitted(true);
+        return;
+      }
+      alert(`Gagal Mengirim Ujian: ${attemptError.message}`);
+      return; // Halt submission
     }
 
     setFinalScore(score);
@@ -66,6 +92,32 @@ export function useExamPageVM(examId: string) {
     } catch { /* ignore */ }
   }, [examId]);
 
+  // Background Sync Mechanism
+  useEffect(() => {
+    const handleOnline = async () => {
+      const offlineData = localStorage.getItem(`exaprep_offline_sync_${examId}`);
+      if (offlineData) {
+        try {
+          const payload = JSON.parse(offlineData);
+          payload.offline_sync_at = new Date().toISOString();
+          
+          const { data, error } = await supabase.from('attempts').insert(payload).select().single();
+          if (!error && data) {
+            localStorage.removeItem(`exaprep_offline_sync_${examId}`);
+            localStorage.setItem(`exaprep_finished_${examId}`, data.id);
+            setIsOfflineSync(false);
+          }
+        } catch { /* ignore */ }
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    // Attempt sync immediately if it was stuck
+    if (navigator.onLine) handleOnline();
+
+    return () => window.removeEventListener('online', handleOnline);
+  }, [examId]);
+
   return {
     test,
     questions,
@@ -73,6 +125,7 @@ export function useExamPageVM(examId: string) {
     error,
     submitted,
     finalScore,
+    isOfflineSync,
     handleSubmit,
     router
   };

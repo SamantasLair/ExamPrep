@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import type { Question } from '@/lib/types';
 import { ContentBlockList } from './ContentBlockRenderer';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -32,7 +33,7 @@ interface QuestionRendererProps {
   tipPenaltyPractice?: string;
 }
 
-export function QuestionRenderer({
+export const QuestionRenderer = memo(function QuestionRenderer({
   question,
   answer,
   onAnswer,
@@ -263,5 +264,5 @@ export function QuestionRenderer({
       </CardContent>
     </Card>
   );
-}
+});
 
