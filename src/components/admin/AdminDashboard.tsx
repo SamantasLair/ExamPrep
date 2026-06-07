@@ -1027,8 +1027,8 @@ export function AdminDashboard() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px] xl:h-[700px]">
-              <Card className="flex flex-col shadow-sm h-full border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-colors">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[500px] lg:h-[600px] xl:h-[700px]">
+              <Card className="flex flex-col shadow-sm h-[500px] lg:h-full border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-colors">
                 <CardHeader className="py-3 px-5 border-b flex-none bg-muted/10">
                   <CardTitle className="text-sm flex items-center justify-between font-black">
                     <div className="flex items-center gap-2">
@@ -1050,7 +1050,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="flex flex-col shadow-sm h-full border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-colors">
+              <Card className="flex flex-col shadow-sm h-[500px] lg:h-full border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-colors">
                 <CardHeader className="py-3 px-5 border-b flex-none bg-muted/10">
                   <CardTitle className="text-sm flex items-center justify-between font-black">
                     <span className="flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Live Preview</span>

@@ -64,7 +64,7 @@ export default function ReviewPage() {
       className="min-h-screen bg-background"
     >
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-bold">Pembahasan</h1>
             <Badge variant="outline">{test?.title}</Badge>
