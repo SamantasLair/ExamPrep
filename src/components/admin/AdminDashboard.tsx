@@ -856,55 +856,71 @@ export function AdminDashboard() {
           </TabsContent>
 
           {/* TAB: ANALISIS SOAL (ITEM RESPONSE THEORY) */}
-          <TabsContent value="analytics" className="flex-1 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-4">
+          <TabsContent value="analytics" className="flex-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-semibold">Analisis Butir Soal (IRT)</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Mengevaluasi tingkat kesukaran ($p$) dari ujian yang dipilih.
-                </p>
+                <h2 className="text-2xl font-black tracking-tight">Analisis Butir Soal (IRT)</h2>
+                <p className="text-sm text-muted-foreground mt-1">Mengevaluasi tingkat kesukaran ($p$) untuk memastikan kalibrasi ujian yang presisi.</p>
               </div>
-              <Button variant="outline" onClick={() => setActiveTab('tests')}>Kembali ke Daftar</Button>
+              <Button onClick={() => setActiveTab('tests')} variant="outline" className="gap-2 h-10 px-6 font-bold rounded-full">
+                Kembali ke Daftar
+              </Button>
             </div>
 
-            <div className="rounded-md border bg-card overflow-hidden">
-              {analyticsLoading ? (
-                <div className="p-8 text-center text-muted-foreground animate-pulse">Menghitung analitik...</div>
-              ) : analyticsError ? (
-                <div className="p-8 text-center text-destructive">{analyticsError}</div>
-              ) : analysis.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">Belum ada data pengerjaan yang cukup untuk dianalisis, atau ujian tidak dipilih.</div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-5 gap-4 p-4 border-b bg-muted/30 font-semibold text-sm">
-                    <div>No. Soal (ID)</div>
-                    <div>Tipe Soal</div>
-                    <div className="text-center">Tingkat Kesukaran ($p$)</div>
-                    <div className="text-center">Status</div>
-                    <div className="text-right">Peserta Benar</div>
-                  </div>
-                  <div className="divide-y max-h-[600px] overflow-y-auto">
-                    {analysis.map((item, idx) => (
-                      <div key={item.questionId} className="grid grid-cols-5 gap-4 p-4 items-center text-sm hover:bg-muted/50 transition-colors">
-                        <div className="font-medium text-muted-foreground">Q{idx + 1} ({item.questionId})</div>
-                        <div className="text-xs">{item.type}</div>
-                        <div className="text-center font-mono font-bold">
-                          {(item.p).toFixed(2)}
+            {analyticsLoading ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-2xl bg-muted/10 animate-pulse">
+                <Columns className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-bold">Menganalisis Pola Respons...</h3>
+              </div>
+            ) : analyticsError ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-destructive/20 bg-destructive/5 rounded-2xl">
+                <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
+                <h3 className="text-lg font-bold text-destructive">Gagal Menarik Data</h3>
+                <p className="text-sm text-muted-foreground">{analyticsError}</p>
+              </div>
+            ) : analysis.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-2xl bg-muted/10">
+                <LineChart className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-bold">Data Belum Mencukupi</h3>
+                <p className="text-sm text-muted-foreground">Belum ada populasi percobaan yang memadai untuk menghitung tingkat kesukaran.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {analysis.map((item, idx) => (
+                  <Card key={item.questionId} className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 hover:border-primary/50 overflow-hidden flex flex-col rounded-2xl bg-card">
+                    <CardHeader className="p-4 border-b bg-gradient-to-br from-muted/30 to-muted/10 pb-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Nomor Soal</span>
+                          <CardTitle className="text-lg font-black line-clamp-1 leading-tight">Q{idx + 1}</CardTitle>
                         </div>
-                        <div className="text-center">
-                          {item.status === 'too_hard' && <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/20">Terlalu Sulit ($p &lt; 0.3$)</Badge>}
-                          {item.status === 'too_easy' && <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">Terlalu Mudah ($p &gt; 0.8$)</Badge>}
-                          {item.status === 'ideal' && <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">Ideal</Badge>}
-                        </div>
-                        <div className="text-right text-xs">
-                          {item.correctAttempts} / {item.totalAttempts}
-                        </div>
+                        {item.status === 'too_hard' && <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 font-bold shadow-sm text-[10px]">Sangat Sulit</Badge>}
+                        {item.status === 'too_easy' && <Badge variant="outline" className="border-green-500 text-green-600 bg-green-500/10 font-bold text-[10px]">Terlalu Mudah</Badge>}
+                        {item.status === 'ideal' && <Badge variant="secondary" className="bg-blue-500 hover:bg-blue-600 text-white font-bold shadow-sm text-[10px]">Ideal</Badge>}
                       </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+                    </CardHeader>
+                    <CardContent className="p-5 flex-1 flex flex-col items-center justify-center relative overflow-hidden bg-background">
+                       <div className="relative z-10 flex flex-col items-center">
+                         <span className={`text-5xl font-black tracking-tighter ${item.status === 'too_hard' ? 'text-destructive' : item.status === 'ideal' ? 'text-blue-500' : 'text-green-500'}`}>
+                           {(item.p).toFixed(2)}
+                         </span>
+                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-2">Tingkat Kesukaran ($p$)</span>
+                       </div>
+                    </CardContent>
+                    <div className="p-3 border-t bg-muted/10 grid grid-cols-2 gap-2 text-xs font-medium text-muted-foreground mt-auto">
+                      <div className="flex flex-col px-2">
+                        <span className="text-[10px] uppercase">Tipe Soal</span>
+                        <span className="font-bold text-foreground line-clamp-1">{item.type}</span>
+                      </div>
+                      <div className="flex flex-col px-2 border-l border-border/50">
+                        <span className="text-[10px] uppercase">Rasio Jawaban Benar</span>
+                        <span className="font-bold text-foreground line-clamp-1">{item.correctAttempts} / {item.totalAttempts}</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* TAB: EDITOR */}
@@ -1109,191 +1125,165 @@ export function AdminDashboard() {
           </TabsContent>
 
           {/* TAB: PROMPT GENERATOR */}
+          {/* TAB: PROMPT GENERATOR */}
           <TabsContent value="prompt" className="flex-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold tracking-tight">AI Prompt Generator</h2>
-                <p className="text-muted-foreground mt-2">Buat prompt spesifik untuk AI Generator sesuai standar format ExaPrep.</p>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight">AI Prompt Generator</h2>
+                <p className="text-sm text-muted-foreground mt-1">Rakitan prompt spesifik untuk AI sesuai dengan standar ekosistem ExaPrep.</p>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8">
-                <Card className="shadow-sm">
-                  <CardHeader className="border-b pb-4">
-                    <CardTitle className="text-lg">Karakteristik Soal</CardTitle>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6">
+              <Card className="border-border/50 shadow-sm hover:border-primary/30 transition-colors bg-card">
+                <CardHeader className="p-5 border-b bg-muted/20 pb-4">
+                  <CardTitle className="text-base font-black flex items-center gap-2"><Settings2 className="w-5 h-5 text-primary" /> Karakteristik Soal</CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 space-y-5">
+                  <div className="space-y-2 relative">
+                    <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Tipe Soal 
+                      <span className="group relative cursor-help">
+                        <HelpCircle className="w-3.5 h-3.5 text-primary/70" />
+                        <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-64 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50 normal-case font-medium">
+                          Pilih tipe soal yang akan di-generate oleh AI. Pastikan AI mengetahui format yang diinginkan seperti (PILGAN) atau (ESSAY).
+                        </span>
+                      </span>
+                    </Label>
+                    <select 
+                      className="w-full flex h-10 rounded-md border border-border/50 bg-muted/30 px-3 py-2 text-sm ring-offset-background focus-visible:bg-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-semibold"
+                      value={promptType} onChange={(e) => setPromptType(e.target.value)}
+                    >
+                      <option value="Pilihan Ganda (PILGAN)">Pilihan Ganda (PILGAN)</option>
+                      <option value="Esai (ESSAY)">Esai (ESSAY)</option>
+                      <option value="Campuran Teks dan Gambar">Campuran (Pilihan Ganda & Esai)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2 relative">
+                    <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Jumlah Soal
+                      <span className="group relative cursor-help">
+                        <HelpCircle className="w-3.5 h-3.5 text-primary/70" />
+                        <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50 normal-case font-medium">
+                          Sangat disarankan membatasi maksimal 15 soal per prompt agar respon AI tidak terpotong.
+                        </span>
+                      </span>
+                    </Label>
+                    <Input placeholder="Cth: 10" value={promptCount} onChange={(e) => setPromptCount(e.target.value)} className="h-10 bg-muted/30 focus-visible:bg-background transition-colors font-mono font-bold" />
+                  </div>
+
+                  <div className="space-y-2 relative">
+                    <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Rentang Bantuan Tips
+                      <span className="group relative cursor-help">
+                        <HelpCircle className="w-3.5 h-3.5 text-primary/70" />
+                        <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50 normal-case font-medium">
+                          Jumlah tips yang akan dihasilkan AI per soal.
+                        </span>
+                      </span>
+                    </Label>
+                    <select 
+                      className="w-full flex h-10 rounded-md border border-border/50 bg-muted/30 px-3 py-2 text-sm ring-offset-background focus-visible:bg-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-semibold"
+                      value={isCustomTips ? "custom" : tipsRange} 
+                      onChange={(e) => {
+                        if (e.target.value === 'custom') {
+                          setIsCustomTips(true);
+                          setTipsRange('0-5');
+                        } else {
+                          setIsCustomTips(false);
+                          setTipsRange(e.target.value);
+                        }
+                      }}
+                    >
+                      <option value="0-0">0-0 (Tanpa Tips)</option>
+                      <option value="0-1">0-1 (Sedikit Bantuan)</option>
+                      <option value="1-2">1-2 (Bantuan Menengah)</option>
+                      <option value="1-3">1-3 (Bantuan Ekstra)</option>
+                      <option value="2-4">2-4 (Banyak Bantuan)</option>
+                      <option value="0-5">0-5 (Variasi Lebar)</option>
+                      <option value="custom">Kustom...</option>
+                    </select>
+                    {isCustomTips && (
+                      <div className="pt-2 animate-in fade-in slide-in-from-top-2">
+                        <Input 
+                          placeholder="Ketik rentang (misal: 3-5, 0-10)..." 
+                          value={tipsRange} 
+                          onChange={(e) => setTipsRange(e.target.value)} 
+                          className="h-10 bg-muted/30 focus-visible:bg-background transition-colors font-mono font-bold"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 relative">
+                    <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Bahasa
+                    </Label>
+                    <Input placeholder="Cth: Indonesia (Baku)" value={promptLang} onChange={(e) => setPromptLang(e.target.value)} className="h-10 bg-muted/30 focus-visible:bg-background transition-colors font-semibold" />
+                  </div>
+
+                  <div className="space-y-2 relative">
+                    <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Tingkat Soal / Level
+                    </Label>
+                    <Input placeholder="Cth: SD Kelas 6, Olimpiade Matematika" value={promptLevel} onChange={(e) => setPromptLevel(e.target.value)} className="h-10 bg-muted/30 focus-visible:bg-background transition-colors font-semibold" />
+                  </div>
+
+                  <div className="space-y-2 relative">
+                    <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Konteks Penting Topik
+                    </Label>
+                    <Textarea 
+                      placeholder="Cth: Semua soal wajib berisi Diagram Interaktif (JSXGraph), topik geometri lingkaran." 
+                      value={promptContext} 
+                      onChange={(e) => setPromptContext(e.target.value)} 
+                      className="h-24 resize-none bg-muted/30 focus-visible:bg-background transition-colors font-semibold"
+                    />
+                  </div>
+
+                  <div className="space-y-2 relative">
+                    <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Konteks Lainnya (Opsional)
+                    </Label>
+                    <Textarea 
+                      placeholder="Cth: Hindari soal yang terlalu trivial." 
+                      value={promptOther} 
+                      onChange={(e) => setPromptOther(e.target.value)} 
+                      className="h-24 resize-none bg-muted/30 focus-visible:bg-background transition-colors font-semibold"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 relative pt-4 border-t border-border/50">
+                    <Label className="flex items-center gap-2 mb-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Taxonomi & Label Soal
+                    </Label>
+                    <LabelSelector selectedLabels={promptLabels} onChange={setPromptLabels} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex flex-col h-full space-y-6">
+                <Card className="border-border/50 shadow-sm hover:border-primary/30 transition-colors bg-card flex-1 flex flex-col overflow-hidden">
+                  <CardHeader className="p-4 border-b bg-gradient-to-br from-primary/10 to-primary/5 pb-3">
+                    <CardTitle className="text-base font-black flex justify-between items-center text-primary">
+                      <div className="flex items-center gap-2">
+                        <Type className="w-5 h-5" /> Hasil Prompt AI
+                      </div>
+                      <Button size="sm" onClick={handleCopyPrompt} className={`gap-2 transition-colors font-bold shadow-sm ${copiedPrompt ? 'bg-green-500 hover:bg-green-600' : 'bg-primary hover:bg-primary/90'}`}>
+                        {copiedPrompt ? <CheckCircle2 className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
+                        {copiedPrompt ? 'Tersalin!' : 'Salin Teks'}
+                      </Button>
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-5 pt-6">
-                    <div className="space-y-2 relative">
-                      <Label className="flex items-center gap-2">
-                        Tipe Soal 
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-64 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Pilih tipe soal yang akan di-generate oleh AI. Pastikan AI mengetahui format yang diinginkan seperti (PILGAN) atau (ESSAY).
-                          </span>
-                        </span>
-                      </Label>
-                      <select 
-                        className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        value={promptType} onChange={(e) => setPromptType(e.target.value)}
-                      >
-                        <option value="Pilihan Ganda (PILGAN)">Pilihan Ganda (PILGAN)</option>
-                        <option value="Esai (ESSAY)">Esai (ESSAY)</option>
-                        <option value="Campuran Teks dan Gambar">Campuran (Pilihan Ganda & Esai)</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-2 relative">
-                      <Label className="flex items-center gap-2">
-                        Jumlah Soal
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Masukkan jumlah total soal. Sangat disarankan membatasi maksimal 15 soal per prompt agar respon AI tidak terpotong.
-                          </span>
-                        </span>
-                      </Label>
-                      <Input placeholder="Cth: 10" value={promptCount} onChange={(e) => setPromptCount(e.target.value)} />
-                    </div>
-
-                    <div className="space-y-2 relative">
-                      <Label className="flex items-center gap-2">
-                        Rentang Bantuan Tips
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Jumlah tips yang akan dihasilkan AI per soal. Tips bisa berupa teori (rumus) atau praktik (langkah).
-                          </span>
-                        </span>
-                      </Label>
-                      <select 
-                        className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        value={isCustomTips ? "custom" : tipsRange} 
-                        onChange={(e) => {
-                          if (e.target.value === 'custom') {
-                            setIsCustomTips(true);
-                            setTipsRange('0-5'); // Default custom value
-                          } else {
-                            setIsCustomTips(false);
-                            setTipsRange(e.target.value);
-                          }
-                        }}
-                      >
-                        <option value="0-0">0-0 (Tanpa Tips)</option>
-                        <option value="0-1">0-1 (Sedikit Bantuan)</option>
-                        <option value="1-2">1-2 (Bantuan Menengah)</option>
-                        <option value="1-3">1-3 (Bantuan Ekstra)</option>
-                        <option value="2-4">2-4 (Banyak Bantuan)</option>
-                        <option value="0-5">0-5 (Variasi Lebar)</option>
-                        <option value="custom">Kustom...</option>
-                      </select>
-                      {isCustomTips && (
-                        <div className="pt-2 animate-in fade-in slide-in-from-top-2">
-                          <Input 
-                            placeholder="Ketik rentang (misal: 3-5, 0-10)..." 
-                            value={tipsRange} 
-                            onChange={(e) => setTipsRange(e.target.value)} 
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 relative">
-                      <Label className="flex items-center gap-2">
-                        Bahasa
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Bahasa pengantar soal dan pembahasan yang dihasilkan AI.
-                          </span>
-                        </span>
-                      </Label>
-                      <Input placeholder="Cth: Indonesia (Baku)" value={promptLang} onChange={(e) => setPromptLang(e.target.value)} />
-                    </div>
-
-                    <div className="space-y-2 relative">
-                      <Label className="flex items-center gap-2">
-                        Tingkat Soal / Level
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-56 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Level kesulitan, contoh: "SD Kelas 6", "Olimpiade SMP", "UTBK SMA". Semakin spesifik, analisis materinya semakin akurat.
-                          </span>
-                        </span>
-                      </Label>
-                      <Input placeholder="Cth: SD Kelas 6, Olimpiade Matematika" value={promptLevel} onChange={(e) => setPromptLevel(e.target.value)} />
-                    </div>
-
-                    <div className="space-y-2 relative">
-                      <Label className="flex items-center gap-2">
-                        Konteks Penting Topik
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute right-0 bottom-full mb-2 w-72 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Inti teknis soal (contoh: "Gunakan banyak diagram bangun datar, wajib ada grafik Recharts bar chart, fokus ke materi aljabar polinomial").
-                          </span>
-                        </span>
-                      </Label>
-                      <Textarea 
-                        placeholder="Cth: Semua soal wajib berisi Diagram Interaktif (JSXGraph), topik geometri lingkaran, dan ada irisan bangun datar." 
-                        value={promptContext} 
-                        onChange={(e) => setPromptContext(e.target.value)} 
-                        className="h-24 resize-none"
-                      />
-                    </div>
-
-                    <div className="space-y-2 relative">
-                      <Label className="flex items-center gap-2">
-                        Konteks Lainnya (Opsional)
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute right-0 bottom-full mb-2 w-72 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Misal instruksi tambahan seperti "Hindari soal jebakan", atau "Gunakan cerita dalam kehidupan sehari-hari (Word problem)".
-                          </span>
-                        </span>
-                      </Label>
-                      <Textarea 
-                        placeholder="Cth: Hindari soal yang terlalu trivial, beri penjelasan rumus step-by-step yang sangat panjang di bagian pembahasan." 
-                        value={promptOther} 
-                        onChange={(e) => setPromptOther(e.target.value)} 
-                        className="h-24 resize-none"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2 relative pt-2 border-t mt-4">
-                      <Label className="flex items-center gap-2 mb-3">
-                        Taxonomi & Label Soal
-                        <span className="group relative cursor-help">
-                          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                          <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-64 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100 dark:border z-50">
-                            Pilih label-label ini agar AI melabeli soal-soal tersebut sesuai taksonominya.
-                          </span>
-                        </span>
-                      </Label>
-                      <LabelSelector selectedLabels={promptLabels} onChange={setPromptLabels} />
-                    </div>
+                  <CardContent className="p-0 flex flex-1 relative min-h-[400px]">
+                    <Textarea
+                      readOnly
+                      value={generatedPrompt}
+                      className="absolute inset-0 h-full w-full font-mono text-sm resize-none border-0 focus-visible:ring-0 rounded-none p-5 text-foreground bg-muted/5 leading-relaxed selection:bg-primary/20"
+                    />
                   </CardContent>
                 </Card>
-
-                <div className="flex flex-col h-full space-y-4">
-                  <Card className="shadow-sm flex-1 flex flex-col">
-                    <CardHeader className="border-b pb-4 bg-muted/30">
-                      <CardTitle className="text-lg flex justify-between items-center">
-                        Hasil Prompt AI
-                        <Button size="sm" onClick={handleCopyPrompt} className="gap-2 transition-colors" variant={copiedPrompt ? 'secondary' : 'default'}>
-                          {copiedPrompt ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                          {copiedPrompt ? 'Salin Berhasil!' : 'Salin Prompt'}
-                        </Button>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0 flex flex-1 relative min-h-[400px]">
-                      <Textarea
-                        readOnly
-                        value={generatedPrompt}
-                        className="absolute inset-0 h-full w-full font-mono text-sm resize-none border-0 focus-visible:ring-0 rounded-none p-5 text-muted-foreground bg-muted/10 leading-relaxed"
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
               </div>
             </div>
           </TabsContent>
