@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type, Database, AlertTriangle, Plus, Target, LineChart, Edit2, Trash2 } from 'lucide-react';
+import { HelpCircle, Copy, Printer, CheckCircle2, Columns, FileText, Settings2, Calendar, Clock, User, Type, Database, AlertTriangle, Plus, Target, LineChart, Edit2, Trash2, Link, Eye } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import { useAdminDashboardVM } from '@/viewmodels/useAdminDashboardVM';
@@ -95,6 +95,12 @@ export function AdminDashboard() {
     loadStudents,
     selectedTestId,
   } = useAdminDashboardVM();
+
+  const copyTestLink = (testId: string) => {
+    const url = `${window.location.origin}/exam/${testId}`;
+    navigator.clipboard.writeText(url);
+    alert(`Tautan Ujian Disalin:\n${url}`);
+  };
 
   const executeWipe = async (action: string) => {
     setIsSaving(true);
@@ -659,14 +665,22 @@ export function AdminDashboard() {
                       )}
                     </CardContent>
                     <div className="p-4 border-t bg-muted/5 flex items-center justify-between gap-2 mt-auto">
-                      <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/10 hover:text-primary gap-1.5 font-bold" onClick={() => handleAnalytics(test.id)}>
-                        <LineChart className="w-4 h-4" /> Analisis
-                      </Button>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="gap-1.5 bg-background hover:bg-muted font-semibold" onClick={() => handleEdit(test)}>
+                        <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/10 hover:text-primary gap-1.5 font-bold px-2" onClick={() => handleAnalytics(test.id)} title="Analisis Butir Soal">
+                          <LineChart className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-blue-600 hover:bg-blue-600/10 hover:text-blue-600 gap-1.5 font-bold px-2" onClick={() => copyTestLink(test.id)} title="Salin Tautan Ujian">
+                          <Link className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-emerald-600 hover:bg-emerald-600/10 hover:text-emerald-600 gap-1.5 font-bold px-2" onClick={() => window.open(`/exam/${test.id}`, '_blank')} title="Preview Ujian">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="gap-1.5 bg-background hover:bg-muted font-semibold px-3" onClick={() => handleEdit(test)}>
                           <Edit2 className="w-3.5 h-3.5" /> Edit
                         </Button>
-                        <Button size="sm" variant="destructive" className="gap-1.5 shadow-sm" onClick={() => handleDelete(test.id)}>
+                        <Button size="sm" variant="destructive" className="gap-1.5 shadow-sm px-3" onClick={() => handleDelete(test.id)}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
@@ -679,67 +693,81 @@ export function AdminDashboard() {
 
           {/* TAB: ATTEMPTS (HASIL PESERTA) */}
           <TabsContent value="attempts" className="flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Riwayat Pengerjaan</h2>
-              <Button variant="outline" onClick={loadAttempts}>Segarkan Data</Button>
-            </div>
-            <div className="rounded-md border bg-card overflow-hidden">
-              <div className="grid grid-cols-4 gap-4 p-4 border-b bg-muted/30 font-semibold text-sm">
-                <div>Ujian</div>
-                <div>Status</div>
-                <div>Waktu Selesai</div>
-                <div className="text-right">Skor</div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight">Riwayat Pengerjaan</h2>
+                <p className="text-sm text-muted-foreground mt-1">Pantau skor dan status ujian para siswa secara real-time.</p>
               </div>
-              {attemptList.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">Belum ada peserta yang mengerjakan.</div>
-              ) : (
-                <div className="divide-y">
-                  {attemptList.map((att) => (
-                    <div key={att.id} className="grid grid-cols-4 gap-4 p-4 items-center text-sm hover:bg-muted/50 transition-colors">
-                      <div className="font-medium truncate">{att.tests?.title || 'Ujian Dihapus'}</div>
-                      <div>
+              <Button onClick={loadAttempts} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all gap-2 h-10 px-6 font-bold rounded-full">
+                Segarkan Data
+              </Button>
+            </div>
+            
+            {attemptList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-2xl bg-muted/10">
+                <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-bold">Belum ada peserta ujian</h3>
+                <p className="text-sm text-muted-foreground mb-6">Riwayat pengerjaan siswa akan muncul di sini.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {attemptList.map((att) => (
+                  <Card key={att.id} className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 hover:border-primary/50 overflow-hidden flex flex-col rounded-2xl bg-card">
+                    <CardHeader className="p-4 border-b bg-gradient-to-br from-muted/30 to-muted/10 group-hover:from-primary/5 group-hover:to-transparent transition-colors pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <CardTitle className="text-base font-black line-clamp-2 leading-tight">{att.tests?.title || 'Ujian Dihapus'}</CardTitle>
                         {att.status === 'finished' ? (
-                          <Badge variant="default" className="bg-green-600">Selesai</Badge>
+                          <Badge className="bg-green-500 hover:bg-green-600 font-bold shrink-0 shadow-sm shadow-green-500/20">Selesai</Badge>
                         ) : (
-                          <Badge variant="secondary">Berjalan</Badge>
+                          <Badge variant="secondary" className="font-bold shrink-0">Berjalan</Badge>
                         )}
                       </div>
-                      <div className="text-muted-foreground text-xs">
-                        {att.finished_at ? new Date(att.finished_at).toLocaleString('id-ID') : '-'}
-                      </div>
-                      <div className="text-right font-bold text-lg">{att.score}</div>
+                    </CardHeader>
+                    <CardContent className="p-0 flex-1 flex flex-col justify-center items-center py-6 bg-muted/5 relative overflow-hidden">
+                       <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
+                       <div className="relative z-10 flex flex-col items-center">
+                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Total Skor</span>
+                         <span className={`text-6xl font-black tracking-tighter ${att.score && att.score >= 70 ? 'text-green-500' : att.score && att.score > 0 ? 'text-destructive' : 'text-foreground'}`}>
+                           {att.score ?? '-'}
+                         </span>
+                       </div>
+                    </CardContent>
+                    <div className="p-3 border-t bg-muted/10 flex flex-col gap-1 mt-auto text-xs text-muted-foreground font-medium">
+                      <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-primary"/> ID Peserta: <span className="font-bold text-foreground">Siswa</span></div>
+                      <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-primary"/> Selesai: <span className="font-bold text-foreground">{att.finished_at ? new Date(att.finished_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '-'}</span></div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* TAB: DATA SISWA */}
           <TabsContent value="students" className="flex-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-semibold">Manajemen Data Siswa</h2>
-                <p className="text-sm text-muted-foreground mt-1">Buat ID Siswa (Manual / Otomatis) untuk login ujian.</p>
+                <h2 className="text-2xl font-black tracking-tight">Manajemen Data Siswa</h2>
+                <p className="text-sm text-muted-foreground mt-1">Buat ID Siswa (Manual / Massal) untuk mengatur akses login ujian.</p>
               </div>
-              <Button variant="outline" onClick={loadStudents}>Segarkan Data</Button>
+              <Button onClick={loadStudents} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all gap-2 h-10 px-6 font-bold rounded-full">
+                Segarkan Data
+              </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Buat Manual */}
-              <details className="group border rounded-xl bg-card overflow-hidden shadow-sm [&_summary::-webkit-details-marker]:hidden">
-                <summary className="flex cursor-pointer items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors font-bold text-sm">
-                  <div className="flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Buat ID Siswa Manual</div>
-                  <HelpCircle className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
-                </summary>
-                <div className="p-4 border-t space-y-4 bg-background">
+              <Card className="border-border/50 shadow-sm hover:border-primary/30 transition-colors bg-card">
+                <CardHeader className="p-5 border-b bg-muted/20 pb-4">
+                  <CardTitle className="text-base font-black flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Pendaftaran Tunggal</CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 space-y-4">
                   <div className="space-y-2">
-                    <Label>ID Spesifik (Contoh: Budi-2024)</Label>
-                    <Input placeholder="ID Siswa" id="manual-id" className="w-full" />
+                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ID Siswa (Unik)</Label>
+                    <Input placeholder="Cth: Budi-2024" id="manual-id" className="h-10 bg-muted/30 focus-visible:bg-background transition-colors" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Nama Lengkap</Label>
-                    <Input placeholder="Nama Siswa" id="manual-name" className="w-full" />
+                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Nama Lengkap</Label>
+                    <Input placeholder="Cth: Budi Santoso" id="manual-name" className="h-10 bg-muted/30 focus-visible:bg-background transition-colors" />
                   </div>
                   <Button 
                     onClick={async () => {
@@ -750,65 +778,81 @@ export function AdminDashboard() {
                        const { error } = await supabase.from('students').insert([{ id: idVal, name: nameVal }]);
                        setGeneratingStu(false);
                        if (error) setStuMsg(error.message);
-                       else { setStuMsg(`Siswa ${nameVal} berhasil ditambahkan.`); loadStudents(); }
+                       else { 
+                         setStuMsg(`Siswa ${nameVal} berhasil didaftarkan.`); 
+                         (document.getElementById('manual-id') as HTMLInputElement).value = '';
+                         (document.getElementById('manual-name') as HTMLInputElement).value = '';
+                         loadStudents(); 
+                       }
                     }} 
                     disabled={generatingStu}
-                    className="w-full"
+                    className="w-full h-10 font-bold gap-2"
                   >
-                    {generatingStu ? 'Menyimpan...' : 'Simpan Siswa'}
+                    {generatingStu ? 'Memproses...' : <><Plus className="w-4 h-4"/> Daftarkan Siswa</>}
                   </Button>
-                </div>
-              </details>
+                </CardContent>
+              </Card>
 
               {/* Generate Auto */}
-              <details className="group border rounded-xl bg-card overflow-hidden shadow-sm [&_summary::-webkit-details-marker]:hidden" open>
-                <summary className="flex cursor-pointer items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors font-bold text-sm">
-                  <div className="flex items-center gap-2"><Settings2 className="w-4 h-4 text-primary" /> Generate ID Massal</div>
-                  <HelpCircle className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
-                </summary>
-                <div className="p-4 border-t space-y-4 bg-background">
+              <Card className="border-border/50 shadow-sm hover:border-primary/30 transition-colors bg-card relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                   <Settings2 className="w-32 h-32" />
+                </div>
+                <CardHeader className="p-5 border-b bg-muted/20 pb-4 relative z-10">
+                  <CardTitle className="text-base font-black flex items-center gap-2"><Settings2 className="w-5 h-5 text-primary" /> Generate ID Massal</CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 space-y-4 relative z-10">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Prefix (Teks depan)</Label>
-                      <Input placeholder="SMA-" value={stuPrefix} onChange={e => setStuPrefix(e.target.value)} className="w-full" />
+                      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Prefix (Awalan)</Label>
+                      <Input placeholder="SMA-" value={stuPrefix} onChange={e => setStuPrefix(e.target.value)} className="h-10 bg-muted/30 focus-visible:bg-background transition-colors font-mono" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Jumlah ID</Label>
-                      <Input type="number" placeholder="10" value={stuCount} onChange={e => setStuCount(e.target.value)} className="w-full" />
+                      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Jumlah</Label>
+                      <Input type="number" placeholder="10" value={stuCount} onChange={e => setStuCount(e.target.value)} className="h-10 bg-muted/30 focus-visible:bg-background transition-colors" />
                     </div>
                   </div>
-                  <Button onClick={handleGenerateStudents} disabled={generatingStu} className="w-full">
-                    {generatingStu ? 'Memproses...' : 'Generate Massal'}
+                  <div className="pt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded border border-border/50">
+                    Sistem akan menghasilkan: <strong className="font-mono text-foreground">{stuPrefix}001</strong> s/d <strong className="font-mono text-foreground">{stuPrefix}{String(stuCount).padStart(3, '0')}</strong>
+                  </div>
+                  <Button onClick={handleGenerateStudents} disabled={generatingStu} className="w-full h-10 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md gap-2">
+                    {generatingStu ? 'Mesin Bekerja...' : <><Database className="w-4 h-4"/> Generate Otomatis</>}
                   </Button>
-                </div>
-              </details>
+                </CardContent>
+              </Card>
             </div>
-            {stuMsg && <p className="text-sm font-medium text-primary mt-2 p-3 bg-primary/10 border border-primary/20 rounded-md text-center">{stuMsg}</p>}
-
-            <div className="rounded-md border bg-card overflow-hidden">
-              <div className="grid grid-cols-4 gap-4 p-4 border-b bg-muted/30 font-semibold text-sm">
-                <div>ID Siswa</div>
-                <div>Nama Lengkap</div>
-                <div>Terdaftar Pada</div>
-                <div className="text-right">Aksi</div>
+            {stuMsg && (
+              <div className="p-4 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold shadow-sm flex items-center justify-center animate-in fade-in zoom-in-95">
+                {stuMsg}
               </div>
-              {studentList.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">Belum ada siswa yang terdaftar.</div>
-              ) : (
-                <div className="divide-y max-h-[500px] overflow-y-auto">
-                  {studentList.map((stu) => (
-                    <div key={stu.id} className="grid grid-cols-4 gap-4 p-4 items-center text-sm hover:bg-muted/50 transition-colors">
-                      <div className="font-mono font-medium">{stu.id}</div>
-                      <div className="truncate">{stu.name}</div>
-                      <div className="text-xs text-muted-foreground">{new Date(stu.created_at).toLocaleString('id-ID')}</div>
-                      <div className="text-right">
-                        <Button size="sm" variant="ghost" className="text-xs">Edit</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
+
+            {studentList.length === 0 ? (
+               <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-2xl bg-muted/10 mt-6">
+                 <User className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                 <h3 className="text-lg font-bold">Basis Data Siswa Kosong</h3>
+                 <p className="text-sm text-muted-foreground mb-6">Daftarkan siswa secara manual atau gunakan mesin otomatis di atas.</p>
+               </div>
+            ) : (
+               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-8">
+                 {studentList.map((stu) => (
+                   <div key={stu.id} className="group relative flex flex-col items-center p-4 rounded-2xl border border-border/50 bg-card hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/10 flex items-center justify-center text-xl font-black text-primary mb-3 shadow-inner">
+                       {stu.name ? stu.name.charAt(0).toUpperCase() : stu.id.charAt(0).toUpperCase()}
+                     </div>
+                     <div className="text-center w-full">
+                       <h4 className="font-bold text-sm truncate w-full" title={stu.name || stu.id}>{stu.name || stu.id}</h4>
+                       <p className="text-xs text-muted-foreground font-mono mt-1 px-2 py-0.5 bg-muted/50 rounded-md border border-border/50 inline-block">{stu.id}</p>
+                     </div>
+                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                       <Button size="icon" variant="ghost" className="w-6 h-6 rounded-full bg-background/80 backdrop-blur text-muted-foreground hover:text-destructive">
+                         <Trash2 className="w-3 h-3" />
+                       </Button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            )}
           </TabsContent>
 
           {/* TAB: ANALISIS SOAL (ITEM RESPONSE THEORY) */}
