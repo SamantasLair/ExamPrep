@@ -39,7 +39,7 @@ export default function HomePage() {
             {items.map((test, idx) => (
               <Card 
                 key={test.id} 
-                className="group hover:border-primary/40 hover:shadow-lg transition-all duration-300 animate-in fade-in zoom-in-95 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
+                className="group border-2 border-border hover:border-primary hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 animate-in fade-in zoom-in-95 hover:-translate-y-1 bg-card"
                 style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
               >
                 <CardHeader className="p-4 pb-2 border-b border-border/40 bg-muted/20">
@@ -59,13 +59,13 @@ export default function HomePage() {
                   </div>
                   <div className="flex gap-2 pt-2 border-t border-border/40">
                     <Link href={`/exam/${test.id}`} className="flex-1">
-                      <Button variant="default" size="sm" className="w-full h-8 text-[11px] font-bold shadow-sm transition-transform active:scale-[0.98]">
-                        Mulai
+                      <Button variant="default" size="sm" className="w-full h-8 text-[11px] font-black border-2 border-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none transition-all">
+                        MULAI
                       </Button>
                     </Link>
                     <Link href={`/exam/${test.id}/review`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full h-8 text-[11px] font-bold transition-transform active:scale-[0.98]">
-                        Review
+                      <Button variant="outline" size="sm" className="w-full h-8 text-[11px] font-black border-2 border-primary/20 hover:border-primary hover:bg-primary/10 transition-all">
+                        REVIEW
                       </Button>
                     </Link>
                   </div>

@@ -192,6 +192,14 @@ export function ExamRunner({
         </div>
       </div>
 
+      {/* Mobile Drawer Overlay */}
+      {isDrawerOpen && (
+        <div 
+          className="fixed inset-0 z-[15] bg-black/40 backdrop-blur-sm md:hidden animate-in fade-in" 
+          onClick={() => setIsDrawerOpen(false)}
+        />
+      )}
+
       {/* Retractable Right Drawer for Navigation */}
       <aside 
         className={cn(
