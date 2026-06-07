@@ -119,7 +119,7 @@ export function useAdminDashboardVM() {
   const loadAttempts = async () => {
     const { data } = await supabase
       .from('attempts')
-      .select('id, test_id, score, status, finished_at, tests(title)')
+      .select('id, test_id, student_id, score, status, finished_at, tests(title)')
       .order('finished_at', { ascending: false })
       .limit(50);
     if (data) setAttemptList(data);

@@ -118,10 +118,10 @@ export function AdminDashboard() {
       const { error } = await supabase.from('students').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       err = error;
     } else if (action === 'WIPE_ALL') {
-      await supabase.from('attempts').delete().neq('id', '0');
-      await supabase.from('tests').delete().neq('id', '0');
-      await supabase.from('questions').delete().neq('id', '0');
-      await supabase.from('students').delete().neq('id', '0');
+      await supabase.from('attempts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('tests').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('questions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('students').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     }
 
     setIsSaving(false);
@@ -733,7 +733,7 @@ export function AdminDashboard() {
                        </div>
                     </CardContent>
                     <div className="p-3 border-t bg-muted/10 flex flex-col gap-1 mt-auto text-xs text-muted-foreground font-medium">
-                      <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-primary"/> ID Peserta: <span className="font-bold text-foreground">Siswa</span></div>
+                      <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-primary"/> ID Peserta: <span className="font-bold text-foreground">{att.student_id || 'Anonim'}</span></div>
                       <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-primary"/> Selesai: <span className="font-bold text-foreground">{att.finished_at ? new Date(att.finished_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '-'}</span></div>
                     </div>
                   </Card>
