@@ -34,6 +34,7 @@ export function useAdminDashboardVM() {
   const [rawMarkdown, setRawMarkdown] = useState(SAMPLE_MARKDOWN);
   const debouncedMarkdown = useDebounce(rawMarkdown, 500);
   const [examTitle, setExamTitle] = useState('');
+  const [examDescription, setExamDescription] = useState('');
   const [duration, setDuration] = useState(60);
   const [passingGrade, setPassingGrade] = useState(70);
   const [startAt, setStartAt] = useState('');
@@ -181,6 +182,7 @@ export function useAdminDashboardVM() {
   const handleCreateNew = () => {
     setEditId(null);
     setExamTitle('');
+    setExamDescription('');
     setRawMarkdown(SAMPLE_MARKDOWN);
     setDuration(60);
     setPassingGrade(70);
@@ -200,6 +202,7 @@ export function useAdminDashboardVM() {
   const handleEdit = (t: TestRow) => {
     setEditId(t.id);
     setExamTitle(t.title);
+    setExamDescription(t.description || '');
     setRawMarkdown(t.raw_markdown);
     setDuration(t.duration_minutes);
     setPassingGrade(t.passing_grade);
@@ -242,6 +245,7 @@ export function useAdminDashboardVM() {
 
     const payload = {
       title: examTitle.trim(),
+      description: examDescription.trim() || null,
       raw_markdown: rawMarkdown,
       duration_minutes: duration,
       passing_grade: passingGrade,
@@ -284,7 +288,7 @@ export function useAdminDashboardVM() {
         setActiveTab('tests');
       }, 1500);
     }
-  }, [editId, examTitle, rawMarkdown, questions, duration, passingGrade, startAt, endAt, showAnswer, immediateFeedback, enableTipPenalty, penaltyTheoryConfig, penaltyPracticeConfig]);
+  }, [editId, examTitle, examDescription, rawMarkdown, questions, duration, passingGrade, startAt, endAt, showAnswer, immediateFeedback, enableTipPenalty, penaltyTheoryConfig, penaltyPracticeConfig]);
 
   // Generators
   const generatedPrompt = useMemo(() => {
@@ -451,6 +455,7 @@ JANGAN MENGUBAH NAMA KEY LABEL. GUNAKAN FORMAT EXACT SEPERTI CONTOH DI ATAS.
     editId,
     rawMarkdown, setRawMarkdown,
     examTitle, setExamTitle,
+    examDescription, setExamDescription,
     duration, setDuration,
     passingGrade, setPassingGrade,
     startAt, setStartAt,

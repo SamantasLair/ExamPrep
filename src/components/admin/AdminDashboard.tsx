@@ -40,6 +40,7 @@ export function AdminDashboard() {
     editId,
     rawMarkdown, setRawMarkdown,
     examTitle, setExamTitle,
+    examDescription, setExamDescription,
     duration, setDuration,
     passingGrade, setPassingGrade,
     startAt, setStartAt,
@@ -949,6 +950,10 @@ export function AdminDashboard() {
                   <div className="space-y-2">
                     <Label htmlFor="exam-title" className="text-xs font-bold text-muted-foreground">Judul Ujian</Label>
                     <Input id="exam-title" placeholder="Cth: Ujian Harian" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="h-10 text-sm bg-muted/30 focus-visible:bg-background transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="exam-desc" className="text-xs font-bold text-muted-foreground">Deskripsi Singkat (Opsional)</Label>
+                    <Textarea id="exam-desc" placeholder="Instruksi tambahan untuk siswa..." value={examDescription} onChange={(e) => setExamDescription(e.target.value)} className="min-h-[80px] text-sm bg-muted/30 focus-visible:bg-background resize-none" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
