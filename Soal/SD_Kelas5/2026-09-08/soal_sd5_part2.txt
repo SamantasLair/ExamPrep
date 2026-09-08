@@ -1,0 +1,210 @@
+```text
+# Q11 (PILGAN)
+Sebuah kolam renang berbentuk balok memiliki ukuran panjang $12\text{ meter}$, lebar $6\text{ meter}$, dan kedalaman rata-rata $1,5\text{ meter}$. Jika kolam tersebut baru terisi air $\frac{2}{3}$ dari kapasitas penuhnya, berapa liter volume air yang harus ditambahkan agar kolam terisi penuh?
+
+[[A]] $36.000\text{ liter}$
+[[B]] $54.000\text{ liter}$
+[[C]] $72.000\text{ liter}$
+[[D]] $108.000\text{ liter}$
+[[E]] $144.000\text{ liter}$
+
+ANSWER: A
+DISCUSSION: 
+1. Hitung volume total kolam renang dalam satuan meter kubik ($\text{m}^3$):
+$$V = p \times l \times t = 12\text{ m} \times 6\text{ m} \times 1,5\text{ m} = 108\text{ m}^3$$
+2. Air yang harus ditambahkan adalah bagian yang masih kosong:
+$$\text{Bagian kosong} = 1 - \frac{2}{3} = \frac{1}{3}\text{ bagian}$$
+$$V_{\text{tambah}} = \frac{1}{3} \times 108\text{ m}^3 = 36\text{ m}^3$$
+3. Konversi ke dalam satuan liter ($1\text{ m}^3 = 1.000\text{ dm}^3 = 1.000\text{ liter}$):
+$$36\text{ m}^3 = 36 \times 1.000 = 36.000\text{ liter}$$
+TIPS_THEORY: Volume balok adalah $V = p \times l \times t$. Ingat kesetaraan satuan volume fluida: $1\text{ m}^3 = 1.000\text{ liter}$.
+TIPS_PRACTICE: Hitung langsung bagian kosong ($\frac{1}{3}$) dikalikan volume total, lalu kalikan $1.000$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q12 (PILGAN)
+Riko memiliki kawat sepanjang $3\text{ meter}$. Kawat tersebut akan dibuat kerangka kubus dengan panjang rusuk $18\text{ cm}$. Berapa sentimeter sisa kawat yang tidak terpakai oleh Riko?
+
+[[A]] $64\text{ cm}$
+[[B]] $72\text{ cm}$
+[[C]] $84\text{ cm}$
+[[D]] $92\text{ cm}$
+[[E]] $108\text{ cm}$
+
+ANSWER: C
+DISCUSSION: 
+1. Kubus memiliki $12$ rusuk yang sama panjang.
+Panjang kawat yang dibutuhkan untuk $1$ kerangka kubus:
+$$K = 12 \times r = 12 \times 18\text{ cm} = 216\text{ cm}$$
+2. Ubah panjang kawat mula-mula ke dalam sentimeter:
+$$3\text{ meter} = 3 \times 100 = 300\text{ cm}$$
+3. Hitung sisa kawat:
+$$\text{Sisa} = 300\text{ cm} - 216\text{ cm} = 84\text{ cm}$$
+TIPS_THEORY: Jumlah panjang seluruh rusuk kubus dinyatakan dengan rumus $K = 12 \times s$. Samakan semua satuan ke $\text{cm}$ sebelum melakukan pengurangan.
+TIPS_PRACTICE: $12 \times 18 = 216$. Selisih dari $300$ adalah $300 - 216 = 84\text{ cm}$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q13 (PILGAN)
+Sebuah toko buku memberikan diskon $25\%$ untuk setiap pembelian buku ensiklopedia. Jika harga normal satu paket buku ensiklopedia adalah $\text{Rp } 320.000,00$, berapakah uang yang harus dibayarkan seorang pembeli di kasir?
+
+[[A]] $\text{Rp } 80.000,00$
+[[B]] $\text{Rp } 220.000,00$
+[[C]] $\text{Rp } 240.000,00$
+[[D]] $\text{Rp } 260.000,00$
+[[E]] $\text{Rp } 280.000,00$
+
+ANSWER: C
+DISCUSSION: 
+1. Hitung besar potongan harga (diskon):
+$$\text{Diskon} = 25\% \times \text{Rp } 320.000 = \frac{25}{100} \times 320.000 = \frac{1}{4} \times 320.000 = \text{Rp } 80.000$$
+2. Hitung harga bersih yang harus dibayar:
+$$\text{Harga Bayar} = \text{Rp } 320.000 - \text{Rp } 80.000 = \text{Rp } 240.000$$
+TIPS_THEORY: Diskon adalah persentase potongan dari harga awal: $\text{Harga Bayar} = \text{Harga Awal} \times (100\% - \text{Diskon}\%)$.
+TIPS_PRACTICE: Diskon $25\%$ sama dengan $\frac{1}{4}$. Maka harga yang dibayar adalah $\frac{3}{4} \times 320.000 = 3 \times 80.000 = \text{Rp } 240.000$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q14 (PILGAN)
+Sebuah mobil membutuhkan $4\text{ liter}$ bensin untuk menempuh jarak sejauh $56\text{ km}$. Jika tangki mobil tersebut diisi $9\text{ liter}$ bensin, berapakah jarak yang dapat ditempuh mobil tersebut dengan kecepatan yang sama?
+
+[[A]] $112\text{ km}$
+[[B]] $126\text{ km}$
+[[C]] $135\text{ km}$
+[[D]] $144\text{ km}$
+[[E]] $154\text{ km}$
+
+ANSWER: B
+DISCUSSION: 
+Soal ini merupakan perbandingan senilai (semakin banyak bensin, semakin jauh jarak tempuh).
+1. Hitung efisiensi jarak tempuh per liter bensin:
+$$\text{Konsumsi} = \frac{56\text{ km}}{4\text{ liter}} = 14\text{ km/liter}$$
+2. Hitung jarak untuk $9\text{ liter}$ bensin:
+$$\text{Jarak} = 9 \times 14\text{ km} = 126\text{ km}$$
+TIPS_THEORY: Pada perbandingan senilai, perbandingannya tetap: $\frac{s_1}{b_1} = \frac{s_2}{b_2}$, sehingga $s_2 = \frac{b_2}{b_1} \times s_1$.
+TIPS_PRACTICE: $56 \div 4 = 14$. Lalu kalikan $14 \times 9 = 126\text{ km}$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q15 (PILGAN)
+Sebuah lapangan olahraga berbentuk persegi panjang memiliki panjang $35\text{ meter}$ dan lebar $20\text{ meter}$. Di sekeliling lapangan tersebut akan ditanami pohon cemara dengan jarak antarpohon $5\text{ meter}$. Berapakah jumlah bibit pohon cemara yang dibutuhkan?
+
+[[A]] $18\text{ pohon}$
+[[B]] $22\text{ pohon}$
+[[C]] $24\text{ pohon}$
+[[D]] $26\text{ pohon}$
+[[E]] $28\text{ pohon}$
+
+ANSWER: B
+DISCUSSION: 
+1. Hitung keliling lapangan persegi panjang:
+$$K = 2 \times (p + l) = 2 \times (35\text{ m} + 20\text{ m}) = 2 \times 55\text{ m} = 110\text{ m}$$
+2. Hitung banyak bibit pohon yang ditanam di sekeliling lapangan:
+$$\text{Jumlah pohon} = \frac{\text{Keliling}}{\text{Jarak antarpohon}} = \frac{110\text{ m}}{5\text{ m}} = 22\text{ pohon}$$
+TIPS_THEORY: Penanaman tanaman di sepanjang batas tepi bangun tertutup sama dengan membagi panjang keliling bangun dengan jarak interval tanam.
+TIPS_PRACTICE: $2 \times (35 + 20) = 110$. Lalu $110 \div 5 = 22$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q16 (PILGAN)
+Sebuah batang besi pada suhu $25^\circ\text{C}$ memiliki panjang $100\text{ cm}$. Batang besi tersebut kemudian dipanaskan hingga suhunya mencapai $125^\circ\text{C}$. Jika pemuaian besi adalah $0,0012\text{ cm}$ per kenaikan suhu $1^\circ\text{C}$ untuk setiap $100\text{ cm}$ panjangnya, berapa sentimeter panjang akhir batang besi setelah dipanaskan?
+
+[[A]] $100,06\text{ cm}$
+[[B]] $100,12\text{ cm}$
+[[C]] $100,24\text{ cm}$
+[[D]] $101,20\text{ cm}$
+[[E]] $102,40\text{ cm}$
+
+ANSWER: B
+DISCUSSION: 
+1. Hitung kenaikan suhu ($\Delta T$):
+$$\Delta T = 125^\circ\text{C} - 25^\circ\text{C} = 100^\circ\text{C}$$
+2. Hitung pertambahan panjang ($\Delta L$):
+$$\Delta L = 100 \times 0,0012\text{ cm} = 0,12\text{ cm}$$
+3. Hitung panjang akhir batang besi ($L_t$):
+$$L_t = L_0 + \Delta L = 100\text{ cm} + 0,12\text{ cm} = 100,12\text{ cm}$$
+TIPS_THEORY: Pemuaian zat padat terjadi karena partikel zat bergetar lebih cepat saat suhunya naik, sehingga jarak antarpartikel merenggang dan menambah ukuran benda.
+TIPS_PRACTICE: Kalikan kenaikan suhu ($100$) dengan koefisien pemuaian ($0,0012$), didapat pertambahan $0,12\text{ cm}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q17 (PILGAN)
+Sebuah lampu belajar memiliki daya listrik $15\text{ Watt}$. Jika lampu tersebut dinyalakan selama $6\text{ jam}$ setiap malam, berapakah energi listrik yang dikonsumsi oleh lampu tersebut dalam kurun waktu $1\text{ minggu}$ (7 hari)?
+
+[[A]] $90\text{ Wh}$
+[[B]] $360\text{ Wh}$
+[[C]] $630\text{ Wh}$
+[[D]] $900\text{ Wh}$
+[[E]] $1.260\text{ Wh}$
+
+ANSWER: C
+DISCUSSION: 
+1. Hitung energi listrik yang dikonsumsi dalam $1\text{ hari}$:
+$$W_1 = P \times t = 15\text{ Watt} \times 6\text{ jam} = 90\text{ Wh}$$
+2. Hitung total konsumsi energi dalam $1\text{ minggu}$ ($7\text{ hari}$):
+$$W_{\text{total}} = 90\text{ Wh/hari} \times 7\text{ hari} = 630\text{ Wh}$$
+TIPS_THEORY: Energi listrik ($W$) dihitung dari hasil kali daya listrik alat ($P$) dengan lama waktu pemakaian ($t$): $W = P \times t$.
+TIPS_PRACTICE: $15 \times 6 = 90$. Lalu $90 \times 7 = 630\text{ Wh}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q18 (PILGAN)
+Pada saat terjadi badai guntur, Ani melihat kilatan kilat di langit dan mendengar bunyi gemuruh guntur $4\text{ detik}$ kemudian. Jika cepat rambat bunyi di udara adalah $330\text{ m/s}$, berapakah jarak tempat terjadinya petir dari posisi Ani berdiri?
+
+[[A]] $660\text{ meter}$
+[[B]] $990\text{ meter}$
+[[C]] $1.320\text{ meter}$
+[[D]] $1.650\text{ meter}$
+[[E]] $2.640\text{ meter}$
+
+ANSWER: C
+DISCUSSION: 
+Cahaya kilat merambat sangat cepat ($300.000\text{ km/s}$) sehingga kilatan langsung terlihat seketika. Sedangkan gelombang bunyi merambat dengan kecepatan $330\text{ m/s}$.
+Karena bunyi petir merambat langsung satu arah (bukan gema bolak-balik), rumus jaraknya adalah:
+$$s = v \times t$$
+Substitusikan nilai yang diketahui:
+$$s = 330\text{ m/s} \times 4\text{ s} = 1.320\text{ meter}$$
+Jadi, jarak kilatan petir tersebut adalah $1.320\text{ meter}$ ($1,32\text{ km}$).
+TIPS_THEORY: Berbeda dengan pemantulan bunyi (gema), pada suara langsung dari petir tidak perlu dibagi $2$ karena perambatannya adalah lintasan lurus satu arah dari sumber ke pendengar.
+TIPS_PRACTICE: $330 \times 4 = 1.320\text{ meter}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q19 (PILGAN)
+Sebuah balok kayu berbentuk kubus dengan panjang sisi $10\text{ cm}$ memiliki massa $600\text{ gram}$. Jika balok kayu tersebut diletakkan di dalam bak berisi air yang memiliki massa jenis $1\text{ g/cm}^3$, apa yang akan terjadi dan berapa bagian volume balok yang tenggelam di dalam air?
+
+[[A]] Terapung, dengan $\frac{3}{5}$ bagian balok berada di bawah permukaan air.
+[[B]] Tenggelam seluruhnya di dasar air.
+[[C]] Melayang tepat di tengah-tengah air.
+[[D]] Terapung, dengan $\frac{4}{5}$ bagian balok berada di bawah permukaan air.
+[[E]] Terapung, dengan $\frac{1}{4}$ bagian balok berada di bawah permukaan air.
+
+ANSWER: A
+DISCUSSION: 
+1. Hitung volume balok kubus:
+$$V = s \times s \times s = 10 \times 10 \times 10 = 1.000\text{ cm}^3$$
+2. Hitung massa jenis balok kayu ($\rho_b$):
+$$\rho_b = \frac{m}{V} = \frac{600\text{ gram}}{1.000\text{ cm}^3} = 0,6\text{ g/cm}^3$$
+3. Bandingkan dengan massa jenis air ($\rho_a = 1\text{ g/cm}^3$):
+Karena $\rho_b < \rho_a$ ($0,6 < 1$), maka benda terapung.
+Fraksi volume yang tercelup (tenggelam):
+$$\text{Bagian tercelup} = \frac{\rho_b}{\rho_a} = \frac{0,6}{1} = \frac{6}{10} = \frac{3}{5}\text{ bagian}$$
+TIPS_THEORY: Benda terapung jika massa jenisnya lebih kecil dari zat cair. Bagian volume yang tercelup di bawah permukaan sama dengan rasio $\frac{\rho_{\text{benda}}}{\rho_{\text{cairan}}}$.
+TIPS_PRACTICE: Bagi massa jenis balok ($0,6$) dengan massa jenis air ($1$), disederhanakan menjadi $\frac{3}{5}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q20 (PILGAN)
+Sebuah katrol tetap digunakan untuk menimba air dari dalam sumur. Jika berat ember beserta air yang diangkat adalah $120\text{ N}$, berapakah besar gaya kuasa yang harus dikeluarkan orang tersebut untuk mengangkat ember air hingga ke permukaan?
+
+[[A]] $30\text{ N}$
+[[B]] $60\text{ N}$
+[[C]] $120\text{ N}$
+[[D]] $180\text{ N}$
+[[E]] $240\text{ N}$
+
+ANSWER: C
+DISCUSSION: 
+Katrol tetap memiliki keuntungan mekanis ($KM$) bernilai $1$:
+$$KM = \frac{w}{F} = 1 \implies F = w$$
+Keterangan:
+- $w$ = berat beban $= 120\text{ N}$
+- $F$ = gaya kuasa
+Maka:
+$$F = 120\text{ N}$$
+Katrol tetap tidak memperkecil gaya kuasa yang dibutuhkan, melainkan hanya berfungsi mengubah arah gaya (menarik ke bawah lebih ergonomis dan dibantu gravitasi tubuh daripada mengangkat langsung ke atas).
+TIPS_THEORY: Keuntungan mekanis ($KM$) katrol tetap selalu bernilai $1$, katrol bergerak bernilai $2$, dan sistem katrol majemuk bernilai sesuai jumlah tali yang menahan beban.
+TIPS_PRACTICE: Pada katrol tetap, gaya kuasa ($F$) selalu sama persis dengan berat beban ($w$).
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+```

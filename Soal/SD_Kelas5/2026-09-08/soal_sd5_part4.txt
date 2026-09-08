@@ -1,0 +1,218 @@
+```text
+# Q31 (PILGAN)
+Sebuah kotak kado berbentuk kubus tanpa tutup memiliki panjang rusuk $15\text{ cm}$. Bagian luar kotak kado tersebut akan dilapisi kertas kado bermotif. Berapakah luas minimal kertas kado yang dibutuhkan?
+
+[[A]] $225\text{ cm}^2$
+[[B]] $900\text{ cm}^2$
+[[C]] $1.125\text{ cm}^2$
+[[D]] $1.350\text{ cm}^2$
+[[E]] $1.500\text{ cm}^2$
+
+ANSWER: C
+DISCUSSION: 
+1. Kubus tertutup memiliki $6$ sisi persegi. Karena kotak kado ini **tanpa tutup**, maka hanya memiliki $5$ sisi persegi.
+2. Luas satu sisi persegi:
+$$L_1 = s \times s = 15\text{ cm} \times 15\text{ cm} = 225\text{ cm}^2$$
+3. Luas permukaan kubus tanpa tutup ($5$ sisi):
+$$L = 5 \times L_1 = 5 \times 225\text{ cm}^2 = 1.125\text{ cm}^2$$
+TIPS_THEORY: Luas permukaan kubus tertutup adalah $6 \times s^2$. Untuk kubus tanpa tutup (terbuka), rumusnya adalah $5 \times s^2$.
+TIPS_PRACTICE: $15^2 = 225$. Kalikan dengan $5$: $5 \times 225 = 1.125\text{ cm}^2$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q32 (PILGAN)
+Suhu daging saat dikeluarkan dari dalam freezer adalah $-8^\circ\text{C}$. Daging tersebut dibiarkan di dapur dan suhunya naik rata-rata $3^\circ\text{C}$ setiap $5\text{ menit}$. Berapakah suhu daging tersebut setelah didiamkan selama $25\text{ menit}$?
+
+[[A]] $4^\circ\text{C}$
+[[B]] $7^\circ\text{C}$
+[[C]] $9^\circ\text{C}$
+[[D]] $12^\circ\text{C}$
+[[E]] $15^\circ\text{C}$
+
+ANSWER: B
+DISCUSSION: 
+1. Hitung berapa kali kenaikan suhu terjadi dalam $25\text{ menit}$:
+$$n = \frac{25\text{ menit}}{5\text{ menit}} = 5\text{ kali}$$
+2. Hitung total kenaikan suhu:
+$$\Delta T = 5 \times 3^\circ\text{C} = 15^\circ\text{C}$$
+3. Hitung suhu akhir daging:
+$$T_{\text{akhir}} = T_{\text{awal}} + \Delta T = -8^\circ\text{C} + 15^\circ\text{C} = 7^\circ\text{C}$$
+TIPS_THEORY: Operasi hitung bilangan bulat pada kenaikan suhu dinyatakan dengan penjumlahan: $T_{\text{akhir}} = T_{\text{awal}} + \text{Kenaikan}$. Ingat bahwa $-a + b = b - a$.
+TIPS_PRACTICE: $25 \div 5 = 5$. Kenaikan $= 5 \times 3 = 15$. Suhu akhir $= -8 + 15 = 7^\circ\text{C}$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q33 (PILGAN)
+Pada saat jam dinding menunjukkan tepat pukul $03.30$, berapakah besar sudut terkecil yang dibentuk oleh kedua jarum jam (jarum pendek dan jarum panjang)?
+
+[[A]] $60^\circ$
+[[B]] $75^\circ$
+[[C]] $80^\circ$
+[[D]] $85^\circ$
+[[E]] $90^\circ$
+
+ANSWER: B
+DISCUSSION: 
+1. Lingkaran jam bernilai $360^\circ$ yang terbagi menjadi $12$ angka jam, sehingga tiap $1\text{ jam}$ mewakili:
+$$\frac{360^\circ}{12} = 30^\circ$$
+2. Pada pukul $03.30$:
+- Jarum panjang tepat berada di angka $6$.
+- Jarum pendek tidak berada tepat di angka $3$, melainkan sudah bergerak separuh jalan ($30\text{ menit}$) menuju angka $4$:
+$$\text{Pergeseran jarum pendek} = \frac{30}{60} \times 30^\circ = 15^\circ$$
+Posisi jarum pendek dari angka $12$: $3 \times 30^\circ + 15^\circ = 105^\circ$.
+Posisi jarum panjang dari angka $12$: $6 \times 30^\circ = 180^\circ$.
+3. Besar sudut terkecil antara kedua jarum:
+$$\text{Sudut} = 180^\circ - 105^\circ = 75^\circ$$
+TIPS_THEORY: Jarum jam bergerak $30^\circ$ per jam ($0,5^\circ$ per menit), sedangkan jarum menit bergerak $360^\circ$ per jam ($6^\circ$ per menit).
+TIPS_PRACTICE: Jarak dari angka $3$ ke $6$ adalah $3 \times 30^\circ = 90^\circ$. Kurangkan pergeseran jarum pendek sebesar $15^\circ$, didapat $90^\circ - 15^\circ = 75^\circ$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q34 (PILGAN)
+Sebuah kolam taman berbentuk setengah lingkaran memiliki panjang diameter $14\text{ meter}$. Di sekeliling tepi kolam tersebut akan dipasang pagar kawat pengaman. Jika nilai $\pi = \frac{22}{7}$, berapakah panjang pagar kawat yang diperlukan?
+
+[[A]] $22\text{ meter}$
+[[B]] $36\text{ meter}$
+[[C]] $44\text{ meter}$
+[[D]] $58\text{ meter}$
+[[E]] $72\text{ meter}$
+
+ANSWER: B
+DISCUSSION: 
+Keliling bangun setengah lingkaran tertutup terdiri dari busur setengah lingkaran ditambah panjang garis diameternya:
+$$K = \left(\frac{1}{2} \times \pi \times d\right) + d$$
+Substitusikan nilai $d = 14\text{ m}$ dan $\pi = \frac{22}{7}$:
+1. Hitung panjang busur lengkung:
+$$\text{Busur} = \frac{1}{2} \times \frac{22}{7} \times 14 = \frac{1}{2} \times 44 = 22\text{ meter}$$
+2. Tambahkan dengan garis lurus diameter:
+$$K = 22\text{ meter} + 14\text{ meter} = 36\text{ meter}$$
+TIPS_THEORY: Waspadai jebakan pada keliling bangun datar terpotong: keliling adalah total lintasan luar penutup bangun, sehingga diameter wajib ikut dijumlahkan.
+TIPS_PRACTICE: Busur $= 22$. Pagar sekeliling $= 22 + 14 = 36\text{ meter}$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q35 (PILGAN)
+Seorang peternak memiliki persediaan pakan rumput yang cukup untuk memberi makan $24\text{ ekor}$ sapi selama $15\text{ hari}$. Jika peternak tersebut membeli lagi $6\text{ ekor}$ sapi, berapa hari persediaan pakan rumput tersebut akan habis?
+
+[[A]] $10\text{ hari}$
+[[B]] $12\text{ hari}$
+[[C]] $13\text{ hari}$
+[[D]] $14\text{ hari}$
+[[E]] $18\text{ hari}$
+
+ANSWER: B
+DISCUSSION: 
+Masalah persediaan pakan ternak merupakan **perbandingan berbalik nilai** (semakin banyak hewan ternak, waktu habisnya persediaan makanan semakin cepat/sedikit).
+1. Hitung jumlah total sapi sekarang:
+$$24 + 6 = 30\text{ ekor sapi}$$
+2. Rumus perbandingan berbalik nilai:
+$$x_1 \times y_1 = x_2 \times y_2$$
+$$24 \times 15 = 30 \times y_2$$
+$$360 = 30 \times y_2$$
+$$y_2 = \frac{360}{30} = 12\text{ hari}$$
+Jadi, persediaan pakan rumput akan habis dalam waktu $12\text{ hari}$.
+TIPS_THEORY: Pada perbandingan berbalik nilai, hasil kali dua variabel selalu konstan: $a_1 \cdot b_1 = a_2 \cdot b_2$.
+TIPS_PRACTICE: Kalikan jumlah sapi mula-mula dengan harinya ($24 \times 15 = 360$), lalu bagi dengan total sapi yang ada sekarang ($360 \div 30 = 12$).
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q36 (PILGAN)
+Seorang astronot memiliki massa $60\text{ kg}$. Di permukaan Bumi dengan percepatan gravitasi $g_{\text{bumi}} = 10\text{ m/s}^2$, berat astronot tersebut adalah $600\text{ N}$. Jika percepatan gravitasi di permukaan Bulan adalah $\frac{1}{6}$ dari gravitasi Bumi, berapakah massa dan berat astronot tersebut ketika berada di Bulan?
+
+[[A]] Massa $10\text{ kg}$ dan berat $100\text{ N}$
+[[B]] Massa $60\text{ kg}$ dan berat $100\text{ N}$
+[[C]] Massa $60\text{ kg}$ dan berat $600\text{ N}$
+[[D]] Massa $10\text{ kg}$ dan berat $60\text{ N}$
+[[E]] Massa $360\text{ kg}$ dan berat $100\text{ N}$
+
+ANSWER: B
+DISCUSSION: 
+1. **Massa benda ($m$)** menyatakan banyaknya materi penyusun zat dan nilainya **selalu tetap di mana pun benda berada**, baik di Bumi, Bulan, maupun ruang hampa udara:
+$$m_{\text{bulan}} = m_{\text{bumi}} = 60\text{ kg}$$
+2. **Berat benda ($w$)** bergantung pada besarnya percepatan gravitasi tempat benda berada ($w = m \times g$):
+$$w_{\text{bulan}} = m \times g_{\text{bulan}} = 60 \times \left(\frac{1}{6} \times 10\right) = 60 \times \frac{10}{6} = 100\text{ N}$$
+Jadi, massanya tetap $60\text{ kg}$ dan beratnya di Bulan menjadi $100\text{ N}$.
+TIPS_THEORY: Bedakan dengan tegas antara massa (satuan $\text{kg}$, bersifat kekal dan konstan) dengan berat (satuan Newton, dipengaruhi medan gravitasi).
+TIPS_PRACTICE: Massa tidak pernah berubah ($60\text{ kg}$), berat di bulan cukup dibagi $6$: $600 \div 6 = 100\text{ N}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q37 (PILGAN)
+Termometer klinis menunjukkan suhu tubuh seorang anak yang sedang demam adalah $40^\circ\text{C}$. Jika suhu tubuh anak tersebut dinyatakan dalam skala Fahrenheit ($^\circ\text{F}$), angka yang ditunjukkan adalah...
+
+[[A]] $72^\circ\text{F}$
+[[B]] $96^\circ\text{F}$
+[[C]] $104^\circ\text{F}$
+[[D]] $108^\circ\text{F}$
+[[E]] $112^\circ\text{F}$
+
+ANSWER: C
+DISCUSSION: 
+Rumus konversi suhu dari skala Celcius ke Fahrenheit:
+$$\text{F} = \left(\frac{9}{5} \times \text{C}\right) + 32$$
+Substitusikan nilai $\text{C} = 40$:
+$$\text{F} = \left(\frac{9}{5} \times 40\right) + 32 = (9 \times 8) + 32 = 72 + 32 = 104^\circ\text{F}$$
+Jadi, suhu tubuh anak tersebut adalah $104^\circ\text{F}$.
+TIPS_THEORY: Skala Fahrenheit memiliki titik beku air pada $32^\circ\text{F}$ dan perbandingan skala $9$ terhadap $5$ pada Celcius. Jangan lupa menambahkan $32$ setelah perkalian.
+TIPS_PRACTICE: Bagi $40$ dengan $5$ didapat $8$. Kalikan $8$ dengan $9$ didapat $72$. Tambahkan $32$, hasilnya $104^\circ\text{F}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q38 (PILGAN)
+Budi mendorong sebuah gerobak pasir dengan gaya konstan sebesar $150\text{ N}$ sehingga gerobak tersebut berpindah sejauh $8\text{ meter}$ searah dengan dorongannya. Berapakah besar usaha (kerja) yang telah dilakukan oleh Budi?
+
+[[A]] $600\text{ Joule}$
+[[B]] $900\text{ Joule}$
+[[C]] $1.200\text{ Joule}$
+[[D]] $1.500\text{ Joule}$
+[[E]] $1.800\text{ Joule}$
+
+ANSWER: C
+DISCUSSION: 
+Dalam ilmu sains fisika, usaha ($W$) dihasilkan ketika sebuah gaya ($F$) menyebabkan benda berpindah sejauh jarak tertentu ($s$) searah gaya:
+$$W = F \times s$$
+Substitusikan nilai yang diketahui:
+$$W = 150\text{ N} \times 8\text{ meter} = 1.200\text{ Joule}$$
+Jadi, besar usaha yang dilakukan adalah $1.200\text{ Joule}$.
+TIPS_THEORY: Usaha bernilai positif jika arah perpindahan benda searah dengan arah gaya yang diberikan. Satuan usaha adalah $\text{Joule} = \text{Newton} \times \text{meter}$.
+TIPS_PRACTICE: Kalikan langsung gaya dengan jarak perpindahan: $150 \times 8 = 1.200\text{ Joule}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q39 (PILGAN)
+Sebuah drum minyak dinaikkan ke atas bak truk yang tingginya $1,5\text{ meter}$ menggunakan sebilah papan kayu miring sepanjang $4,5\text{ meter}$. Berapakah keuntungan mekanis ($KM$) dari bidang miring tersebut?
+
+[[A]] $1,5$
+[[B]] $2$
+[[C]] $3$
+[[D]] $4,5$
+[[E]] $6$
+
+ANSWER: C
+DISCUSSION: 
+Pada pesawat sederhana jenis bidang miring, keuntungan mekanis ($KM$) didefinisikan sebagai perbandingan antara panjang lintasan miring ($s$) dengan ketinggian bidang ($h$):
+$$KM = \frac{s}{h}$$
+Substitusikan nilai yang diketahui:
+$$s = 4,5\text{ meter}$$
+$$h = 1,5\text{ meter}$$
+$$KM = \frac{4,5}{1,5} = 3$$
+Keuntungan mekanis $3$ bermakna gaya yang dibutuhkan untuk mendorong drum hanya $\frac{1}{3}$ dari berat drum yang sebenarnya.
+TIPS_THEORY: Semakin landai sebuah bidang miring (panjang lintasan miring $s$ semakin besar dibanding tinggi $h$), semakin besar keuntungan mekanisnya sehingga gaya yang diperlukan semakin ringan.
+TIPS_PRACTICE: Bagi panjang papan dengan ketinggian bak truk: $4,5 \div 1,5 = 3$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q40 (PILGAN)
+Sebuah benda diletakkan $10\text{ cm}$ di depan sebuah cermin cekung. Bayangan nyata yang terbentuk berada pada jarak $30\text{ cm}$ di depan cermin. Berapakah nilai perbesaran bayangan ($M$) yang dihasilkan oleh cermin cekung tersebut?
+
+[[A]] $2\text{ kali}$
+[[B]] $3\text{ kali}$
+[[C]] $4\text{ kali}$
+[[D]] $5\text{ kali}$
+[[E]] $6\text{ kali}$
+
+ANSWER: B
+DISCUSSION: 
+Perbesaran bayangan ($M$) pada cermin lengkung didefinisikan sebagai rasio antara jarak bayangan ($s'$) dengan jarak benda ($s$):
+$$M = \left|\frac{s'}{s}\right|$$
+Diketahui:
+- Jarak benda ($s$) $= 10\text{ cm}$
+- Jarak bayangan ($s'$) $= 30\text{ cm}$
+Maka:
+$$M = \frac{30\text{ cm}}{10\text{ cm}} = 3\text{ kali}$$
+Artinya, ukuran bayangan yang terbentuk $3$ kali lebih besar daripada ukuran benda aslinya.
+TIPS_THEORY: Perbesaran ($M$) dapat dihitung dari perbandingan jarak ($s'/s$) maupun perbandingan tinggi bayangan terhadap tinggi benda ($h'/h$).
+TIPS_PRACTICE: Bagi jarak bayangan dengan jarak benda: $30 \div 10 = 3\text{ kali}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+```

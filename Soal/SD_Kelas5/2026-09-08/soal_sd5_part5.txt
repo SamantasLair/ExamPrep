@@ -1,0 +1,226 @@
+```text
+# Q41 (PILGAN)
+Sebuah bak penampungan air berbentuk kubus memiliki volume terisi penuh sebesar $216.000\text{ cm}^3$. Berapakah panjang rusuk bagian dalam dari bak penampungan air tersebut dalam satuan desimeter ($\text{dm}$)?
+
+[[A]] $4\text{ dm}$
+[[B]] $6\text{ dm}$
+[[C]] $8\text{ dm}$
+[[D]] $12\text{ dm}$
+[[E]] $60\text{ dm}$
+
+ANSWER: B
+DISCUSSION: 
+1. Rumus volume kubus adalah $V = s^3$, sehingga panjang rusuk ($s$) dicari dengan penarikan akar pangkat tiga:
+$$s = \sqrt[3]{V} = \sqrt[3]{216.000\text{ cm}^3}$$
+Karena $6^3 = 216$ dan $10^3 = 1.000$, maka:
+$$s = 60\text{ cm}$$
+2. Konversikan satuan dari sentimeter ($\text{cm}$) ke desimeter ($\text{dm}$):
+$$1\text{ dm} = 10\text{ cm}$$
+$$s = \frac{60\text{ cm}}{10} = 6\text{ dm}$$
+TIPS_THEORY: Untuk mencari rusuk kubus dari volumenya, gunakan operasi akar pangkat tiga ($s = \sqrt[3]{V}$). Ingat tangga konversi satuan panjang: dari $\text{cm}$ naik satu tingkat ke $\text{dm}$ dibagi $10$.
+TIPS_PRACTICE: $216.000\text{ cm}^3 = 216\text{ dm}^3$ (karena $1\text{ dm}^3 = 1.000\text{ cm}^3$). Maka $\sqrt[3]{216} = 6\text{ dm}$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q42 (PILGAN)
+Dalam sebuah lomba lari estafet antar-SD, pelari pertama mencatatkan waktu $1\text{ jam } 15\text{ menit } 42\text{ detik}$. Pelari kedua mencatatkan waktu $58\text{ menit } 35\text{ detik}$. Berapakah total waktu tempuh kedua pelari tersebut?
+
+[[A]] $2\text{ jam } 13\text{ menit } 17\text{ detik}$
+[[B]] $2\text{ jam } 14\text{ menit } 17\text{ detik}$
+[[C]] $2\text{ jam } 14\text{ menit } 77\text{ detik}$
+[[D]] $2\text{ jam } 15\text{ menit } 17\text{ detik}$
+[[E]] $2\text{ jam } 24\text{ menit } 17\text{ detik}$
+
+ANSWER: B
+DISCUSSION: 
+Lakukan penjumlahan waktu bersusun:
+1. Jumlahkan detik:
+$$42\text{ s} + 35\text{ s} = 77\text{ detik} = 1\text{ menit } 17\text{ detik}$$
+(Simpan $1\text{ menit}$, sisa $17\text{ detik}$).
+2. Jumlahkan menit beserta simpanan:
+$$15\text{ m} + 58\text{ m} + 1\text{ m (simpanan)} = 74\text{ menit} = 1\text{ jam } 14\text{ menit}$$
+(Simpan $1\text{ jam}$, sisa $14\text{ menit}$).
+3. Jumlahkan jam beserta simpanan:
+$$1\text{ jam} + 1\text{ jam (simpanan)} = 2\text{ jam}$$
+Total waktu tempuh adalah $2\text{ jam } 14\text{ menit } 17\text{ detik}$.
+TIPS_THEORY: Ingat bahwa $1\text{ jam} = 60\text{ menit}$ dan $1\text{ menit} = 60\text{ detik}$. Jika penjumlahan detik atau menit melebihi $60$, kurangkan $60$ dan simpan $1$ ke satuan yang lebih tinggi.
+TIPS_PRACTICE: Fokus pada detik: $42 + 35 = 77 \to 1\text{ menit } 17\text{ detik}$. Hanya opsi A, B, D, dan E yang berakhiran $17\text{ detik}$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q43 (PILGAN)
+Sebuah denah ruang kelas digambar dengan skala $1 : 200$. Pada denah tersebut, ukuran ruang kelas digambarkan dengan panjang $5\text{ cm}$ dan lebar $4\text{ cm}$. Berapakah luas sebenarnya dari ruang kelas tersebut?
+
+[[A]] $40\text{ m}^2$
+[[B]] $60\text{ m}^2$
+[[C]] $80\text{ m}^2$
+[[D]] $100\text{ m}^2$
+[[E]] $120\text{ m}^2$
+
+ANSWER: C
+DISCUSSION: 
+1. Hitung panjang dan lebar sebenarnya terlebih dahulu:
+$$\text{Panjang Sebenarnya} = 5\text{ cm} \times 200 = 1.000\text{ cm} = 10\text{ meter}$$
+$$\text{Lebar Sebenarnya} = 4\text{ cm} \times 200 = 800\text{ cm} = 8\text{ meter}$$
+2. Hitung luas ruang kelas sebenarnya:
+$$\text{Luas} = p \times l = 10\text{ meter} \times 8\text{ meter} = 80\text{ m}^2$$
+TIPS_THEORY: Jangan mengalikan luas pada denah langsung dengan skala $1 : k$. Ukuran panjang dan lebar wajib dikonversi masing-masing ke ukuran sebenarnya terlebih dahulu, baru dikalikan menjadi luas.
+TIPS_PRACTICE: $5\text{ cm} \to 10\text{ m}$, $4\text{ cm} \to 8\text{ m}$. Luas $= 10 \times 8 = 80\text{ m}^2$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q44 (PILGAN)
+Data jenis ekstrakurikuler yang diikuti oleh $120$ siswa Kelas 5 SD disajikan dalam diagram lingkaran:
+- Pramuka $= 40\%$
+- Olahraga Futsal $= 30\%$
+- Seni Musik $= 15\%$
+- Robotik $=$ sisanya
+Berapakah banyak siswa yang memilih ekstrakurikuler Robotik?
+
+[[A]] $12\text{ siswa}$
+[[B]] $15\text{ siswa}$
+[[C]] $18\text{ siswa}$
+[[D]] $24\text{ siswa}$
+[[E]] $30\text{ siswa}$
+
+ANSWER: C
+DISCUSSION: 
+1. Lingkaran penuh menyatakan $100\%$.
+Hitung persentase ekstrakurikuler Robotik:
+$$\text{Robotik} = 100\% - (40\% + 30\% + 15\%) = 100\% - 85\% = 15\%$$
+2. Hitung banyak siswa yang memilih Robotik dari total $120$ siswa:
+$$\text{Banyak siswa} = 15\% \times 120 = \frac{15}{100} \times 120 = \frac{3}{20} \times 120 = 3 \times 6 = 18\text{ siswa}$$
+TIPS_THEORY: Pada diagram lingkaran persentase, total seluruh bagian adalah $100\%$. Banyak anggota dihitung dari persentase dikalikan total populasi sampel.
+TIPS_PRACTICE: $15\% \times 120 = (10\% \times 120) + (5\% \times 120) = 12 + 6 = 18\text{ siswa}$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q45 (PILGAN)
+Hasil dari operasi hitung campuran bilangan bulat $(-24) + 18 \times (-4) - (-35)$ adalah...
+
+[[A]] $-91$
+[[B]] $-61$
+[[C]] $-51$
+[[D]] $45$
+[[E]] $83$
+
+ANSWER: B
+DISCUSSION: 
+Sesuai hierarki derajat operasi matematika, dahulukan perkalian sebelum penjumlahan dan pengurangan:
+1. Hitung perkalian:
+$$18 \times (-4) = -72$$
+2. Masukkan ke persamaan:
+$$(-24) + (-72) - (-35)$$
+3. Operasikan dari kiri ke kanan (ingat $-(-a) = +a$):
+$$(-24) - 72 + 35 = -96 + 35 = -61$$
+TIPS_THEORY: Urutan kabataku (kali, bagi, tambah, kurang) wajib ditaati. Perkalian bilangan positif dengan bilangan negatif menghasilkan bilangan negatif ($+ \times - = -$).
+TIPS_PRACTICE: $-24 - 72 = -96$. Lalu $-96 + 35 = -61$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q46 (PILGAN)
+Ibu melarutkan $50\text{ gram}$ gula pasir ke dalam $250\text{ gram}$ air teh hangat. Berdasarkan hukum kekekalan massa, berapakah massa total larutan teh manis yang terbentuk?
+
+[[A]] $200\text{ gram}$
+[[B]] $250\text{ gram}$
+[[C]] $300\text{ gram}$
+[[D]] $350\text{ gram}$
+[[E]] $500\text{ gram}$
+
+ANSWER: C
+DISCUSSION: 
+Menurut Hukum Kekekalan Massa (Hukum Lavoisier), pada sistem tertutup, massa total zat sebelum reaksi/pelarutan sama dengan massa total zat sesudah reaksi/pelarutan:
+$$\text{Massa Larutan} = \text{Massa Gula} + \text{Massa Air Teh}$$
+$$\text{Massa Larutan} = 50\text{ gram} + 250\text{ gram} = 300\text{ gram}$$
+Meskipun butiran gula tampak "menghilang" karena terdispersi merata di sela-sela molekul air (larut), materi penyusun gula tidak hilang dan massanya tetap terhitung penuh.
+TIPS_THEORY: Proses pelarutan adalah perubahan fisika. Partikel zat terlarut menempati ruang di antara partikel pelarut tanpa ada massa yang lenyap.
+TIPS_PRACTICE: Jumlahkan langsung kedua massa: $50 + 250 = 300\text{ gram}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q47 (PILGAN)
+Sebuah ayunan taman bergerak bolak-balik menempuh $40$ getaran penuh dalam selang waktu $20\text{ detik}$. Berapakah periode getaran ayunan tersebut?
+
+[[A]] $0,25\text{ detik}$
+[[B]] $0,5\text{ detik}$
+[[C]] $1\text{ detik}$
+[[D]] $2\text{ detik}$
+[[E]] $4\text{ detik}$
+
+ANSWER: B
+DISCUSSION: 
+Periode ($T$) adalah waktu yang dibutuhkan oleh benda untuk melakukan **satu kali getaran penuh**:
+$$T = \frac{t}{n}$$
+Diketahui:
+- Waktu getaran ($t$) $= 20\text{ detik}$
+- Jumlah getaran ($n$) $= 40\text{ getaran}$
+Maka:
+$$T = \frac{20\text{ detik}}{40\text{ getaran}} = \frac{1}{2}\text{ detik} = 0,5\text{ detik}$$
+TIPS_THEORY: Periode ($T = \frac{t}{n}$) berbanding terbalik dengan frekuensi ($f = \frac{n}{t}$), sehingga $T = \frac{1}{f}$.
+TIPS_PRACTICE: Bagi waktu dengan jumlah getaran: $20 \div 40 = 0,5\text{ detik}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q48 (PILGAN)
+Empat buah baterai masing-masing bertegangan $1,5\text{ Volt}$ dirangkai secara seri untuk menyalakan sebuah lampu senter. Berapakah tegangan total yang mengalirkan arus listrik ke lampu senter tersebut?
+
+[[A]] $1,5\text{ Volt}$
+[[B]] $3,0\text{ Volt}$
+[[C]] $4,5\text{ Volt}$
+[[D]] $6,0\text{ Volt}$
+[[E]] $7,5\text{ Volt}$
+
+ANSWER: D
+DISCUSSION: 
+Pada rangkaian sumber tegangan listrik secara **seri** (kutub positif baterai dihubungkan ke kutub negatif baterai berikutnya), tegangan total merupakan penjumlahan dari seluruh tegangan baterai:
+$$V_{\text{total}} = V_1 + V_2 + V_3 + V_4$$
+$$V_{\text{total}} = 1,5\text{ V} + 1,5\text{ V} + 1,5\text{ V} + 1,5\text{ V} = 4 \times 1,5\text{ V} = 6,0\text{ Volt}$$
+TIPS_THEORY: Rangkaian baterai seri memperbesar tegangan total ($V_{\text{total}} = n \times V$), sedangkan rangkaian paralel menghasilkan tegangan yang tetap sama dengan satu baterai namun bertahan lebih lama.
+TIPS_PRACTICE: Kalikan jumlah baterai dengan tegangan satu baterai: $4 \times 1,5 = 6,0\text{ Volt}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q49 (PILGAN)
+Sebuah pipa air mengalami kebocoran halus. Air menetes keluar dengan debit konstan sebesar $5\text{ mL/detik}$. Berapa liter air bersih yang terbuang sia-sia jika kebocoran tersebut dibiarkan terus menerus selama $1\text{ jam}$?
+
+[[A]] $3\text{ liter}$
+[[B]] $18\text{ liter}$
+[[C]] $36\text{ liter}$
+[[D]] $180\text{ liter}$
+[[E]] $300\text{ liter}$
+
+ANSWER: B
+DISCUSSION: 
+1. Konversi satuan waktu $1\text{ jam}$ ke dalam satuan detik:
+$$t = 1\text{ jam} = 3.600\text{ detik}$$
+2. Hitung volume air yang keluar ($V = D \times t$):
+$$V = 5\text{ mL/detik} \times 3.600\text{ detik} = 18.000\text{ mL}$$
+3. Konversi dari mililiter ($\text{mL}$) ke liter ($1\text{ liter} = 1.000\text{ mL}$):
+$$V = \frac{18.000}{1.000} = 18\text{ liter}$$
+Jadi, volume air yang terbuang adalah $18\text{ liter}$.
+TIPS_THEORY: Debit air adalah $D = \frac{V}{t}$, sehingga $V = D \times t$. Pastikan satuan waktu diselaraskan sebelum mengalikan.
+TIPS_PRACTICE: $5 \times 3.600 = 18.000\text{ mL}$. Bagi dengan $1.000$ menghasilkan $18\text{ liter}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q50 (PILGAN)
+Sebuah gerobak dorong roda satu (pengungkit jenis kedua) digunakan memindahkan tumpukan pasir seberat $900\text{ N}$. Titik pusat beban pasir terletak $40\text{ cm}$ dari poros roda depan (titik tumpu). Jika panjang pegangan gerobak tempat tangan mengangkat (lengan kuasa) adalah $120\text{ cm}$ dari roda, berapakah gaya angkat minimum yang harus diberikan oleh pekerja?
+
+[[A]] $150\text{ N}$
+[[B]] $200\text{ N}$
+[[C]] $300\text{ N}$
+[[D]] $450\text{ N}$
+[[E]] $600\text{ N}$
+
+ANSWER: C
+DISCUSSION: 
+Pada pengungkit jenis kedua, titik beban berada di antara titik tumpu dan titik kuasa:
+Asas kesetimbangan momen gaya:
+$$w \times l_w = F \times l_f$$
+Diketahui:
+- Berat beban pasir ($w$) $= 900\text{ N}$
+- Lengan beban ($l_w$) $= 40\text{ cm}$
+- Lengan kuasa ($l_f$) $= 120\text{ cm}$
+
+Hitung gaya kuasa ($F$):
+$$F = \frac{w \times l_w}{l_f}$$
+$$F = \frac{900 \times 40}{120} = \frac{36.000}{120} = 300\text{ N}$$
+Keuntungan mekanis gerobak dorong ini:
+$$KM = \frac{l_f}{l_w} = \frac{120}{40} = 3$$
+$$F = \frac{900}{3} = 300\text{ N}$$
+Jadi, pekerja hanya perlu mengeluarkan gaya sebesar $300\text{ N}$ untuk mengangkat beban pasir seberat $900\text{ N}$.
+TIPS_THEORY: Pada pengungkit jenis kedua, lengan kuasa selalu lebih panjang daripada lengan beban, sehingga keuntungan mekanisnya selalu lebih besar dari $1$ ($KM > 1$).
+TIPS_PRACTICE: Bagi lengan kuasa dengan lengan beban ($120 \div 40 = 3$). Lalu bagi beban pasir dengan $3$: $900 \div 3 = 300\text{ N}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+```

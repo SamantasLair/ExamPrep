@@ -15,8 +15,10 @@ function getTodayRange() {
   return { start: `${y}-${m}-${d}T00:00`, end: `${y}-${m}-${d}T23:59` };
 }
 
+export type AdminTab = 'tests' | 'attempts' | 'students' | 'editor' | 'prompt' | 'bank' | 'analytics' | 'danger';
+
 export function useAdminDashboardVM() {
-  const [activeTab, setActiveTab] = useState('tests'); // 'tests' | 'attempts' | 'editor'
+  const [activeTab, setActiveTab] = useState<AdminTab>('tests');
   
   const [testList, setTestList] = useState<TestRow[]>([]);
   const [attemptList, setAttemptList] = useState<any[]>([]);

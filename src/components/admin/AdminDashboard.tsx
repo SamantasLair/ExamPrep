@@ -22,11 +22,12 @@ import { useAdminDashboardVM } from '@/viewmodels/useAdminDashboardVM';
 import { useAnalyticsVM } from '@/viewmodels/useAnalyticsVM';
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'tests'|'attempts'|'students'|'editor'|'prompt'|'bank'|'analytics'|'danger'>('tests');
   const [isSaving, setIsSaving] = useState(false);
   const [pickerModalOpen, setPickerModalOpen] = useState(false);
 
   const {
+    activeTab,
+    setActiveTab,
     testList,
     attemptList,
     studentList,

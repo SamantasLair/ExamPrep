@@ -1,14 +1,33 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ExamRunner } from '@/components/exam/ExamRunner';
 import { useExamPageVM } from '@/viewmodels/useExamPageVM';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Award, ArrowLeft } from 'lucide-react';
+import { StudentLogin } from '@/components/auth/StudentLogin';
+import type { StudentRow } from '@/lib/types';
 
 export default function ExamPage() {
   const params = useParams();
   const examId = params.id as string;
+  const [student, setStudent] = useState<StudentRow | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('exaprep_student');
+      if (saved) {
+        setStudent(JSON.parse(saved));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setCheckingAuth(false);
+    }
+  }, []);
+
   const {
     test,
     questions,
@@ -21,11 +40,22 @@ export default function ExamPage() {
     router
   } = useExamPageVM(examId);
 
-  if (loading) {
+  if (checkingAuth || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse text-muted-foreground text-xs">Memuat ujian...</div>
       </div>
+    );
+  }
+
+  if (!student) {
+    return (
+      <StudentLogin
+        onLogin={(s) => {
+          localStorage.setItem('exaprep_student', JSON.stringify(s));
+          setStudent(s);
+        }}
+      />
     );
   }
 

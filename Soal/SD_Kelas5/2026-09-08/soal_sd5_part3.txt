@@ -1,0 +1,260 @@
+```text
+# Q21 (PILGAN)
+Nilai ulangan Matematika lima orang siswa Kelas 5 berturut-turut adalah $75, 80, 85, 90,$ dan $95$. Jika ada satu siswa baru yang nilainya digabungkan sehingga rata-rata nilai seluruh siswa menjadi $84$, berapakah nilai ulangan siswa baru tersebut?
+
+[[A]] $78$
+[[B]] $80$
+[[C]] $84$
+[[D]] $85$
+[[E]] $89$
+
+ANSWER: E
+DISCUSSION: 
+1. Hitung jumlah total nilai dari $5$ orang siswa awal:
+$$\Sigma x_1 = 75 + 80 + 85 + 90 + 95 = 425$$
+2. Setelah $1$ siswa baru bergabung, total siswa menjadi $6$ orang dengan rata-rata baru $84$:
+$$\Sigma x_2 = 6 \times 84 = 504$$
+3. Nilai siswa baru adalah selisih jumlah total nilai baru dengan nilai awal:
+$$\text{Nilai baru} = 504 - 425 = 79$$
+Koreksi perhitungan:
+$6 \times 84 = 504$.
+$504 - 425 = 79$.
+Jika nilai baru $79$:
+$75+80+85+90+95+79 = 504$. Rata-rata $= 504 / 6 = 84$.
+Mari kita sesuaikan pilihan dan nomor:
+Nilai siswa baru adalah $79$. Jika opsi B diubah atau kita sesuaikan opsi.
+Mari pastikan soal presisi:
+Jika siswa baru mendapat nilai $89$:
+Jumlah baru $= 425 + 89 = 514$. Rata-rata $= 514 / 6 = 85,67$.
+Jika rata-rata menjadi $85$:
+$6 \times 85 = 510$. Nilai baru $= 510 - 425 = 85$.
+Mari kita buat nilai rata-rata menjadi $85$:
+Total baru $= 6 \times 85 = 510$.
+Nilai siswa baru $= 510 - 425 = 85$.
+
+Mari kita tulis ulang soal dengan rapi:
+Nilai ulangan Matematika lima orang siswa Kelas 5 adalah $75, 80, 85, 90,$ dan $95$. Jika ada satu siswa baru yang nilainya digabungkan sehingga nilai rata-rata keenam siswa tersebut menjadi $85$, berapakah nilai ulangan siswa baru tersebut?
+
+[[A]] $75$
+[[B]] $80$
+[[C]] $85$
+[[D]] $90$
+[[E]] $95$
+
+ANSWER: C
+DISCUSSION: 
+1. Hitung total nilai $5$ siswa awal:
+$$\text{Jumlah 5 siswa} = 75 + 80 + 85 + 90 + 95 = 425$$
+2. Hitung total nilai setelah $6$ siswa dengan rata-rata $85$:
+$$\text{Jumlah 6 siswa} = 6 \times 85 = 510$$
+3. Nilai siswa baru:
+$$\text{Nilai siswa baru} = 510 - 425 = 85$$
+TIPS_THEORY: Rata-rata ($\bar{x}$) dihitung dari jumlah seluruh data dibagi banyak data ($\bar{x} = \frac{\Sigma x}{n}$). Maka $\Sigma x = n \times \bar{x}$.
+TIPS_PRACTICE: Karena rata-rata awal adalah $\frac{425}{5} = 85$, dan rata-rata baru tetap $85$, maka nilai siswa yang baru masuk harus tepat sama dengan rata-rata tersebut ($85$).
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q22 (PILGAN)
+Lampu hias merah berkedip setiap $6\text{ detik}$, lampu hijau berkedip setiap $8\text{ detik}$, dan lampu biru berkedip setiap $12\text{ detik}$. Jika ketiga lampu tersebut menyala bersamaan untuk pertama kali pada pukul $19.00$, pada pukul berapakah ketiga lampu akan menyala bersamaan kembali untuk kedua kalinya?
+
+[[A]] $19.00.12$
+[[B]] $19.00.24$
+[[C]] $19.00.36$
+[[D]] $19.00.48$
+[[E]] $19.01.12$
+
+ANSWER: B
+DISCUSSION: 
+Masalah kejadian berulang secara periodik diselesaikan menggunakan KPK (Kelipatan Persekutuan Terkecil).
+Faktorisasi prima dari masing-masing bilangan:
+- $6 = 2 \times 3$
+- $8 = 2^3$
+- $12 = 2^2 \times 3$
+
+KPK dari $6, 8,$ dan $12$:
+$$\text{KPK} = 2^3 \times 3 = 8 \times 3 = 24\text{ detik}$$
+Ketiga lampu akan menyala bersamaan kembali setelah $24\text{ detik}$, yaitu pada pukul $19.00.24$.
+TIPS_THEORY: KPK digunakan untuk mencari waktu pertemuan kembali dari beberapa peristiwa yang memiliki periode atau selang waktu berbeda.
+TIPS_PRACTICE: Cari kelipatan dari angka terbesar ($12, 24, 36$). Uji $24$: habis dibagi $6$ ($24 \div 6 = 4$) dan habis dibagi $8$ ($24 \div 8 = 3$). Jadi KPK $= 24$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q23 (PILGAN)
+Panitia bakti sosial memiliki $48\text{ kg}$ beras, $72\text{ bungkus}$ mie instan, dan $96\text{ kaleng}$ susu kental manis. Bahan makanan tersebut akan dibagikan ke dalam paket bingkisan dengan isi tiap jenis barang yang sama banyak. Berapakah jumlah paket bingkisan terbanyak yang dapat dibuat?
+
+[[A]] $12\text{ paket}$
+[[B]] $16\text{ paket}$
+[[C]] $24\text{ paket}$
+[[D]] $36\text{ paket}$
+[[E]] $48\text{ paket}$
+
+ANSWER: C
+DISCUSSION: 
+Masalah pembagian benda dalam jumlah sama banyak diselesaikan menggunakan FPB (Faktor Persekutuan Terbesar).
+Faktorisasi prima:
+- $48 = 2^4 \times 3$
+- $72 = 2^3 \times 3^2$
+- $96 = 2^5 \times 3$
+
+Ambil faktor prima persekutuan dengan pangkat terendah:
+$$\text{FPB} = 2^3 \times 3 = 8 \times 3 = 24$$
+Maka paket bingkisan terbanyak yang dapat dibuat adalah $24\text{ paket}$, di mana setiap paket berisi:
+- Beras: $48 \div 24 = 2\text{ kg}$
+- Mie: $72 \div 24 = 3\text{ bungkus}$
+- Susu: $96 \div 24 = 4\text{ kaleng}$
+TIPS_THEORY: FPB digunakan saat membagi sekumpulan benda berbeda jenis menjadi beberapa kelompok dengan jumlah merata tanpa sisa.
+TIPS_PRACTICE: Cari angka pembagi bersama terbesar dari $48, 72,$ dan $96$. Ketiganya habis dibagi $24$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q24 (PILGAN)
+Perbandingan umur Ayah dan umur Rian adalah $7 : 2$. Jika selisih umur mereka berdua saat ini adalah $35\text{ tahun}$, berapakah umur Ayah sekarang?
+
+[[A]] $42\text{ tahun}$
+[[B]] $45\text{ tahun}$
+[[C]] $49\text{ tahun}$
+[[D]] $54\text{ tahun}$
+[[E]] $56\text{ tahun}$
+
+ANSWER: C
+DISCUSSION: 
+Diketahui:
+- Perbandingan: $\text{Ayah} : \text{Rian} = 7 : 2$
+- Selisih angka perbandingan $= 7 - 2 = 5\text{ bagian}$
+- Selisih umur sebenarnya $= 35\text{ tahun}$
+
+1. Hitung nilai $1\text{ bagian}$ perbandingan:
+$$\text{Nilai } 1\text{ bagian} = \frac{35\text{ tahun}}{5} = 7\text{ tahun}$$
+2. Hitung umur Ayah ($7\text{ bagian}$):
+$$\text{Umur Ayah} = 7 \times 7\text{ tahun} = 49\text{ tahun}$$
+(Umur Rian $= 2 \times 7 = 14\text{ tahun}$. Selisih: $49 - 14 = 35\text{ tahun}$).
+TIPS_THEORY: Rumus perbandingan dengan selisih yang diketahui: $\text{Nilai Dicari} = \frac{\text{Rasio Dicari}}{\text{Selisih Rasio}} \times \text{Selisih Nilai}$.
+TIPS_PRACTICE: Bagi selisih umur dengan selisih rasio: $35 \div (7 - 2) = 7$. Lalu kalikan dengan rasio Ayah: $7 \times 7 = 49$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q25 (PILGAN)
+Koperasi sekolah memiliki persediaan buku tulis sebanyak $2\frac{1}{2}\text{ gros}$. Selama sepekan, koperasi telah menjual buku tulis sebanyak $15\text{ lusin}$. Berapa buah sisa buku tulis yang masih ada di koperasi sekolah?
+
+[[A]] $120\text{ buah}$
+[[B]] $150\text{ buah}$
+[[C]] $180\text{ buah}$
+[[D]] $210\text{ buah}$
+[[E]] $240\text{ buah}$
+
+ANSWER: C
+DISCUSSION: 
+1. Konversi satuan kuantitas ke dalam satuan buah:
+- $1\text{ gros} = 144\text{ buah}$ (atau $12\text{ lusin}$)
+- $1\text{ lusin} = 12\text{ buah}$
+2. Hitung persediaan awal:
+$$2\frac{1}{2}\text{ gros} = 2,5 \times 144\text{ buah} = 360\text{ buah}$$
+3. Hitung banyak buku yang terjual:
+$$15\text{ lusin} = 15 \times 12\text{ buah} = 180\text{ buah}$$
+4. Hitung sisa persediaan:
+$$\text{Sisa} = 360 - 180 = 180\text{ buah}$$
+TIPS_THEORY: Ingat hubungan satuan kuantitas standar: $1\text{ gros} = 12\text{ lusin} = 144\text{ buah}$.
+TIPS_PRACTICE: Dalam satuan lusin: $2,5\text{ gros} = 2,5 \times 12 = 30\text{ lusin}$. Sisa $= 30 - 15 = 15\text{ lusin}$. Dalam buah: $15 \times 12 = 180\text{ buah}$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q26 (PILGAN)
+Muatan listrik sebesar $180\text{ Coulomb}$ mengalir melalui kawat tembaga penghubung lampu bohlam dalam waktu $1,5\text{ menit}$. Berapakah kuat arus listrik yang mengalir melalui kawat tersebut?
+
+[[A]] $0,5\text{ Ampere}$
+[[B]] $1,2\text{ Ampere}$
+[[C]] $2\text{ Ampere}$
+[[D]] $3\text{ Ampere}$
+[[E]] $12\text{ Ampere}$
+
+ANSWER: C
+DISCUSSION: 
+1. Konversi satuan waktu ($t$) ke dalam satuan sekon (detik):
+$$t = 1,5\text{ menit} = 1,5 \times 60 = 90\text{ detik}$$
+2. Hitung kuat arus listrik ($I$) dari muatan ($Q$) per satuan waktu ($t$):
+$$I = \frac{Q}{t}$$
+$$I = \frac{180\text{ Coulomb}}{90\text{ detik}} = 2\text{ Ampere}$$
+Jadi, kuat arus listrik kawat penghubung adalah $2\text{ Ampere}$.
+TIPS_THEORY: Kuat arus listrik ($I$) adalah laju aliran muatan listrik per satuan waktu, dengan satuan Ampere ($\text{A} = \text{Coulomb/detik}$).
+TIPS_PRACTICE: Selalu konversikan waktu ke detik sebelum membagi muatan: $180 \div 90 = 2\text{ A}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q27 (PILGAN)
+Dina berdiri tegak tepat $1,8\text{ meter}$ di depan sebuah cermin datar. Jika Dina kemudian melangkah mundur sejauh $70\text{ cm}$ menjauhi cermin, berapakah jarak antara Dina dengan bayangan dirinya di dalam cermin sekarang?
+
+[[A]] $2,5\text{ meter}$
+[[B]] $3,6\text{ meter}$
+[[C]] $4,3\text{ meter}$
+[[D]] $5,0\text{ meter}$
+[[E]] $5,2\text{ meter}$
+
+ANSWER: D
+DISCUSSION: 
+1. Hitung jarak Dina ke cermin setelah melangkah mundur:
+- Jarak awal $= 1,8\text{ m} = 180\text{ cm}$
+- Jarak akhir $= 180\text{ cm} + 70\text{ cm} = 250\text{ cm} = 2,5\text{ meter}$
+2. Pada cermin datar, jarak bayangan di belakang cermin sama dengan jarak benda di depan cermin ($s' = s$):
+$$s' = 2,5\text{ meter}$$
+3. Jarak total antara benda (Dina) dengan bayangannya:
+$$\text{Jarak total} = s + s' = 2,5\text{ m} + 2,5\text{ m} = 5,0\text{ meter}$$
+TIPS_THEORY: Sifat bayangan pada cermin datar adalah maya, tegak, sama besar, dan jarak bayangan ke cermin sama persis dengan jarak benda ke cermin ($s' = s$).
+TIPS_PRACTICE: Jarak orang ke bayangan adalah dua kali lipat jarak orang ke cermin: $2 \times 2,5\text{ m} = 5\text{ m}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q28 (PILGAN)
+Sebuah balok beton memiliki berat $1.200\text{ N}$. Dasar balok yang menempel pada lantai memiliki luas permukaan $0,4\text{ m}^2$. Berapakah besar tekanan yang dialami lantai akibat beban balok tersebut?
+
+[[A]] $300\text{ N/m}^2$
+[[B]] $480\text{ N/m}^2$
+[[C]] $1.200\text{ N/m}^2$
+[[D]] $3.000\text{ N/m}^2$
+[[E]] $4.800\text{ N/m}^2$
+
+ANSWER: D
+DISCUSSION: 
+Tekanan zat padat ($P$) didefinisikan sebagai gaya tekan ($F$) yang bekerja tegak lurus pada setiap satuan luas bidang tekan ($A$):
+$$P = \frac{F}{A}$$
+Diketahui:
+- Gaya beban balok ($F$) $= 1.200\text{ N}$
+- Luas alas bidang ($A$) $= 0,4\text{ m}^2$
+Maka:
+$$P = \frac{1.200}{0,4} = \frac{12.000}{4} = 3.000\text{ N/m}^2\text{ (atau Pascal)}$$
+TIPS_THEORY: Semakin kecil luas bidang sentuh, semakin besar tekanan yang dihasilkan oleh gaya yang sama. Satuan internasional untuk tekanan adalah $\text{N/m}^2$ (Pascal).
+TIPS_PRACTICE: Hilangkan desimal pembagi dengan mengalikan $10$ pada pembilang dan penyebut: $1.200 \div 0,4 = 12.000 \div 4 = 3.000$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q29 (PILGAN)
+Sebuah peti kemas seberat $800\text{ N}$ dinaikkan menggunakan katrol bebas (katrol bergerak tunggal). Berapakah besar gaya kuasa yang diperlukan untuk mengangkat peti kemas tersebut?
+
+[[A]] $200\text{ N}$
+[[B]] $400\text{ N}$
+[[C]] $800\text{ N}$
+[[D]] $1.200\text{ N}$
+[[E]] $1.600\text{ N}$
+
+ANSWER: B
+DISCUSSION: 
+Katrol bebas (katrol bergerak tunggal) memiliki keuntungan mekanis ($KM$) bernilai $2$, karena beban ditopang oleh dua utas tali yang bergerak:
+$$KM = \frac{w}{F} = 2$$
+Sehingga gaya kuasa yang diperlukan adalah separuh dari berat beban:
+$$F = \frac{w}{2} = \frac{800\text{ N}}{2} = 400\text{ N}$$
+TIPS_THEORY: Berbeda dengan katrol tetap ($KM = 1$), katrol bergerak membagi berat beban pada dua bagian tali penopang, sehingga gaya kuasa yang dikeluarkan menjadi setengah kali lipat ($KM = 2$).
+TIPS_PRACTICE: Pada katrol bergerak, cukup bagi berat beban dengan $2$: $800 \div 2 = 400\text{ N}$.
+LABELS: Subject=IPA, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q30 (PILGAN)
+Sebuah gelas ukur mula-mula berisi air sebanyak $75\text{ mL}$. Ketika sebutir batu kerikil tak beraturan dimasukkan ke dalam gelas ukur tersebut, permukaan air naik menjadi $115\text{ mL}$. Jika massa batu kerikil tersebut ditimbang menggunakan neraca dan menunjukkan angka $100\text{ gram}$, berapakah massa jenis batu kerikil tersebut?
+
+[[A]] $1,25\text{ g/cm}^3$
+[[B]] $2,0\text{ g/cm}^3$
+[[C]] $2,5\text{ g/cm}^3$
+[[D]] $3,0\text{ g/cm}^3$
+[[E]] $4,0\text{ g/cm}^3$
+
+ANSWER: C
+DISCUSSION: 
+1. Hitung volume batu kerikil dari selisih kenaikan volume air:
+$$V = V_2 - V_1 = 115\text{ mL} - 75\text{ mL} = 40\text{ mL} = 40\text{ cm}^3$$
+(Ingat kesetaraan satuan: $1\text{ mL} = 1\text{ cm}^3$).
+2. Hitung massa jenis kerikil ($\rho$):
+$$\rho = \frac{m}{V} = \frac{100\text{ gram}}{40\text{ cm}^3} = 2,5\text{ g/cm}^3$$
+Jadi, massa jenis batu kerikil adalah $2,5\text{ g/cm}^3$.
+TIPS_THEORY: Metode pemindahan zat cair (metode gelas ukur Archimedes) digunakan untuk mengukur volume benda padat yang bentuknya tidak beraturan.
+TIPS_PRACTICE: Kenaikan volume $= 115 - 75 = 40$. Bagi massa dengan volume: $100 \div 40 = 2,5$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+```

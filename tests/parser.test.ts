@@ -210,5 +210,28 @@ Kata **KOMPREHENSIF** menurut KBBI berarti luas dan lengkap.
     expect(questions[0].options?.[0].body[0].content).toContain('*mendalam*');
     expect(questions[0].discussion?.[0].content).toContain('**KOMPREHENSIF**');
   });
+
+  it('should parse exactly 50 questions from generated SD Kelas 5 FULL file with valid properties', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const filePath = path.resolve(__dirname, '../Soal/SD_Kelas5/2026-09-08/soal_sd5_FULL.txt');
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const questions = parseMarkdown(content);
+
+    expect(questions).toHaveLength(50);
+    expect(questions[0].id).toBe(1);
+    expect(questions[49].id).toBe(50);
+
+    // Verify all 50 have options, answers, discussions, and labels
+    for (let i = 0; i < 50; i++) {
+      const q = questions[i];
+      expect(q.id).toBe(i + 1);
+      expect(q.type).toBe('MCQ');
+      expect(q.options?.length).toBe(5);
+      expect(['A', 'B', 'C', 'D', 'E']).toContain(q.correctAnswer);
+      expect(q.discussion?.length).toBeGreaterThan(0);
+      expect(q.labels?.length).toBeGreaterThan(0);
+    }
+  });
 });
 
