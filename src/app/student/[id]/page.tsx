@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useStudentDashboardVM } from '@/viewmodels/useStudentDashboardVM';
-import { motion } from 'framer-motion';
+import { AnimeBox } from '@/components/ui/AnimeBox';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,10 +44,8 @@ export default function StudentDashboardPage() {
     : 0;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+    <AnimeBox 
+      preset="page"
       className="min-h-screen bg-muted/10 pb-10"
     >
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
@@ -67,145 +65,170 @@ export default function StudentDashboardPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 mt-8 space-y-6 max-w-5xl">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="shadow-sm border-border/60 hover:shadow-md transition-all">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Ujian Selesai</p>
-                <p className="text-3xl font-black">{attempts.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-border/60 hover:shadow-md transition-all">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Rata-Rata Skor</p>
-                <p className="text-3xl font-black">{averageScore}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-border/60 hover:shadow-md transition-all">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-600">
-                <Calendar className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Bergabung Sejak</p>
-                <p className="text-lg font-bold">{new Date(student.created_at).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="container mx-auto px-4 mt-6 max-w-7xl pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT COLUMN: KPI Cards + Chart */}
+          <div className="lg:col-span-7 xl:col-span-7 space-y-5">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <Card className="shadow-2xs border-border/70 hover:border-primary/40 transition-all rounded-xl">
+                <CardContent className="p-4 flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 shrink-0">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider truncate">Ujian Selesai</p>
+                    <p className="text-xl font-semibold tabular-nums leading-tight text-foreground">{attempts.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Chart Section */}
-        {attempts.length > 0 && (
-          <Card className="shadow-sm border-border/60 overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" /> Tren Perkembangan Belajar
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} domain={[0, 100]} />
-                  <RechartsTooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                    labelStyle={{ fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}
-                    // @ts-ignore: Recharts types are inaccurate for ReactNode array
-                    formatter={(value: number, name: string, props: any) => [
-                      <span key="score" className="font-bold">{value} <span className="font-normal text-xs text-muted-foreground">({props.payload.testName})</span></span>,
-                      "Skor"
-                    ]}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="var(--color-primary, #3b82f6)" 
-                    strokeWidth={4} 
-                    dot={{ strokeWidth: 4, r: 4, fill: 'white' }} 
-                    activeDot={{ r: 8, strokeWidth: 0, fill: 'var(--color-primary, #3b82f6)' }}
-                    animationDuration={1500}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
+              <Card className="shadow-2xs border-border/70 hover:border-primary/40 transition-all rounded-xl">
+                <CardContent className="p-4 flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider truncate">Rata-Rata Skor</p>
+                    <p className="text-xl font-semibold tabular-nums leading-tight text-foreground">{averageScore}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Exam History Table */}
-        <Card className="shadow-sm border-border/60">
-          <CardHeader className="bg-muted/30 border-b">
-            <CardTitle className="text-base font-bold">Riwayat Ujian</CardTitle>
-          </CardHeader>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground uppercase bg-muted/20 border-b">
-                <tr>
-                  <th className="px-6 py-4 font-bold">Nama Ujian</th>
-                  <th className="px-6 py-4 font-bold">Waktu Penyelesaian</th>
-                  <th className="px-6 py-4 font-bold text-center">Integritas</th>
-                  <th className="px-6 py-4 font-bold text-right">Skor Akhir</th>
-                  <th className="px-6 py-4 font-bold text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {attempts.map((att) => (
-                  <tr key={att.id} className="bg-card hover:bg-muted/50 transition-colors">
-                    <td className="px-6 py-4 font-medium">{att.tests?.title || 'Unknown'}</td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {att.finished_at ? new Date(att.finished_at).toLocaleString('id-ID') : '-'}
-                      {(att as any).offline_sync_at && (
-                        <Badge variant="outline" className="ml-2 text-[10px] bg-amber-50 text-amber-600 border-amber-200">
-                          Offline Sync
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {(att as any).violation_count > 0 ? (
-                        <span className="text-destructive font-bold text-xs bg-destructive/10 px-2 py-1 rounded">
-                          {(att as any).violation_count} Pelanggaran
-                        </span>
-                      ) : (
-                        <span className="text-green-600 font-bold text-xs bg-green-100 px-2 py-1 rounded">
-                          Aman
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`font-black text-lg ${att.score >= (att.tests?.passing_grade || 70) ? 'text-green-600' : 'text-red-500'}`}>
-                        {att.score}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/exam/${att.test_id}/review`)}>
-                        Review
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-                {attempts.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
-                      Belum ada riwayat ujian.
-                    </td>
-                  </tr>
+              <Card className="shadow-2xs border-border/70 hover:border-primary/40 transition-all rounded-xl">
+                <CardContent className="p-4 flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-600 shrink-0">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider truncate">Bergabung</p>
+                    <p className="text-sm font-semibold leading-tight text-foreground truncate">
+                      {new Date(student.created_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Learning Trend Chart */}
+            <Card className="shadow-2xs border-border/70 rounded-xl overflow-hidden">
+              <CardHeader className="bg-muted/20 border-b p-3.5 sm:p-4 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                  <TrendingUp className="w-4 h-4 text-primary" /> Tren Perkembangan Belajar
+                </CardTitle>
+                <Badge variant="outline" className="text-[11px] font-medium border-primary/30 text-primary">
+                  {attempts.length} Titik Evaluasi
+                </Badge>
+              </CardHeader>
+              <CardContent className="p-4 pt-6 h-[340px]">
+                {attempts.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6b7280' }} dy={8} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6b7280' }} domain={[0, 100]} />
+                      <RechartsTooltip 
+                        contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                        labelStyle={{ fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}
+                        // @ts-ignore: Recharts types
+                        formatter={(value: number, name: string, props: any) => [
+                          <span key="score" className="font-bold">{value} <span className="font-normal text-xs text-muted-foreground">({props.payload.testName})</span></span>,
+                          "Skor"
+                        ]}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="score" 
+                        stroke="var(--color-primary, #3b82f6)" 
+                        strokeWidth={3.5} 
+                        dot={{ strokeWidth: 3, r: 4, fill: 'white' }} 
+                        activeDot={{ r: 7, strokeWidth: 0, fill: 'var(--color-primary, #3b82f6)' }}
+                        animationDuration={1200}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground text-sm">
+                    <TrendingUp className="w-8 h-8 mb-2 opacity-30" />
+                    Selesaikan ujian pertama Anda untuk melihat grafik perkembangan belajar di sini.
+                  </div>
                 )}
-              </tbody>
-            </table>
+              </CardContent>
+            </Card>
           </div>
-        </Card>
+
+          {/* RIGHT COLUMN: Exam History with Independent Internal Scroll */}
+          <div className="lg:col-span-5 xl:col-span-5">
+            <Card className="shadow-2xs border-border/70 rounded-xl flex flex-col h-full lg:max-h-[465px] bg-card overflow-hidden">
+              <CardHeader className="bg-muted/20 border-b p-3.5 sm:p-4 flex flex-row items-center justify-between shrink-0">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  Riwayat Ujian
+                </CardTitle>
+                <Badge variant="secondary" className="text-[11px] font-medium">
+                  {attempts.length} Selesai
+                </Badge>
+              </CardHeader>
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2.5">
+                {attempts.map((att) => {
+                  const isPassing = att.score >= (att.tests?.passing_grade || 70);
+                  return (
+                    <div 
+                      key={att.id} 
+                      className="p-3.5 rounded-lg border border-border/70 bg-card hover:border-primary/40 hover:bg-muted/15 transition-all flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-xs text-foreground truncate">{att.tests?.title || 'Unknown'}</h3>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {att.finished_at ? new Date(att.finished_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${isPassing ? 'bg-green-500/10 text-green-700 dark:text-green-300' : 'bg-destructive/10 text-destructive'}`}>
+                            KKM {att.tests?.passing_grade || 70}
+                          </span>
+                          {(att as any).violation_count > 0 ? (
+                            <span className="text-[10px] font-medium bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-md">
+                              {(att as any).violation_count} Pelanggaran
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium bg-green-500/10 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-md">
+                              Integritas Aman
+                            </span>
+                          )}
+                          {(att as any).offline_sync_at && (
+                            <span className="text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-md">
+                              Offline Sync
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <span className={`text-lg font-semibold tabular-nums ${isPassing ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
+                          {att.score}
+                        </span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => router.push(`/exam/${att.test_id}/review`)}
+                          className="h-7 px-2.5 text-[11px] font-medium rounded-lg border-border/80 hover:bg-muted"
+                        >
+                          Review
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {attempts.length === 0 && (
+                  <div className="p-8 text-center text-xs text-muted-foreground">
+                    Belum ada riwayat ujian yang tercatat.
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
       </div>
-    </motion.div>
+    </AnimeBox>
   );
 }

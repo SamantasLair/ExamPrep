@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { LabelSelector } from '@/components/exam/LabelSelector';
 import { useState } from 'react';
-import { Search, Database, ShoppingCart, PlusCircle, CheckCircle2, X, ChevronLeft, ChevronRight, LayoutGrid, Filter, BarChart } from 'lucide-react';
+import { Search, Database, ShoppingCart, PlusCircle, CheckCircle2, X, ChevronLeft, ChevronRight, LayoutGrid, Filter, BarChart, Settings, Tag } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 export function BankSoalTab() {
@@ -186,7 +186,7 @@ export function BankSoalTab() {
           <div className="bg-card border rounded-xl p-5 shadow-sm flex flex-col gap-3">
             <h3 className="font-bold flex items-center gap-2"><Filter className="w-5 h-5 text-primary"/> Filter Taksonomi</h3>
             <Button variant="outline" className="w-full justify-between" onClick={() => setFilterModalOpen(true)}>
-              <span>⚙️ Atur Filter Taksonomi</span>
+              <span className="flex items-center gap-2"><Settings className="w-4 h-4"/> Atur Filter Taksonomi</span>
               <ChevronRight className="w-4 h-4 opacity-50"/>
             </Button>
             
@@ -214,7 +214,7 @@ export function BankSoalTab() {
               disabled={selectedIds.length === 0}
               onClick={() => setBulkModalOpen(true)}
             >
-              <span>🏷️ Injeksi Label Massal</span>
+              <span className="flex items-center gap-2"><Tag className="w-4 h-4"/> Injeksi Label Massal</span>
               <Badge variant="secondary" className="bg-white/20 text-white">{selectedIds.length} terpilih</Badge>
             </Button>
             <p className="text-[10px] text-muted-foreground text-center">Menambahkan label ke seluruh soal yang Anda centang sekaligus.</p>

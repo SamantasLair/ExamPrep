@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { AttemptRow, Question } from '@/lib/types';
+import type { Question } from '@/lib/types';
 import { parseMarkdown } from '@/lib/parser';
 
 export interface ItemAnalysis {
@@ -56,9 +56,16 @@ export function useAnalyticsVM(testId: string | null) {
         }
 
         // 3. Map results
-        const results: ItemAnalysis[] = irtData.map((row: any) => {
+        interface IrtApiRow {
+          question_id: string;
+          p_score: number | string;
+          total_count: number;
+          correct_count: number;
+        }
+
+        const results: ItemAnalysis[] = (irtData as IrtApiRow[]).map((row) => {
           const q = questions.find(x => x.id.toString() === row.question_id);
-          const p = parseFloat(row.p_score);
+          const p = typeof row.p_score === 'number' ? row.p_score : parseFloat(row.p_score);
           let status: 'too_easy' | 'too_hard' | 'ideal' = 'ideal';
           if (p < 0.3) status = 'too_hard';
           else if (p > 0.8) status = 'too_easy';
@@ -74,8 +81,8 @@ export function useAnalyticsVM(testId: string | null) {
         });
 
         setAnalysis(results);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Terjadi kesalahan analitik.');
       } finally {
         setLoading(false);
       }

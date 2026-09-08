@@ -21,9 +21,12 @@ const QUESTION_HEADER_RE = /^#\s*Q(\d+)\s*\((PILGAN|ESSAY)\)\s*$/i;
 const OPTION_RE = /^\[\[([A-E])\]\]\s*(.*)/;
 const ANSWER_RE = /^(?:Jawaban:\s*)?ANSWER:\s*(.+)$/i;
 const DISCUSSION_RE = /^(?:Pembahasan:\s*)?DISCUSSION:\s*([\s\S]*)$/i;
-const TIPS_THEORY_RE = /^TIPS_THEORY:\s*([\s\S]*)$/i;
-const TIPS_PRACTICE_RE = /^TIPS_PRACTICE:\s*([\s\S]*)$/i;
+const TIPS_THEORY_RE = /^TIPS?_(?:THEORY|TEORI):\s*([\s\S]*)$/i;
+const TIPS_PRACTICE_RE = /^TIPS?_(?:PRACTICE|PRAKTIK):\s*([\s\S]*)$/i;
 const LABELS_RE = /^LABELS:\s*(.+)$/i;
+const STIMULUS_START_RE = /^(?:#\s*)?STIMULUS(?::\s*(.+))?$/i;
+const STIMULUS_END_RE = /^(?:#\s*)?(?:END_STIMULUS|ENDSTIMULUS)$/i;
+const CLEAR_STIMULUS_RE = /^(?:#\s*)?CLEAR_STIMULUS$/i;
 
 /* ── Inline content parsers ── */
 
@@ -256,6 +259,10 @@ export function parseMarkdown(markdown: string): Question[] {
 
   const lines = markdown.split(/\r?\n/);
   const questions: Question[] = [];
+  let activeStimulusId: string | undefined = undefined;
+  let activeStimulusLines: string[] = [];
+  let isCollectingStimulus = false;
+
   let current: {
     id: number;
     type: 'MCQ' | 'ESSAY';
@@ -275,7 +282,7 @@ export function parseMarkdown(markdown: string): Question[] {
       .join('\n').trim();
     const options: Option[] = current.options.map((o) => ({
       key: o.key,
-      body: parseInlineContent(o.textLines.join('\n')),
+      body: parseInlineContent(o.textLines.join('\n').trim()),
     }));
     const discussionText = current.discussionLines.join('\n').trim();
     
@@ -291,8 +298,12 @@ export function parseMarkdown(markdown: string): Question[] {
       labelsArray = extractedLabels.split(',').map(s => s.trim()).filter(Boolean);
     }
 
+    const stimulusContent = activeStimulusLines.join('\n').trim();
+
     questions.push({
       id: current.id,
+      stimulus_id: stimulusContent ? (activeStimulusId || `stim-${current.id}`) : undefined,
+      stimulus_content: stimulusContent || undefined,
       type: current.type,
       labels: labelsArray,
       body: parseInlineContent(bodyText),
@@ -305,6 +316,32 @@ export function parseMarkdown(markdown: string): Question[] {
   }
 
   for (const line of lines) {
+    // Check for stimulus block
+    const stimulusStartMatch = line.match(STIMULUS_START_RE);
+    if (stimulusStartMatch) {
+      flushQuestion();
+      activeStimulusLines = [];
+      activeStimulusId = stimulusStartMatch[1]?.trim() || `stimulus-${questions.length + 1}`;
+      isCollectingStimulus = true;
+      continue;
+    }
+
+    if (isCollectingStimulus) {
+      if (STIMULUS_END_RE.test(line)) {
+        isCollectingStimulus = false;
+        continue;
+      }
+      activeStimulusLines.push(line);
+      continue;
+    }
+
+    if (CLEAR_STIMULUS_RE.test(line)) {
+      flushQuestion();
+      activeStimulusId = undefined;
+      activeStimulusLines = [];
+      continue;
+    }
+
     // Check for question header
     const headerMatch = line.match(QUESTION_HEADER_RE);
     if (headerMatch) {
@@ -391,8 +428,10 @@ export function parseMarkdown(markdown: string): Question[] {
 
     // If we're in options section and line doesn't start a new option, append to last option
     if (section === 'options' && current.options.length > 0 && !optionMatch) {
-      current.options[current.options.length - 1].textLines.push(line);
-      continue;
+      if (!/^(?:ANSWER|Jawaban|DISCUSSION|Pembahasan|TIPS?_|LABELS?:|#)/i.test(line.trim())) {
+        current.options[current.options.length - 1].textLines.push(line);
+        continue;
+      }
     }
 
     // Default: append to body

@@ -16,23 +16,28 @@ export function StimulusRenderer({ content, children }: StimulusRendererProps) {
   const blocks = parsed[0]?.body || [];
 
   return (
-    <div className="w-full space-y-4 my-6">
-      <Card className="border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20 rounded-l-none">
-        <CardHeader className="py-3">
-          <CardTitle className="text-sm font-semibold tracking-wide uppercase text-blue-700 dark:text-blue-300">
-            KASUS / STIMULUS
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm leading-relaxed">
-            <ContentBlockList blocks={blocks} />
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Nested Questions Container */}
-      <div className="pl-4 md:pl-8 border-l-2 border-dashed border-muted-foreground/30 space-y-4">
-        {children}
+    <div className="w-full my-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Sticky Stimulus Reading Card on Desktop */}
+        <div className="lg:col-span-5 lg:sticky lg:top-4">
+          <Card className="border-l-4 border-l-blue-500 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl shadow-xs overflow-hidden">
+            <CardHeader className="py-2.5 px-4 bg-blue-500/10 border-b border-blue-500/20">
+              <CardTitle className="text-xs font-semibold tracking-wider uppercase text-blue-700 dark:text-blue-300">
+                KASUS / STIMULUS
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 max-h-[calc(100vh-180px)] overflow-y-auto custom-scrollbar">
+              <div className="text-sm leading-relaxed text-foreground/90">
+                <ContentBlockList blocks={blocks} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Nested Questions Container */}
+        <div className="lg:col-span-7 space-y-4">
+          {children}
+        </div>
       </div>
     </div>
   );

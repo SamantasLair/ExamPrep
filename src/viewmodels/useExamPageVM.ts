@@ -62,7 +62,7 @@ export function useExamPageVM(examId: string) {
         setIsOfflineSync(true);
         setFinalScore(score);
         setSubmitted(true);
-      } catch (e) {
+      } catch {
         alert('Gagal menyimpan mode offline (Storage penuh).');
       }
       return;

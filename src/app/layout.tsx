@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
+import { MockModeBanner } from "@/components/ui/MockModeBanner";
+
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -18,8 +20,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
-      <body className={`${inter.variable} font-sans antialiased`}>
+    <html lang="id" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+        <MockModeBanner />
         {children}
       </body>
     </html>
