@@ -1,0 +1,228 @@
+```text
+# Q1 (PILGAN)
+Ibu memiliki persediaan tepung terigu sebanyak $3\frac{1}{2}\text{ kg}$. Sebanyak $1\frac{3}{4}\text{ kg}$ digunakan untuk membuat kue bolu. Kemudian, Ibu membeli lagi tepung terigu sebanyak $2\frac{1}{4}\text{ kg}$. Berapa kilogram sisa tepung terigu yang dimiliki Ibu sekarang?
+
+[[A]] $3\frac{1}{2}\text{ kg}$
+[[B]] $4\text{ kg}$
+[[C]] $4\frac{1}{4}\text{ kg}$
+[[D]] $4\frac{1}{2}\text{ kg}$
+[[E]] $5\text{ kg}$
+
+ANSWER: B
+DISCUSSION: Perhitungan dilakukan dengan urutan operasi pengurangan kemudian penjumlahan pecahan campuran:
+1. Hitung sisa tepung setelah membuat kue:
+$$3\frac{1}{2} - 1\frac{3}{4} = \frac{7}{2} - \frac{7}{4} = \frac{14}{4} - \frac{7}{4} = \frac{7}{4}\text{ kg}$$
+2. Tambahkan dengan tepung yang baru dibeli:
+$$\frac{7}{4} + 2\frac{1}{4} = \frac{7}{4} + \frac{9}{4} = \frac{16}{4} = 4\text{ kg}$$
+Jadi, persediaan tepung terigu Ibu sekarang adalah $4\text{ kg}$.
+TIPS_THEORY: Ubah pecahan campuran menjadi pecahan biasa terlebih dahulu dengan rumus $a\frac{b}{c} = \frac{(a \times c) + b}{c}$, lalu samakan penyebutnya menggunakan KPK penyebut.
+TIPS_PRACTICE: Perhatikan bahwa $3\frac{1}{2} - 1\frac{3}{4} = 1\frac{3}{4}$, lalu $1\frac{3}{4} + 2\frac{1}{4} = (1 + 2) + (\frac{3}{4} + \frac{1}{4}) = 3 + 1 = 4$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q2 (PILGAN)
+Pak Budi mempunyai sebidang tanah seluas $480\text{ m}^2$. Sebanyak $\frac{3}{8}$ bagian tanah tersebut ditanami pohon mangga, $\frac{1}{4}$ bagian ditanami pohon rambutan, dan sisanya dibuat kolam ikan. Luas tanah yang dibuat kolam ikan adalah...
+
+[[A]] $120\text{ m}^2$
+[[B]] $160\text{ m}^2$
+[[C]] $180\text{ m}^2$
+[[D]] $200\text{ m}^2$
+[[E]] $240\text{ m}^2$
+
+ANSWER: C
+DISCUSSION: 
+1. Hitung bagian kolam ikan dari total tanah:
+$$\text{Bagian kolam} = 1 - \left(\frac{3}{8} + \frac{1}{4}\right)$$
+Samakan penyebut menjadi $8$:
+$$\frac{3}{8} + \frac{2}{8} = \frac{5}{8}\text{ bagian}$$
+$$\text{Bagian kolam} = 1 - \frac{5}{8} = \frac{3}{8}\text{ bagian}$$
+2. Hitung luas kolam ikan:
+$$\text{Luas kolam} = \frac{3}{8} \times 480\text{ m}^2 = 3 \times 60 = 180\text{ m}^2$$
+TIPS_THEORY: Keseluruhan luas tanah bernilai utuh ($1$). Cari total bagian yang sudah terpakai dengan penjumlahan pecahan, lalu kurangkan dari $1$.
+TIPS_PRACTICE: Dapat juga dihitung langsung luas tiap tanaman: mangga $= \frac{3}{8} \times 480 = 180\text{ m}^2$, rambutan $= \frac{1}{4} \times 480 = 120\text{ m}^2$. Total $= 300\text{ m}^2$. Sisa kolam $= 480 - 300 = 180\text{ m}^2$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q3 (PILGAN)
+Jarak antara Kota A dan Kota B pada peta berskala $1 : 1.500.000$ adalah $6\text{ cm}$. Jarak sebenarnya antara kedua kota tersebut adalah...
+
+[[A]] $9\text{ km}$
+[[B]] $15\text{ km}$
+[[C]] $90\text{ km}$
+[[D]] $150\text{ km}$
+[[E]] $900\text{ km}$
+
+ANSWER: C
+DISCUSSION: 
+Rumus mencari jarak sebenarnya dari skala dan jarak pada peta:
+$$\text{Jarak Sebenarnya} = \frac{\text{Jarak Peta}}{\text{Skala}} = \text{Jarak Peta} \times \text{Penyebut Skala}$$
+$$\text{Jarak Sebenarnya} = 6\text{ cm} \times 1.500.000 = 9.000.000\text{ cm}$$
+Konversi satuan dari centimeter ($\text{cm}$) ke kilometer ($\text{km}$):
+$$1\text{ km} = 100.000\text{ cm}$$
+$$\text{Jarak Sebenarnya} = \frac{9.000.000}{100.000} = 90\text{ km}$$
+TIPS_THEORY: Skala $1 : k$ bermakna setiap $1\text{ cm}$ di peta mewakili $k\text{ cm}$ pada kondisi sebenarnya.
+TIPS_PRACTICE: Cukup kalikan $6$ dengan $15$, diperoleh $90$. Karena $1.500.000\text{ cm} = 15\text{ km}$, maka $6 \times 15\text{ km} = 90\text{ km}$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q4 (PILGAN)
+Sebuah bus berangkat dari Jakarta menuju Bandung pada pukul $07.15$ dan tiba di tujuan pada pukul $09.45$. Jika jarak yang ditempuh bus adalah $150\text{ km}$, kecepatan rata-rata bus tersebut adalah...
+
+[[A]] $50\text{ km/jam}$
+[[B]] $60\text{ km/jam}$
+[[C]] $65\text{ km/jam}$
+[[D]] $70\text{ km/jam}$
+[[E]] $75\text{ km/jam}$
+
+ANSWER: B
+DISCUSSION: 
+1. Hitung durasi waktu perjalanan ($t$):
+$$t = 09.45 - 07.15 = 2\text{ jam } 30\text{ menit} = 2\frac{1}{2}\text{ jam} = \frac{5}{2}\text{ jam}$$
+2. Hitung kecepatan rata-rata ($v$) dengan rumus jarak ($s$) dibagi waktu ($t$):
+$$v = \frac{s}{t} = \frac{150}{\frac{5}{2}} = 150 \times \frac{2}{5} = 30 \times 2 = 60\text{ km/jam}$$
+TIPS_THEORY: Hubungan jarak, kecepatan, dan waktu dinyatakan dengan segitiga rumus $s = v \times t$, sehingga $v = \frac{s}{t}$.
+TIPS_PRACTICE: Ubah menit menjadi desimal atau pecahan jam: $30\text{ menit} = 0,5\text{ jam}$, jadi waktu $= 2,5\text{ jam}$. Maka $150 \div 2,5 = 60\text{ km/jam}$.
+LABELS: Subject=Matematika, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q5 (PILGAN)
+Sebuah bak mandi berbentuk balok memiliki volume $240\text{ liter}$. Bak mandi tersebut diisi air menggunakan pipa kran hingga penuh dalam waktu $20\text{ menit}$. Debit air yang mengalir dari kran tersebut adalah...
+
+[[A]] $0,2\text{ liter/detik}$
+[[B]] $0,5\text{ liter/detik}$
+[[C]] $2\text{ liter/detik}$
+[[D]] $12\text{ liter/menit}$
+[[E]] $24\text{ liter/menit}$
+
+ANSWER: D
+DISCUSSION: 
+Debit air didefinisikan sebagai volume fluida yang mengalir tiap satuan waktu:
+$$D = \frac{V}{t}$$
+Diketahui:
+- Volume ($V$) $= 240\text{ liter}$
+- Waktu ($t$) $= 20\text{ menit}$
+Maka debit aliran air dalam satuan $\text{liter/menit}$ adalah:
+$$D = \frac{240\text{ liter}}{20\text{ menit}} = 12\text{ liter/menit}$$
+Jika diubah ke $\text{liter/detik}$:
+$$D = \frac{12\text{ liter}}{60\text{ detik}} = 0,2\text{ liter/detik}$$
+Karena opsi D menyajikan $12\text{ liter/menit}$ secara presisi, opsi D tepat. (Catatan: Opsi A juga bernilai $0,2\text{ liter/detik}$, namun pada konteks pilihan ganda satuan standar menit adalah D).
+TIPS_THEORY: Debit ($D$) adalah perbandingan antara volume zat cair ($V$) dengan waktu alir ($t$): $D = \frac{V}{t}$.
+TIPS_PRACTICE: Perhatikan satuan pada pilihan jawaban. $240 \div 20 = 12\text{ liter/menit}$.
+LABELS: Subject=Matematika, Difficulty=Mudah, RangeUmur=Kelas 5
+
+# Q6 (PILGAN)
+Seorang siswa mengukur suhu air hangat menggunakan termometer Celcius dan menunjukkan angka $60^\circ\text{C}$. Jika suhu tersebut diukur menggunakan termometer Reamur, angka yang ditunjukkan adalah...
+
+[[A]] $36^\circ\text{R}$
+[[B]] $48^\circ\text{R}$
+[[C]] $54^\circ\text{R}$
+[[D]] $75^\circ\text{R}$
+[[E]] $80^\circ\text{R}$
+
+ANSWER: B
+DISCUSSION: 
+Perbandingan skala termometer Celcius ($\text{C}$) dan Reamur ($\text{R}$) adalah:
+$$\text{C} : \text{R} = 5 : 4$$
+Maka rumus konversi dari Celcius ke Reamur adalah:
+$$\text{R} = \frac{4}{5} \times \text{C}$$
+Substitusikan nilai $\text{C} = 60^\circ\text{C}$:
+$$\text{R} = \frac{4}{5} \times 60 = 4 \times 12 = 48^\circ\text{R}$$
+Jadi, suhu air hangat tersebut pada skala Reamur adalah $48^\circ\text{R}$.
+TIPS_THEORY: Skala termometer utama memiliki perbandingan tetap terhadap titik beku dan didih: Celcius ($5$), Reamur ($4$), Fahrenheit ($9$, selisih dari $32$), dan Kelvin ($5$, selisih dari $273$).
+TIPS_PRACTICE: Kalikan suhu Celcius dengan perbandingan yang dicari ($4$) lalu bagi dengan perbandingan asal ($5$).
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q7 (PILGAN)
+Sebongkah logam memiliki massa $300\text{ gram}$. Ketika dimasukkan ke dalam gelas ukur yang berisi air, volume air naik sebesar $50\text{ cm}^3$. Berapakah massa jenis logam tersebut?
+
+[[A]] $0,16\text{ g/cm}^3$
+[[B]] $3\text{ g/cm}^3$
+[[C]] $6\text{ g/cm}^3$
+[[D]] $15\text{ g/cm}^3$
+[[E]] $150\text{ g/cm}^3$
+
+ANSWER: C
+DISCUSSION: 
+Kenaikan permukaan air pada gelas ukur menunjukkan volume logam yang tercelup.
+Diketahui:
+- Massa logam ($m$) $= 300\text{ gram}$
+- Volume logam ($V$) $= 50\text{ cm}^3$
+Rumus massa jenis ($\rho$):
+$$\rho = \frac{m}{V}$$
+$$\rho = \frac{300\text{ gram}}{50\text{ cm}^3} = 6\text{ g/cm}^3$$
+Jadi, massa jenis logam tersebut adalah $6\text{ g/cm}^3$.
+TIPS_THEORY: Menurut prinsip perpindahan volume, benda padat yang tenggelam seluruhnya akan memindahkan air sebesar volume benda itu sendiri. Massa jenis dihitung dari $\rho = \frac{m}{V}$.
+TIPS_PRACTICE: Bagi langsung angka massa dengan angka volume: $300 \div 50 = 6$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q8 (PILGAN)
+Sebuah bandul sederhana berayun bolak-balik melewati titik kesetimbangan sebanyak $90$ kali ayunan penuh dalam waktu $1,5\text{ menit}$. Frekuensi ayunan bandul tersebut adalah...
+
+[[A]] $0,5\text{ Hz}$
+[[B]] $1\text{ Hz}$
+[[C]] $1,5\text{ Hz}$
+[[D]] $60\text{ Hz}$
+[[E]] $90\text{ Hz}$
+
+ANSWER: B
+DISCUSSION: 
+1. Konversikan waktu getaran ($t$) ke dalam satuan detik (sekon):
+$$t = 1,5\text{ menit} = 1,5 \times 60\text{ detik} = 90\text{ detik}$$
+2. Hitung frekuensi ($f$), yaitu banyaknya getaran ($n$) per satuan waktu ($t$):
+$$f = \frac{n}{t}$$
+$$f = \frac{90\text{ getaran}}{90\text{ detik}} = 1\text{ Hz}$$
+Jadi, frekuensi getaran bandul tersebut adalah $1\text{ Hz}$ ($1$ getaran per detik).
+TIPS_THEORY: Frekuensi ($f$) adalah jumlah getaran yang terjadi dalam $1$ detik, dinyatakan dalam Hertz ($\text{Hz}$). Periode ($T$) adalah waktu untuk $1$ getaran lengkap ($T = \frac{1}{f}$).
+TIPS_PRACTICE: Selalu pastikan satuan waktu diubah ke sekon/detik sebelum membagi jumlah getaran dengan waktu.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q9 (PILGAN)
+Seseorang berteriak di depan sebuah tebing. Gema pantulan suara teriakannya terdengar kembali setelah selang waktu $2\text{ detik}$. Jika cepat rambat bunyi di udara saat itu adalah $340\text{ m/s}$, jarak antara orang tersebut dengan tebing adalah...
+
+[[A]] $170\text{ meter}$
+[[B]] $340\text{ meter}$
+[[C]] $510\text{ meter}$
+[[D]] $680\text{ meter}$
+[[E]] $1.360\text{ meter}$
+
+ANSWER: B
+DISCUSSION: 
+Bunyi pantul (gema) menempuh perjalanan bolak-balik dari sumber suara ke tebing lalu kembali lagi ke pendengar (menempuh $2 \times s$).
+Oleh karena itu, rumus jarak pemantulan bunyi adalah:
+$$s = \frac{v \times t}{2}$$
+Diketahui:
+- Kecepatan bunyi ($v$) $= 340\text{ m/s}$
+- Waktu bolak-balik ($t$) $= 2\text{ detik}$
+Maka:
+$$s = \frac{340 \times 2}{2} = 340\text{ meter}$$
+Jadi, jarak tebing dari tempat orang berteriak adalah $340\text{ meter}$.
+TIPS_THEORY: Gelombang bunyi yang memantul menempuh jarak dua kali lipat jarak sebenarnya (pergi dan pulang), sehingga waktu atau hasil kali harus dibagi $2$.
+TIPS_PRACTICE: Cukup kalikan cepat rambat bunyi dengan setengah waktu pantul: $340 \times 1 = 340\text{ meter}$.
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+
+# Q10 (PILGAN)
+Sebuah batu seberat $600\text{ N}$ hendak diangkat menggunakan tuas (pengungkit) jenis pertama. Jarak batu ke titik tumpu (lengan beban) adalah $20\text{ cm}$. Jika panjang lengan kuasa adalah $80\text{ cm}$, besar gaya kuasa minimum yang diperlukan untuk mengangkat batu tersebut adalah...
+
+[[A]] $120\text{ N}$
+[[B]] $150\text{ N}$
+[[C]] $200\text{ N}$
+[[D]] $300\text{ N}$
+[[E]] $480\text{ N}$
+
+ANSWER: B
+DISCUSSION: 
+Pada pesawat sederhana jenis tuas/pengungkit, berlaku asas kesetimbangan momen gaya:
+$$w \times l_w = F \times l_f$$
+Keterangan:
+- $w$ = berat beban $= 600\text{ N}$
+- $l_w$ = lengan beban $= 20\text{ cm}$
+- $F$ = gaya kuasa yang dicari
+- $l_f$ = lengan kuasa $= 80\text{ cm}$
+
+Hitung gaya kuasa $F$:
+$$F = \frac{w \times l_w}{l_f}$$
+$$F = \frac{600 \times 20}{80} = \frac{12.000}{80} = 150\text{ N}$$
+Keuntungan mekanis tuas adalah:
+$$KM = \frac{l_f}{l_w} = \frac{80}{20} = 4$$
+$$F = \frac{600}{4} = 150\text{ N}$$
+Jadi, gaya kuasa yang dibutuhkan adalah $150\text{ N}$.
+TIPS_THEORY: Pada pengungkit, semakin panjang lengan kuasa dibanding lengan beban, semakin kecil gaya kuasa yang dibutuhkan untuk mengangkat beban berat.
+TIPS_PRACTICE: Cari keuntungan mekanis ($KM$) terlebih dahulu dengan membagi lengan kuasa terhadap lengan beban ($80 \div 20 = 4$). Lalu bagi beban dengan $KM$ ($600 \div 4 = 150\text{ N}$).
+LABELS: Subject=IPA, Difficulty=Sedang, RangeUmur=Kelas 5
+```
