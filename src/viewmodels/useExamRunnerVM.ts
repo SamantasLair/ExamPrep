@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Question } from '@/lib/types';
 import { getPenaltyForTip } from '@/lib/parser';
+import { db } from '@/lib/db';
+import { batchSyncManager } from '@/lib/batchSyncManager';
 
 const STORAGE_KEY_PREFIX = 'exaprep_exam_';
 
@@ -106,24 +108,59 @@ export function useExamRunnerVM({
     }
 
     localStorage.removeItem(getStorageKey(examId));
+    db.sessions.delete(examId).catch(() => {});
     onSubmit(answers, score, tipsUsedObj, violationCount);
   }, [answers, calculateScore, examId, onSubmit, tipsUsed, questions, violationCount]);
 
   useEffect(() => { submitRef.current = handleSubmit; }, [handleSubmit]);
 
+  // Start background periodic sync during exam session
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(getStorageKey(examId));
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.answers) setAnswers(parsed.answers);
-        if (parsed.tipsUsed) setTipsUsed(parsed.tipsUsed);
-        if (parsed.timeLeft !== undefined) setTimeLeft(parsed.timeLeft);
-      }
-    } catch { /* ignore */ }
+    batchSyncManager.startPeriodicSync();
+    return () => {
+      batchSyncManager.stopPeriodicSync();
+    };
+  }, []);
+
+  // Hydrate from Dexie IndexedDB first, with LocalStorage fallback
+  useEffect(() => {
+    let active = true;
+    async function restoreSession() {
+      try {
+        const cached = await db.sessions.get(examId);
+        if (cached && active) {
+          if (cached.answers) setAnswers(cached.answers);
+          if (cached.tipsUsed) setTipsUsed(cached.tipsUsed);
+          if (cached.timeLeft !== undefined) setTimeLeft(cached.timeLeft);
+          return;
+        }
+      } catch { /* ignore */ }
+
+      try {
+        const saved = localStorage.getItem(getStorageKey(examId));
+        if (saved && active) {
+          const parsed = JSON.parse(saved);
+          if (parsed.answers) setAnswers(parsed.answers);
+          if (parsed.tipsUsed) setTipsUsed(parsed.tipsUsed);
+          if (parsed.timeLeft !== undefined) setTimeLeft(parsed.timeLeft);
+        }
+      } catch { /* ignore */ }
+    }
+    restoreSession();
+    return () => { active = false; };
   }, [examId]);
 
+  // Persist session to Dexie IndexedDB + LocalStorage
   useEffect(() => {
+    const updatedAt = Date.now();
+    db.sessions.put({
+      examId,
+      answers,
+      tipsUsed,
+      timeLeft,
+      updatedAt
+    }).catch(() => {});
+
     try {
       localStorage.setItem(getStorageKey(examId), JSON.stringify({ answers, timeLeft, tipsUsed }));
     } catch { /* storage full, ignore */ }
@@ -144,8 +181,11 @@ export function useExamRunnerVM({
   }, []);
 
   const handleAnswer = useCallback((qId: number | string, val: string) => {
-    setAnswers((prev) => ({ ...prev, [qId]: val }));
-  }, []);
+    const qIdStr = qId.toString();
+    setAnswers((prev) => ({ ...prev, [qIdStr]: val }));
+    // Enqueue delta change to Dexie IndexedDB batch queue
+    batchSyncManager.enqueueAnswer(examId, qIdStr, val);
+  }, [examId]);
 
   const handleUseTip = useCallback((qId: string | number, tipIndex: number) => {
     setTipsUsed((prev) => {

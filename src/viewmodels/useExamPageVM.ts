@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { parseMarkdown } from '@/lib/parser';
 import type { Question, TestRow } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { batchSyncManager } from '@/lib/batchSyncManager';
+import { db } from '@/lib/db';
 
 export function useExamPageVM(examId: string) {
   const router = useRouter();
@@ -56,8 +58,9 @@ export function useExamPageVM(examId: string) {
     };
 
     if (!navigator.onLine) {
-      // OFFLINE MODE
+      // OFFLINE MODE via Dexie IndexedDB + BatchSyncManager
       try {
+        await batchSyncManager.enqueueSubmission(examId, studentId, payload);
         localStorage.setItem(`exaprep_offline_sync_${examId}`, JSON.stringify(payload));
         setIsOfflineSync(true);
         setFinalScore(score);
@@ -69,50 +72,50 @@ export function useExamPageVM(examId: string) {
     }
 
     // ONLINE MODE
-    const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert(payload).select().single();
-
-    if (attemptError || !attemptData) {
-      if (attemptError?.message?.toLowerCase().includes('fetch') || attemptError?.message?.toLowerCase().includes('network')) {
-        // Network error during fetch
-        localStorage.setItem(`exaprep_offline_sync_${examId}`, JSON.stringify(payload));
-        setIsOfflineSync(true);
-        setFinalScore(score);
-        setSubmitted(true);
-        return;
-      }
-      alert(`Gagal Mengirim Ujian: ${attemptError?.message || 'Data kosong'}`);
-      return; // Halt submission
-    }
-
-    setFinalScore(score);
-    setSubmitted(true);
-    
     try {
-      localStorage.setItem(`exaprep_finished_${examId}`, attemptData.id);
-    } catch { /* ignore */ }
+      const { data: attemptData, error: attemptError } = await supabase.from('attempts').insert(payload).select().single();
+
+      if (attemptError || !attemptData) {
+        if (attemptError?.message?.toLowerCase().includes('fetch') || attemptError?.message?.toLowerCase().includes('network')) {
+          // Network error during fetch - fallback to Dexie Offline Queue
+          await batchSyncManager.enqueueSubmission(examId, studentId, payload);
+          localStorage.setItem(`exaprep_offline_sync_${examId}`, JSON.stringify(payload));
+          setIsOfflineSync(true);
+          setFinalScore(score);
+          setSubmitted(true);
+          return;
+        }
+        alert(`Gagal Mengirim Ujian: ${attemptError?.message || 'Data kosong'}`);
+        return; // Halt submission
+      }
+
+      setFinalScore(score);
+      setSubmitted(true);
+      
+      try {
+        localStorage.setItem(`exaprep_finished_${examId}`, attemptData.id);
+      } catch { /* ignore */ }
+    } catch (netErr) {
+      // Uncaught fetch error (network drop)
+      await batchSyncManager.enqueueSubmission(examId, studentId, payload);
+      localStorage.setItem(`exaprep_offline_sync_${examId}`, JSON.stringify(payload));
+      setIsOfflineSync(true);
+      setFinalScore(score);
+      setSubmitted(true);
+    }
   }, [examId]);
 
-  // Background Sync Mechanism
+  // Background Sync Mechanism via BatchSyncManager
   useEffect(() => {
     const handleOnline = async () => {
-      const offlineData = localStorage.getItem(`exaprep_offline_sync_${examId}`);
-      if (offlineData) {
-        try {
-          const payload = JSON.parse(offlineData);
-          payload.offline_sync_at = new Date().toISOString();
-          
-          const { data, error } = await supabase.from('attempts').insert(payload).select().single();
-          if (!error && data) {
-            localStorage.removeItem(`exaprep_offline_sync_${examId}`);
-            localStorage.setItem(`exaprep_finished_${examId}`, data.id);
-            setIsOfflineSync(false);
-          }
-        } catch { /* ignore */ }
+      await batchSyncManager.syncAllPending();
+      const finishedId = localStorage.getItem(`exaprep_finished_${examId}`);
+      if (finishedId) {
+        setIsOfflineSync(false);
       }
     };
 
     window.addEventListener('online', handleOnline);
-    // Attempt sync immediately if it was stuck
     if (navigator.onLine) handleOnline();
 
     return () => window.removeEventListener('online', handleOnline);

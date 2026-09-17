@@ -1,11 +1,22 @@
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { loginAdminAction, checkAdminAuthAction } from '@/app/actions';
+
+const AdminDashboard = dynamic(
+  () => import('@/components/admin/AdminDashboard').then((mod) => mod.AdminDashboard),
+  {
+    loading: () => (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-sm text-muted-foreground font-medium">Memuat Admin Dashboard...</div>
+      </div>
+    ),
+  }
+);
 
 export default function AdminDoorPage() {
   const [password, setPassword] = useState('');

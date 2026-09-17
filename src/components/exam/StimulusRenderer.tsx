@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContentBlockList } from './ContentBlockRenderer';
 import { parseMarkdown } from '@/lib/parser';
@@ -12,8 +12,10 @@ export function StimulusRenderer({ content, children }: StimulusRendererProps) {
   // Use the parser to render any markdown, math, charts inside the case study
   // We wrap the raw markdown in a dummy question block to parse it easily with the existing parser.
   // Alternatively, parseInlineContent could be exported, but this is a quick workaround.
-  const parsed = parseMarkdown(`# Q1 (ESSAY)\n${content}`);
-  const blocks = parsed[0]?.body || [];
+  const blocks = useMemo(() => {
+    const parsed = parseMarkdown(`# Q1 (ESSAY)\n${content}`);
+    return parsed[0]?.body || [];
+  }, [content]);
 
   return (
     <div className="w-full my-6">

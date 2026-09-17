@@ -3,10 +3,22 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { ContentBlock } from '@/lib/types';
+import dynamic from 'next/dynamic';
 import { MathRenderer } from './MathRenderer';
-import { ChartRenderer } from './ChartRenderer';
 import { DiagramRenderer } from './DiagramRenderer';
 import { Button } from '@/components/ui/button';
+
+const DynamicChartRenderer = dynamic(
+  () => import('./ChartRenderer').then((mod) => mod.ChartRenderer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[260px] w-full flex flex-col items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border/50 animate-pulse">
+        <span className="text-xs text-muted-foreground font-medium">Memuat grafik data...</span>
+      </div>
+    ),
+  }
+);
 
 interface ContentBlockRendererProps {
   block: ContentBlock;
@@ -166,6 +178,7 @@ export function ContentBlockRenderer({ block, compactLayout = false }: ContentBl
     case 'math-block':
       return <MathRenderer tex={block.content} displayMode />;
     case 'chart':
+    case 'CHART' as any:
       return (
         <div 
           className={cn(
@@ -174,7 +187,7 @@ export function ContentBlockRenderer({ block, compactLayout = false }: ContentBl
           )}
           style={{ transform: 'scale(var(--print-graphic-scale, 1))', transformOrigin: 'top left' } as React.CSSProperties}
         >
-          <ChartRenderer block={block} />
+          <DynamicChartRenderer block={block} />
         </div>
       );
     case 'diagram':

@@ -67,10 +67,14 @@ export const QuestionRenderer = memo(function QuestionRenderer({
 
   if (showOnlyDiscussion) {
     return (
-      <div className={cn(
-        "p-5 rounded-2xl relative overflow-visible", 
-        printMode ? "py-2 mt-2" : "bg-muted/40 border border-border/80"
-      )}>
+      <div
+        id={`question-card-${question.id}`}
+        tabIndex={-1}
+        className={cn(
+          "p-5 rounded-2xl relative overflow-visible [contain:layout_style_paint]", 
+          printMode ? "py-2 mt-2" : "bg-muted/40 border border-border/80"
+        )}
+      >
         {printMode && answerStyle === 'bracket' ? (
           <div className="absolute left-[-10px] top-0 bottom-0 w-[20px] pointer-events-none overflow-hidden">
              <span className="text-8xl font-light text-black opacity-40 leading-[0.5] select-none">(</span>
@@ -132,9 +136,9 @@ export const QuestionRenderer = memo(function QuestionRenderer({
         </div>
       )}
 
-      {/* Question Body with Clean Natural Typography */}
+      {/* Question Body with Clean Natural Typography (max-w-[75ch] line-length guard) */}
       <div className={cn(
-        "font-normal leading-relaxed text-foreground/95 tracking-normal",
+        "font-normal leading-relaxed text-foreground/95 tracking-normal max-w-[75ch]",
         printMode ? "text-[1em]" : textSize === 'large' ? 'text-lg' : textSize === 'medium' ? 'text-base' : 'text-[15px]'
       )}>
         <ContentBlockList blocks={question.body} compactLayout={compactLayout} />
@@ -142,7 +146,7 @@ export const QuestionRenderer = memo(function QuestionRenderer({
 
       {/* MCQ Options with Clean Modern Natural Rows */}
       {question.type === 'MCQ' && question.options && (
-        <div className="space-y-2.5 pt-1">
+        <div className="space-y-2.5 pt-1 max-w-[75ch]">
           {!printMode ? (
             <div className="space-y-2.5">
               {question.options.map((opt) => {
@@ -168,7 +172,7 @@ export const QuestionRenderer = memo(function QuestionRenderer({
                     <div className={cn(
                       "w-7 h-7 rounded-lg text-xs font-semibold flex items-center justify-center shrink-0 border transition-all mt-0.5",
                       isThisSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-2xs"
+                        ? "bg-primary text-primary-foreground border-primary shadow-2xs animate-keycap-pop"
                         : isThisCorrect
                           ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
                           : isThisWrongPick
@@ -225,7 +229,11 @@ export const QuestionRenderer = memo(function QuestionRenderer({
             value={answer || ''}
             onChange={(e) => onAnswer?.(question.id, e.target.value)}
             disabled={disabled}
-            className="min-h-[140px] resize-y rounded-xl p-4 font-normal text-sm leading-relaxed border-border/80 focus:border-primary shadow-xs"
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            className="min-h-[140px] resize-y [field-sizing:content] rounded-xl p-4 font-normal text-sm leading-relaxed border-border/80 focus:border-primary shadow-xs"
           />
         </div>
       )}
@@ -309,24 +317,36 @@ export const QuestionRenderer = memo(function QuestionRenderer({
   );
 
   return printMode ? (
-    <div className="w-full text-black">
+    <div
+      id={`question-card-${question.id}`}
+      tabIndex={-1}
+      className="w-full text-black"
+    >
       {innerContent}
     </div>
   ) : borderless ? (
-    <div className={cn(
-      'transition-all duration-200 w-full',
-      flagged && 'rounded-xl p-4 sm:p-5 bg-amber-500/[0.03] border border-amber-500/30 ring-1 ring-amber-500/10'
-    )}>
+    <div
+      id={`question-card-${question.id}`}
+      tabIndex={-1}
+      className={cn(
+        'transition-all duration-200 w-full [contain:layout_style_paint]',
+        flagged && 'rounded-xl p-4 sm:p-5 bg-amber-500/[0.03] border border-amber-500/30 ring-1 ring-amber-500/10'
+      )}
+    >
       {innerContent}
     </div>
   ) : (
-    <Card className={cn(
-      'transition-all duration-200 rounded-xl border bg-card shadow-xs',
-      flagged ? 'border-amber-500/50 ring-1 ring-amber-500/20' : 'border-border/70 hover:border-zinc-300 dark:hover:border-zinc-700',
-      isCorrect && 'border-emerald-500/40 bg-emerald-500/[0.03]',
-      isWrong && 'border-rose-500/40 bg-rose-500/[0.03]',
-      isNeutral && answer !== undefined && 'border-muted-foreground/30 bg-muted/20',
-    )}>
+    <Card
+      id={`question-card-${question.id}`}
+      tabIndex={-1}
+      className={cn(
+        'transition-all duration-200 rounded-xl border bg-card shadow-xs [contain:layout_style_paint]',
+        flagged ? 'border-amber-500/50 ring-1 ring-amber-500/20' : 'border-border/70 hover:border-zinc-300 dark:hover:border-zinc-700',
+        isCorrect && 'border-emerald-500/40 bg-emerald-500/[0.03]',
+        isWrong && 'border-rose-500/40 bg-rose-500/[0.03]',
+        isNeutral && answer !== undefined && 'border-muted-foreground/30 bg-muted/20',
+      )}
+    >
       <CardContent className="p-5 md:p-6">
         {innerContent}
       </CardContent>

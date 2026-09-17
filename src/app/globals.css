@@ -122,6 +122,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size-adjust: from-font;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  code, kbd, samp, pre {
+    font-size-adjust: from-font;
   }
   /* Smooth scrollbar */
   ::-webkit-scrollbar {
@@ -140,10 +147,16 @@
   }
 }
 
-/* KaTeX block centering */
+/* KaTeX block centering & font isolation */
 .katex-display {
   overflow-x: auto;
   padding: 0.5rem 0;
+}
+
+.katex,
+.katex-display,
+.katex-html {
+  font-size-adjust: none !important;
 }
 
 /* Subtle page transition */
@@ -185,4 +198,83 @@ nextjs-portal,
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* Micro-Haptic Visual Pop for Keycaps */
+@keyframes keycapPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  75% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.animate-keycap-pop {
+  animation: keycapPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Autosave Pulse Animation */
+@keyframes autoSaveFade {
+  0% { opacity: 0; transform: translateY(2px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-2px); }
+}
+.animate-autosave-pulse {
+  animation: autoSaveFade 1.8s ease-in-out forwards;
+}
+
+/* Scoped View Transition for Question Canvas */
+.exam-viewport-transition {
+  view-transition-name: exam-canvas;
+}
+
+::view-transition-old(exam-canvas),
+::view-transition-new(exam-canvas) {
+  animation-duration: 0.2s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   VESTIBULAR ACCESSIBILITY MOTION SHIELD (WCAG 2.2 SC 2.3.3)
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  /* Neutralize View Transitions */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  /* Neutralize Kinetic & Micro-Animations */
+  .animate-keycap-pop {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .animate-slide-right,
+  .animate-slide-left,
+  .animate-fade-in {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .animate-autosave-pulse {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .animate-pulse {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  /* Accelerate Universal Transitions to Instant to Preserve Event Callbacks */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

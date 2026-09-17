@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import { runSafeViewTransition, focusQuestionCard } from '@/lib/viewTransitions';
 import { QuestionRenderer } from '@/components/exam/QuestionRenderer';
 import { StimulusRenderer } from '@/components/exam/StimulusRenderer';
 import { ContentBlockList } from '@/components/exam/ContentBlockRenderer';
@@ -15,7 +16,8 @@ import {
 import { useExamReviewVM } from '@/viewmodels/useExamReviewVM';
 import { 
   ArrowLeft, CheckCircle2, XCircle, LayoutGrid, 
-  ChevronDown, SkipForward, BookOpen, ChevronLeft, ChevronRight, Type
+  ChevronDown, SkipForward, BookOpen, ChevronLeft, ChevronRight, Type,
+  Brain, Sparkles, AlertTriangle, Layers, Info, Columns
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Question } from '@/lib/types';
@@ -41,29 +43,58 @@ export default function ReviewPage() {
   const [currentBatchPage, setCurrentBatchPage] = useState<number>(1);
   const [textSize, setTextSize] = useState<'normal' | 'medium' | 'large'>('normal');
   const [matrixModalOpen, setMatrixModalOpen] = useState<boolean>(false);
+  const [matrixViewMode, setMatrixViewMode] = useState<'grid' | 'clusters'>('grid');
+  const [splitRatio, setSplitRatio] = useState<'50' | '60' | '40'>('50');
 
   // Computed stats for questions
-  const { correctCount, wrongCount, unansweredCount, questionStatusMap } = useMemo(() => {
+  const { correctCount, wrongCount, unansweredCount, questionStatusMap, topicClusters } = useMemo(() => {
     let correct = 0;
     let wrong = 0;
     let unanswered = 0;
     const statusMap: Record<string, 'correct' | 'wrong' | 'unanswered'> = {};
+    const clusterMap: Record<string, { topic: string; total: number; wrong: number; correct: number; questions: { q: Question; index: number; status: 'correct' | 'wrong' | 'unanswered' }[] }> = {};
 
-    questions.forEach((q) => {
+    questions.forEach((q, idx) => {
       const userAns = responses[q.id];
+      let st: 'correct' | 'wrong' | 'unanswered' = 'unanswered';
       if (userAns === undefined || userAns === '') {
         unanswered++;
         statusMap[q.id] = 'unanswered';
+        st = 'unanswered';
       } else if (q.correctAnswer && userAns === q.correctAnswer) {
         correct++;
         statusMap[q.id] = 'correct';
+        st = 'correct';
       } else {
         wrong++;
         statusMap[q.id] = 'wrong';
+        st = 'wrong';
       }
+
+      // Group into Primary Topic Cluster from labels or intelligent fallback
+      const primaryTopic = (
+        q.labels && q.labels.length > 0
+          ? q.labels[0]
+          : q.stimulus_id
+            ? 'Pemahaman Teks'
+            : q.type === 'MCQ'
+              ? 'Pilihan Ganda Umum'
+              : q.type === 'ESSAY'
+                ? 'Analisis & Esai'
+                : 'Penalaran Umum'
+      ).trim();
+      if (!clusterMap[primaryTopic]) {
+        clusterMap[primaryTopic] = { topic: primaryTopic, total: 0, wrong: 0, correct: 0, questions: [] };
+      }
+      clusterMap[primaryTopic].total++;
+      if (st === 'wrong') clusterMap[primaryTopic].wrong++;
+      if (st === 'correct') clusterMap[primaryTopic].correct++;
+      clusterMap[primaryTopic].questions.push({ q, index: idx + 1, status: st });
     });
 
-    return { correctCount: correct, wrongCount: wrong, unansweredCount: unanswered, questionStatusMap: statusMap };
+    const topicClusters = Object.values(clusterMap).sort((a, b) => b.wrong - a.wrong);
+
+    return { correctCount: correct, wrongCount: wrong, unansweredCount: unanswered, questionStatusMap: statusMap, topicClusters };
   }, [questions, responses]);
 
   const filteredQuestions = useMemo(() => {
@@ -85,14 +116,55 @@ export default function ReviewPage() {
 
   const totalBatchPages = Math.ceil(filteredQuestions.length / 5) || 1;
 
-  // Handle Mode Change with index synchronization
-  const handleModeChange = (newMode: '1' | '5' | 'all') => {
-    if (newMode === '5') {
-      setCurrentBatchPage(Math.floor(currentSingleIdx / 5) + 1);
-    } else if (newMode === '1') {
-      setCurrentSingleIdx(Math.min(filteredQuestions.length - 1, (currentBatchPage - 1) * 5));
+  // Bidirectional active question index and batch page synchronization
+  const syncActiveQuestion = useCallback((qIdOrIdx: string | number) => {
+    // 1. Look up by Question ID first (supports numeric and string IDs)
+    let idx = filteredQuestions.findIndex(q => q.id === qIdOrIdx || String(q.id) === String(qIdOrIdx));
+    // 2. Fallback: If no question ID matched, check if it is a valid 0-based array index
+    if (idx === -1 && typeof qIdOrIdx === 'number' && qIdOrIdx >= 0 && qIdOrIdx < filteredQuestions.length) {
+      idx = qIdOrIdx;
     }
-    setDisplayMode(newMode);
+    if (idx !== -1) {
+      setCurrentSingleIdx(idx);
+      setCurrentBatchPage(Math.floor(idx / 5) + 1);
+    }
+  }, [filteredQuestions]);
+
+  // Handle Mode Change with safe view transitions, index synchronization, and focus management
+  const handleModeChange = (newMode: '1' | '5' | 'all') => {
+    let targetSingle = currentSingleIdx;
+    let targetBatch = currentBatchPage;
+
+    if (newMode === '5') {
+      targetBatch = Math.floor(currentSingleIdx / 5) + 1;
+    } else if (newMode === '1') {
+      const batchStart = (currentBatchPage - 1) * 5;
+      const batchEnd = Math.min(filteredQuestions.length - 1, batchStart + 4);
+      if (currentSingleIdx < batchStart || currentSingleIdx > batchEnd) {
+        targetSingle = Math.min(filteredQuestions.length - 1, Math.max(0, batchStart));
+      }
+    }
+
+    runSafeViewTransition(
+      () => {
+        if (newMode === '5') setCurrentBatchPage(targetBatch);
+        if (newMode === '1') setCurrentSingleIdx(targetSingle);
+        setDisplayMode(newMode);
+      },
+      () => {
+        if (newMode === 'all') {
+          const targetQ = filteredQuestions[targetSingle];
+          if (targetQ) {
+            const el = document.getElementById(`review-q-${targetQ.id}`);
+            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+        const activeId = filteredQuestions[targetSingle]?.id;
+        if (activeId !== undefined) {
+          focusQuestionCard(activeId);
+        }
+      }
+    );
   };
 
   // Jump to specific question
@@ -106,14 +178,18 @@ export default function ReviewPage() {
 
     const idx = targetList.findIndex(q => q.id === qId);
     if (idx !== -1) {
-      if (displayMode === '1') {
-        setCurrentSingleIdx(idx);
-      } else if (displayMode === '5') {
-        setCurrentBatchPage(Math.floor(idx / 5) + 1);
-      } else {
+      setCurrentSingleIdx(idx);
+      setCurrentBatchPage(Math.floor(idx / 5) + 1);
+
+      if (displayMode === 'all') {
         setTimeout(() => {
           const el = document.getElementById(`review-q-${qId}`);
           el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          focusQuestionCard(qId);
+        }, 50);
+      } else {
+        setTimeout(() => {
+          focusQuestionCard(qId);
         }, 50);
       }
     }
@@ -161,6 +237,13 @@ export default function ReviewPage() {
     return items;
   }, [filteredQuestions, currentBatchPage]);
 
+  // Memoize single question stimulus parsing in Mode 1
+  const singleStimulusBlocks = useMemo(() => {
+    const q = filteredQuestions[currentSingleIdx];
+    if (!q?.stimulus_content) return [];
+    return parseMarkdown(`# Q1 (ESSAY)\n${q.stimulus_content}`)[0]?.body || [];
+  }, [filteredQuestions, currentSingleIdx]);
+
   // Keyboard navigation for review mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -174,17 +257,37 @@ export default function ReviewPage() {
         return;
       }
 
+      const key = e.key.toUpperCase();
+
+      // Cycle split view ratio on desktop with 'V'
+      if (key === 'V') {
+        e.preventDefault();
+        setSplitRatio(prev => prev === '50' ? '60' : prev === '60' ? '40' : '50');
+        return;
+      }
+
+      // Matrix modal toggle with 'M' or 'G' (Grid)
+      if (key === 'M' || key === 'G') {
+        e.preventDefault();
+        setMatrixModalOpen(prev => !prev);
+        return;
+      }
+
       if (displayMode === '1') {
-        if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
+        if (e.key === 'ArrowRight' || key === 'N') {
           setCurrentSingleIdx(prev => Math.min(filteredQuestions.length - 1, prev + 1));
-        } else if (e.key === 'ArrowLeft' || e.key === 'p' || e.key === 'P') {
+        } else if (e.key === 'ArrowLeft' || key === 'P') {
           setCurrentSingleIdx(prev => Math.max(0, prev - 1));
         }
       } else if (displayMode === '5') {
-        if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
-          setCurrentBatchPage(prev => Math.min(totalBatchPages, prev + 1));
-        } else if (e.key === 'ArrowLeft' || e.key === 'p' || e.key === 'P') {
-          setCurrentBatchPage(prev => Math.max(1, prev - 1));
+        if (e.key === 'ArrowRight' || key === 'N') {
+          const newPage = Math.min(totalBatchPages, currentBatchPage + 1);
+          setCurrentBatchPage(newPage);
+          setCurrentSingleIdx((newPage - 1) * 5);
+        } else if (e.key === 'ArrowLeft' || key === 'P') {
+          const newPage = Math.max(1, currentBatchPage - 1);
+          setCurrentBatchPage(newPage);
+          setCurrentSingleIdx((newPage - 1) * 5);
         }
       }
     };
@@ -362,7 +465,7 @@ export default function ReviewPage() {
           )}
 
           {/* Canvas Scroll Area */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="flex-1 overflow-y-auto custom-scrollbar exam-viewport-transition">
             {filteredQuestions.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground border border-dashed rounded-2xl max-w-lg mx-auto my-12 text-xs">
                 Tidak ada butir soal yang cocok dengan filter yang dipilih.
@@ -379,17 +482,47 @@ export default function ReviewPage() {
                 if (!q) return null;
 
                 if (q.stimulus_content) {
-                  const stimulusBlocks = parseMarkdown(`# Q1 (ESSAY)\n${q.stimulus_content}`)[0]?.body || [];
+                  const stimulusBlocks = singleStimulusBlocks;
                   return (
                     <div className="min-h-full flex flex-col lg:flex-row overflow-hidden w-full">
-                      {/* Left Stimulus Pane */}
-                      <div className="w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-border/60 bg-muted/10 p-6 md:p-8 lg:overflow-y-auto custom-scrollbar">
+                      {/* Left Stimulus Pane (Synchronized / Dual-Mode Ergonomic Split View) */}
+                      <div className={cn(
+                        "border-b lg:border-b-0 lg:border-r border-border/60 bg-muted/10 p-6 md:p-8 lg:overflow-y-auto custom-scrollbar transition-all duration-200",
+                        splitRatio === '60' ? "w-full lg:w-[60%]" : splitRatio === '40' ? "w-full lg:w-[40%]" : "w-full lg:w-1/2"
+                      )}>
                         <div className="max-w-xl mx-auto space-y-4">
-                          <div className="flex items-center gap-2 pb-3 border-b border-border/60">
-                            <BookOpen className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-semibold uppercase tracking-wider text-foreground/80">
-                              Teks Stimulus / Kasus
-                            </span>
+                          <div className="flex items-center justify-between gap-2 pb-3 border-b border-border/60">
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="w-4 h-4 text-primary" />
+                              <span className="text-xs font-semibold uppercase tracking-wider text-foreground/80">
+                                Teks Stimulus / Kasus
+                              </span>
+                            </div>
+
+                            {/* Dual-Mode Ratio Switcher (50:50, 60:40, 40:60) */}
+                            <div className="hidden lg:flex items-center bg-card border border-border/70 rounded-lg p-0.5 text-[10px]">
+                              <button
+                                onClick={() => setSplitRatio('50')}
+                                className={cn("px-2 py-0.5 rounded-md font-medium transition-all", splitRatio === '50' ? "bg-primary text-primary-foreground font-semibold shadow-2xs" : "text-muted-foreground hover:text-foreground")}
+                                title="Bagi seimbang 50:50"
+                              >
+                                50:50
+                              </button>
+                              <button
+                                onClick={() => setSplitRatio('60')}
+                                className={cn("px-2 py-0.5 rounded-md font-medium transition-all", splitRatio === '60' ? "bg-primary text-primary-foreground font-semibold shadow-2xs" : "text-muted-foreground hover:text-foreground")}
+                                title="Fokus baca teks 60:40"
+                              >
+                                60:40
+                              </button>
+                              <button
+                                onClick={() => setSplitRatio('40')}
+                                className={cn("px-2 py-0.5 rounded-md font-medium transition-all", splitRatio === '40' ? "bg-primary text-primary-foreground font-semibold shadow-2xs" : "text-muted-foreground hover:text-foreground")}
+                                title="Fokus pembahasan 40:60"
+                              >
+                                40:60
+                              </button>
+                            </div>
                           </div>
                           <div className={cn("leading-relaxed text-foreground/90 font-normal", textSize === 'large' ? 'text-base' : textSize === 'medium' ? 'text-[15px]' : 'text-sm')}>
                             <ContentBlockList blocks={stimulusBlocks} />
@@ -398,7 +531,10 @@ export default function ReviewPage() {
                       </div>
 
                       {/* Right Question & Discussion Pane */}
-                      <div className="w-full lg:w-1/2 p-6 md:p-8 lg:overflow-y-auto custom-scrollbar bg-background">
+                      <div className={cn(
+                        "p-6 md:p-8 lg:overflow-y-auto custom-scrollbar bg-background transition-all duration-200",
+                        splitRatio === '60' ? "w-full lg:w-[40%]" : splitRatio === '40' ? "w-full lg:w-[60%]" : "w-full lg:w-1/2"
+                      )}>
                         <div className="max-w-xl mx-auto">
                           <QuestionRenderer
                             question={q}
@@ -442,23 +578,33 @@ export default function ReviewPage() {
                       <StimulusRenderer key={item.stimulus_id || idx} content={item.content}>
                         <div className="space-y-4">
                           {item.questions.map(q => (
-                            <QuestionRenderer
+                            <div
                               key={q.id}
-                              question={q}
-                              answer={responses[q.id]}
-                              showDiscussion
-                              showCorrectAnswer
-                              feedbackMode={feedbackMode}
-                              disabled
-                              textSize={textSize}
-                            />
+                              onClick={() => syncActiveQuestion(q.id)}
+                              onFocusCapture={() => syncActiveQuestion(q.id)}
+                            >
+                              <QuestionRenderer
+                                question={q}
+                                answer={responses[q.id]}
+                                showDiscussion
+                                showCorrectAnswer
+                                feedbackMode={feedbackMode}
+                                disabled
+                                textSize={textSize}
+                              />
+                            </div>
                           ))}
                         </div>
                       </StimulusRenderer>
                     );
                   }
                   return (
-                    <div key={item.question.id} className="animate-in fade-in duration-200">
+                    <div
+                      key={item.question.id}
+                      className="animate-in fade-in duration-200"
+                      onClick={() => syncActiveQuestion(item.question.id)}
+                      onFocusCapture={() => syncActiveQuestion(item.question.id)}
+                    >
                       <QuestionRenderer
                         question={item.question}
                         answer={responses[item.question.id]}
@@ -476,7 +622,13 @@ export default function ReviewPage() {
               /* MODE 3: ALL QUESTIONS CONTINUOUS LIST */
               <div className="max-w-3xl xl:max-w-4xl mx-auto space-y-6 py-6 px-4 sm:px-6">
                 {filteredQuestions.map((q) => (
-                  <div key={q.id} id={`review-q-${q.id}`} className="scroll-mt-6">
+                  <div
+                    key={q.id}
+                    id={`review-q-${q.id}`}
+                    className="scroll-mt-6 [content-visibility:auto] [contain-intrinsic-size:auto_320px]"
+                    onClick={() => syncActiveQuestion(q.id)}
+                    onFocusCapture={() => syncActiveQuestion(q.id)}
+                  >
                     <QuestionRenderer
                       question={q}
                       answer={responses[q.id]}
@@ -564,7 +716,11 @@ export default function ReviewPage() {
                     variant="outline"
                     size="sm"
                     disabled={currentBatchPage === 1}
-                    onClick={() => setCurrentBatchPage(prev => Math.max(1, prev - 1))}
+                    onClick={() => {
+                      const newPage = Math.max(1, currentBatchPage - 1);
+                      setCurrentBatchPage(newPage);
+                      setCurrentSingleIdx((newPage - 1) * 5);
+                    }}
                     className="font-semibold gap-1.5 rounded-xl h-9 px-3.5 border-border/80 hover:bg-muted text-xs"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -575,7 +731,11 @@ export default function ReviewPage() {
                     variant="outline"
                     size="sm"
                     disabled={currentBatchPage >= totalBatchPages}
-                    onClick={() => setCurrentBatchPage(prev => Math.min(totalBatchPages, prev + 1))}
+                    onClick={() => {
+                      const newPage = Math.min(totalBatchPages, currentBatchPage + 1);
+                      setCurrentBatchPage(newPage);
+                      setCurrentSingleIdx((newPage - 1) * 5);
+                    }}
                     className="font-semibold gap-1.5 rounded-xl h-9 px-3.5 border-border/80 hover:bg-muted text-xs"
                   >
                     <span>Hal Selanjutnya</span>
@@ -605,12 +765,39 @@ export default function ReviewPage() {
           {/* Modal Header */}
           <div className="px-6 py-4 border-b border-border/60 flex items-center justify-between bg-muted/20 shrink-0">
             <div className="space-y-0.5">
-              <h2 className="text-base font-semibold tracking-tight text-foreground flex items-center gap-2">
-                <LayoutGrid className="w-4 h-4 text-primary" />
-                Matriks Evaluasi Jawaban ({questions.length} Butir)
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold tracking-tight text-foreground flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-primary" />
+                  Matriks Evaluasi Jawaban ({questions.length} Butir)
+                </h2>
+                {/* View Mode Switcher: Grid vs Cognition Clusters */}
+                <div className="flex items-center bg-muted/70 p-0.5 rounded-lg border border-border/60 ml-2">
+                  <button
+                    onClick={() => setMatrixViewMode('grid')}
+                    className={cn(
+                      "px-2.5 py-0.5 rounded-md text-[11px] font-medium transition-all flex items-center gap-1.5",
+                      matrixViewMode === 'grid' ? "bg-card text-foreground shadow-2xs font-semibold" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Layers className="w-3 h-3" />
+                    <span>Grid Nomor</span>
+                  </button>
+                  <button
+                    onClick={() => setMatrixViewMode('clusters')}
+                    className={cn(
+                      "px-2.5 py-0.5 rounded-md text-[11px] font-medium transition-all flex items-center gap-1.5",
+                      matrixViewMode === 'clusters' ? "bg-card text-foreground shadow-2xs font-semibold" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Brain className="w-3 h-3 text-primary" />
+                    <span>Klaster Kognitif ({topicClusters.length})</span>
+                  </button>
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground">
-                Pilih nomor soal untuk meninjau detail pembahasan dan kunci jawaban.
+                {matrixViewMode === 'grid' 
+                  ? 'Pilih nomor soal untuk meninjau detail pembahasan dan kunci jawaban.'
+                  : 'Diagnosis kelemahan per topik/taksonomi materi dan jalur pembenahan kognitif.'}
               </p>
             </div>
             <Button
@@ -679,43 +866,120 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          {/* 50-Number Grid */}
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2.5">
-              {questions.map((q, idx) => {
-                const status = questionStatusMap[q.id];
-                const isCurrentInSingle = displayMode === '1' && filteredQuestions[currentSingleIdx]?.id === q.id;
+          {/* Modal Content: Mode Grid vs Mode Klaster Kognitif */}
+          {matrixViewMode === 'grid' ? (
+            /* 50-Number Grid */
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+              <div className="grid grid-cols-5 sm:grid-cols-10 gap-2.5">
+                {questions.map((q, idx) => {
+                  const status = questionStatusMap[q.id];
+                  const isCurrentInSingle = displayMode === '1' && filteredQuestions[currentSingleIdx]?.id === q.id;
 
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => {
-                      navigateToQuestion(q.id);
-                      setMatrixModalOpen(false);
-                    }}
-                    className={cn(
-                      "h-10 w-full text-xs font-semibold tabular-nums rounded-xl flex items-center justify-center relative transition-all border cursor-pointer select-none",
-                      isCurrentInSingle && "ring-2 ring-primary ring-offset-2 dark:ring-offset-card scale-[1.03] z-10",
-                      status === 'correct'
-                        ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/25"
-                        : status === 'wrong'
-                          ? "bg-destructive/15 border-destructive/40 text-destructive hover:bg-destructive/25"
-                          : "bg-card border-border/70 text-muted-foreground hover:border-zinc-400 hover:text-foreground"
-                    )}
-                    title={`Soal #${idx + 1}: ${status === 'correct' ? 'Benar' : status === 'wrong' ? 'Salah' : 'Tidak Dijawab'}`}
-                  >
-                    <span>{idx + 1}</span>
-                    {status === 'correct' && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-1.5 right-1.5" />
-                    )}
-                    {status === 'wrong' && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-destructive absolute top-1.5 right-1.5" />
-                    )}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => {
+                        navigateToQuestion(q.id);
+                        setMatrixModalOpen(false);
+                      }}
+                      className={cn(
+                        "h-10 w-full text-xs font-semibold tabular-nums rounded-xl flex items-center justify-center relative transition-all border cursor-pointer select-none",
+                        isCurrentInSingle && "ring-2 ring-primary ring-offset-2 dark:ring-offset-card scale-[1.03] z-10",
+                        status === 'correct'
+                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/25"
+                          : status === 'wrong'
+                            ? "bg-destructive/15 border-destructive/40 text-destructive hover:bg-destructive/25"
+                            : "bg-card border-border/70 text-muted-foreground hover:border-zinc-400 hover:text-foreground"
+                      )}
+                      title={`Soal #${idx + 1}: ${status === 'correct' ? 'Benar' : status === 'wrong' ? 'Salah' : 'Tidak Dijawab'}`}
+                    >
+                      <span>{idx + 1}</span>
+                      {status === 'correct' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-1.5 right-1.5" />
+                      )}
+                      {status === 'wrong' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-destructive absolute top-1.5 right-1.5" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Neuro-Aesthetic Error Clustering & Cognition Pathway */
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-4">
+              <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-xl border border-primary/20 text-xs text-primary font-medium">
+                <Brain className="w-4 h-4 shrink-0 text-primary" />
+                <span>
+                  <strong>Peta Jalur Kognisi:</strong> Analisis pola kesalahan per topik. Butir soal dengan rasio kesalahan tertinggi diprioritaskan di atas untuk peninjauan remedial terarah.
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {topicClusters.map((cluster) => {
+                  const accuracyPct = Math.round((cluster.correct / cluster.total) * 100);
+                  const isCritical = cluster.wrong > 0 && accuracyPct < 60;
+
+                  return (
+                    <div
+                      key={cluster.topic}
+                      className={cn(
+                        "rounded-xl border p-4 transition-all flex flex-col justify-between gap-3 bg-card/60",
+                        isCritical ? "border-destructive/30 bg-destructive/[0.02]" : "border-border/70"
+                      )}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-semibold text-xs tracking-tight text-foreground flex items-center gap-1.5 truncate">
+                            {isCritical && <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />}
+                            <span className="truncate">{cluster.topic}</span>
+                          </h4>
+                          <span className={cn(
+                            "text-[10px] font-bold px-2 py-0.5 rounded-full tabular-nums shrink-0",
+                            accuracyPct >= 80 
+                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" 
+                              : accuracyPct >= 50 
+                                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" 
+                                : "bg-destructive/15 text-destructive"
+                          )}>
+                            Akurasi: {accuracyPct}%
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          {cluster.correct} benar • {cluster.wrong} salah • {cluster.total - cluster.correct - cluster.wrong} kosong (Total {cluster.total} soal)
+                        </p>
+                      </div>
+
+                      {/* Question jump pills for this cluster */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        {cluster.questions.map(({ q, index, status }) => (
+                          <button
+                            key={q.id}
+                            onClick={() => {
+                              navigateToQuestion(q.id);
+                              setMatrixModalOpen(false);
+                            }}
+                            className={cn(
+                              "h-7 min-w-7 px-2 text-[11px] font-semibold tabular-nums rounded-lg border transition-all cursor-pointer flex items-center justify-center gap-1",
+                              status === 'correct' 
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20" 
+                                : status === 'wrong'
+                                  ? "bg-destructive/15 border-destructive/40 text-destructive hover:bg-destructive/25"
+                                  : "bg-muted border-border/80 text-muted-foreground hover:text-foreground"
+                            )}
+                            title={`Soal #${index}: ${status === 'correct' ? 'Benar' : status === 'wrong' ? 'Salah' : 'Kosong'}`}
+                          >
+                            <span>#{index}</span>
+                            {status === 'wrong' && <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Modal Footer */}
           <div className="px-6 py-3.5 border-t border-border/60 bg-muted/20 flex items-center justify-between gap-3 shrink-0">

@@ -2,12 +2,24 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useStudentDashboardVM } from '@/viewmodels/useStudentDashboardVM';
+import dynamic from 'next/dynamic';
 import { AnimeBox } from '@/components/ui/AnimeBox';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, TrendingUp, Calendar, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+
+const StudentTrendChart = dynamic(
+  () => import('@/components/student/StudentTrendChart').then((mod) => mod.StudentTrendChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[340px] w-full flex flex-col items-center justify-center bg-muted/10 rounded-xl animate-pulse">
+        <span className="text-xs text-muted-foreground">Memuat tren belajar...</span>
+      </div>
+    ),
+  }
+);
 
 export default function StudentDashboardPage() {
   const params = useParams();
@@ -34,6 +46,8 @@ export default function StudentDashboardPage() {
 
   const chartData = attempts.map((a, idx) => ({
     name: `Ujian ${idx + 1}`,
+    attempt: `Ujian ${idx + 1}`,
+    label: a.tests?.title || 'Unknown',
     score: a.score,
     testName: a.tests?.title || 'Unknown',
     date: a.finished_at ? new Date(a.finished_at).toLocaleDateString('id-ID') : 'N/A'
@@ -122,31 +136,7 @@ export default function StudentDashboardPage() {
               </CardHeader>
               <CardContent className="p-4 pt-6 h-[340px]">
                 {attempts.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6b7280' }} dy={8} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6b7280' }} domain={[0, 100]} />
-                      <RechartsTooltip 
-                        contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
-                        labelStyle={{ fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}
-                        // @ts-ignore: Recharts types
-                        formatter={(value: number, name: string, props: any) => [
-                          <span key="score" className="font-bold">{value} <span className="font-normal text-xs text-muted-foreground">({props.payload.testName})</span></span>,
-                          "Skor"
-                        ]}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="score" 
-                        stroke="var(--color-primary, #3b82f6)" 
-                        strokeWidth={3.5} 
-                        dot={{ strokeWidth: 3, r: 4, fill: 'white' }} 
-                        activeDot={{ r: 7, strokeWidth: 0, fill: 'var(--color-primary, #3b82f6)' }}
-                        animationDuration={1200}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <StudentTrendChart chartData={chartData} />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground text-sm">
                     <TrendingUp className="w-8 h-8 mb-2 opacity-30" />
