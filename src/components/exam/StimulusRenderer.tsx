@@ -19,16 +19,16 @@ export function StimulusRenderer({ content, children }: StimulusRendererProps) {
 
   return (
     <div className="w-full my-6">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Sticky Stimulus Reading Card on Desktop */}
-        <div className="lg:col-span-5 lg:sticky lg:top-4">
+        <div className="lg:sticky lg:top-4">
           <Card className="border-l-4 border-l-blue-500 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl shadow-xs overflow-hidden">
-            <CardHeader className="py-2.5 px-4 bg-blue-500/10 border-b border-blue-500/20">
+            <CardHeader className="py-2.5 px-5 bg-blue-500/10 border-b border-blue-500/20">
               <CardTitle className="text-xs font-semibold tracking-wider uppercase text-blue-700 dark:text-blue-300">
                 KASUS / STIMULUS
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 max-h-[calc(100vh-180px)] overflow-y-auto custom-scrollbar">
+            <CardContent className="p-5 md:p-6 max-h-[calc(100vh-180px)] overflow-y-auto custom-scrollbar">
               <div className="text-sm leading-relaxed text-foreground/90">
                 <ContentBlockList blocks={blocks} />
               </div>
@@ -37,7 +37,7 @@ export function StimulusRenderer({ content, children }: StimulusRendererProps) {
         </div>
         
         {/* Nested Questions Container */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="space-y-4">
           {children}
         </div>
       </div>

@@ -13,7 +13,7 @@ const STORAGE_KEYS = {
   tests: 'exaprep_mock_tests',
   questions: 'exaprep_mock_questions',
   attempts: 'exaprep_mock_attempts',
-  seeded: 'exaprep_mock_seeded_v6'
+  seeded: 'exaprep_mock_seeded_v7'
 };
 
 // In-memory fallback for SSR / non-browser environments
@@ -136,12 +136,29 @@ class MockQueryBuilder {
     this.filters.push(row => {
       const rowVal = row[column];
       if (!rowVal || typeof rowVal !== 'object') return false;
+      if (Array.isArray(value)) {
+        if (!Array.isArray(rowVal)) return false;
+        return value.some(val => rowVal.some(r => String(r).toLowerCase() === String(val).toLowerCase()));
+      }
       for (const k of Object.keys(value)) {
-        const requiredArr = value[k];
-        const currentArr = rowVal[k];
-        if (Array.isArray(requiredArr) && Array.isArray(currentArr)) {
-          const hasMatch = requiredArr.some(item => currentArr.includes(item));
+        const requiredVal = value[k];
+        const currentVal = rowVal[k];
+        if (!currentVal) return false;
+        if (Array.isArray(requiredVal) && Array.isArray(currentVal)) {
+          const hasMatch = requiredVal.some(item =>
+            currentVal.some(c => String(c).trim().toLowerCase() === String(item).trim().toLowerCase())
+          );
           if (!hasMatch) return false;
+        } else if (Array.isArray(currentVal)) {
+          const hasMatch = currentVal.some(c => String(c).trim().toLowerCase() === String(requiredVal).trim().toLowerCase());
+          if (!hasMatch) return false;
+        } else if (Array.isArray(requiredVal)) {
+          const hasMatch = requiredVal.some(item => String(item).trim().toLowerCase() === String(currentVal).trim().toLowerCase());
+          if (!hasMatch) return false;
+        } else {
+          if (String(currentVal).trim().toLowerCase() !== String(requiredVal).trim().toLowerCase()) {
+            return false;
+          }
         }
       }
       return true;

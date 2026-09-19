@@ -651,11 +651,11 @@ export function ExamRunner({
             <kbd className="text-[10px] font-mono bg-muted/80 px-1 py-0.2 rounded border border-border/60 text-muted-foreground">K</kbd>
           </Button>
 
-          <div className="flex items-center gap-2 min-w-0">
-            <h1 className="text-xs sm:text-sm font-semibold tracking-tight truncate max-w-[150px] sm:max-w-xs md:max-w-sm text-foreground">
+          <div className="flex items-center gap-2 min-w-0 flex-1 sm:flex-initial">
+            <h1 className="text-xs sm:text-sm font-semibold tracking-tight truncate max-w-[120px] sm:max-w-[180px] md:max-w-xs text-foreground">
               {testTitle}
             </h1>
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-semibold shrink-0 hidden md:inline">
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-semibold shrink-0 hidden lg:inline">
               {questions.length} Soal
             </span>
             {displayMode === '1' ? (
@@ -663,7 +663,7 @@ export function ExamRunner({
                 • Soal #{currentSingleIdx + 1} dari {questions.length}
               </span>
             ) : displayMode === '5' ? (
-              <span className="text-[11px] font-medium text-muted-foreground hidden lg:inline shrink-0 tabular-nums">
+              <span className="text-[11px] font-medium text-muted-foreground hidden xl:inline shrink-0 tabular-nums">
                 • Halaman {currentBatchPage} (Soal {(currentBatchPage - 1) * 5 + 1}–{Math.min(currentBatchPage * 5, questions.length)})
               </span>
             ) : (

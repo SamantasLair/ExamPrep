@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Settings2, FileText, Calendar, CheckCircle2, HelpCircle, Edit2, Database } from 'lucide-react';
+import { Settings2, FileText, Calendar, CheckCircle2, HelpCircle, Edit2, Database, PieChart, Shapes, Sigma } from 'lucide-react';
 
 interface EditorTabProps {
   editId: string | null;
@@ -96,7 +96,7 @@ export function EditorTab({
           {saveMsg}
         </div>
       )}
-      
+
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black tracking-tight">{editId ? 'Edit Konfigurasi Ujian' : 'Konfigurasi Ujian Baru'}</h2>
@@ -209,6 +209,38 @@ export function EditorTab({
                 <Button variant="outline" size="sm" onClick={onOpenBankPicker} className="h-6 text-[10px] px-2 ml-2 bg-primary/10 hover:bg-primary/20 text-primary border-primary/20">
                   <Database className="w-3 h-3 mr-1" /> Ambil dari Bank Soal
                 </Button>
+                <div className="flex items-center gap-1 ml-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRawMarkdown((prev) => prev + (prev && !prev.endsWith('\n') ? '\n\n' : '') + '[CHART:BAR]\nlabels: Jan, Feb, Mar\nTarget: 10, 20, 30\nRealisasi: 12, 18, 35\n[/CHART]\n\n')}
+                    className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    title="Sisipkan Template Chart"
+                  >
+                    <PieChart className="w-3 h-3 mr-1 text-primary" /> + Chart
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRawMarkdown((prev) => prev + (prev && !prev.endsWith('\n') ? '\n\n' : '') + '[DIAGRAM]\nbounds: -5, 5, 5, -5\nA = point(0, 3, size=4, color=red)\nB = point(4, 0)\nline A -> B, stroke=blue, width=2\n[/DIAGRAM]\n\n')}
+                    className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    title="Sisipkan Template Diagram"
+                  >
+                    <Shapes className="w-3 h-3 mr-1 text-primary" /> + Diagram
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRawMarkdown((prev) => prev + (prev && !prev.endsWith(' ') && !prev.endsWith('\n') ? ' ' : '') + '$f(x) = ax^2 + bx + c$')}
+                    className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    title="Sisipkan Template Rumus LaTeX"
+                  >
+                    <Sigma className="w-3 h-3 mr-1 text-primary" /> + Rumus
+                  </Button>
+                </div>
               </div>
               <Badge variant="secondary" className="text-xs font-mono font-bold bg-muted/50">{rawMarkdown.split('\n').length} baris</Badge>
             </CardTitle>

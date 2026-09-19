@@ -1,5 +1,7 @@
 import type { ContentBlock, Option, Question, ChartType } from './types';
 import { z } from 'zod';
+import { parseLeanChartDSL, parseLeanDiagramDSL } from './leanDslParser';
+import { scanMathDelimiters } from './mathLexer';
 
 const DiagramConfigSchema = z.record(z.string(), z.unknown());
 const ChartConfigSchema = z.record(z.string(), z.unknown());
@@ -31,189 +33,226 @@ const CLEAR_STIMULUS_RE = /^(?:#\s*)?CLEAR_STIMULUS$/i;
 /* ── Inline content parsers ── */
 
 const CHART_START_RE = /\[CHART:(BAR|LINE|PIE)\]/gi;
-const DIAGRAM_START_RE = /\[DIAGRAM\]/gi;
+const DIAGRAM_START_RE = /\[DIAGRAM(?::([a-zA-Z0-9_-]+))?\]/gi;
 const CODE_BLOCK_RE = /```(\w*)\s*([\s\S]*?)```/g;
-const MATH_BLOCK_RE = /\$\$([\s\S]*?)\$\$/g;
-const MATH_INLINE_RE = /\$((?!\$)[\s\S]*?)\$/g;
-const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
 
 function parseInlineContent(raw: string): ContentBlock[] {
   if (!raw.trim()) return [];
   const blocks: ContentBlock[] = [];
   let remaining = raw;
 
-  // 0. Extract diagram blocks [DIAGRAM] {...} [/DIAGRAM]
+  // 0. Extract diagram blocks [DIAGRAM] / [DIAGRAM:type] ... [/DIAGRAM]
   let match;
   let newRemaining = '';
   let lastIndex = 0;
 
   while ((match = DIAGRAM_START_RE.exec(remaining)) !== null) {
     newRemaining += remaining.slice(lastIndex, match.index);
-    let start = remaining.indexOf('{', DIAGRAM_START_RE.lastIndex);
-    if (start !== -1 && start - DIAGRAM_START_RE.lastIndex <= 20) {
-      let depth = 0, inString = false, escape = false, endIndex = -1;
-      for (let i = start; i < remaining.length; i++) {
-        const char = remaining[i];
-        if (escape) { escape = false; continue; }
-        if (char === '\\') { escape = true; continue; }
-        if (char === '"') { inString = !inString; continue; }
-        if (!inString) {
-          if (char === '{') depth++;
-          else if (char === '}') depth--;
-          if (depth === 0) { endIndex = i + 1; break; }
+    const diagramTagType = match[1];
+    const afterTag = remaining.slice(DIAGRAM_START_RE.lastIndex);
+    const trimmedAfter = afterTag.trimStart();
+
+    if (trimmedAfter.startsWith('{')) {
+      // Legacy JSON diagram block
+      const start = remaining.indexOf('{', DIAGRAM_START_RE.lastIndex);
+      if (start !== -1 && start - DIAGRAM_START_RE.lastIndex <= 20) {
+        let depth = 0, inString = false, escape = false, endIndex = -1;
+        for (let i = start; i < remaining.length; i++) {
+          const char = remaining[i];
+          if (escape) { escape = false; continue; }
+          if (char === '\\') { escape = true; continue; }
+          if (char === '"') { inString = !inString; continue; }
+          if (!inString) {
+            if (char === '{') depth++;
+            else if (char === '}') depth--;
+            if (depth === 0) { endIndex = i + 1; break; }
+          }
+        }
+        if (endIndex !== -1) {
+          const jsonStr = remaining.slice(start, endIndex);
+          let endOfDiagram = endIndex;
+          const afterJson = remaining.slice(endIndex);
+          const closingMatch = afterJson.match(/^\s*\[\/DIAGRAM\]/i);
+          if (closingMatch) endOfDiagram += closingMatch[0].length;
+          try {
+            const rawParsed = JSON.parse(jsonStr);
+            const validated = DiagramConfigSchema.safeParse(rawParsed);
+            if (validated.success) {
+              const parsed = validated.data as Record<string, unknown>;
+              const resolvedDiagramType: 'functionPlot' | 'geometry' | '3d' =
+                parsed.type === 'geometry' || parsed.type === '3d' || parsed.type === 'functionPlot'
+                  ? parsed.type
+                  : diagramTagType === 'geometry' || diagramTagType === '3d'
+                  ? diagramTagType
+                  : 'functionPlot';
+              blocks.push({
+                type: 'diagram',
+                content: jsonStr,
+                diagramType: resolvedDiagramType,
+                diagramConfig: parsed,
+              });
+            } else {
+              blocks.push({ type: 'text', content: `Skema diagram tidak valid: ${validated.error.message.slice(0, 60)}` });
+            }
+          } catch {
+            blocks.push({ type: 'text', content: `Konfigurasi diagram bukan JSON valid: ${jsonStr.slice(0, 60)}` });
+          }
+          newRemaining += '\u0000DIAGRAM\u0000';
+          lastIndex = endOfDiagram;
+          DIAGRAM_START_RE.lastIndex = lastIndex;
+          continue;
         }
       }
-      if (endIndex !== -1) {
-        const jsonStr = remaining.slice(start, endIndex);
-        let endOfDiagram = endIndex;
-        const afterJson = remaining.slice(endIndex);
-        const closingMatch = afterJson.match(/^\s*\[\/DIAGRAM\]/i);
-        if (closingMatch) endOfDiagram += closingMatch[0].length;
-        try {
-          const rawParsed = JSON.parse(jsonStr);
-          const validated = DiagramConfigSchema.safeParse(rawParsed);
-          if (validated.success) {
-            const parsed = validated.data as Record<string, unknown>;
-            blocks.push({
-              type: 'diagram',
-              content: jsonStr,
-              diagramType: (parsed.type as any) ?? 'functionPlot',
-              diagramConfig: parsed,
-            });
-          } else {
-            blocks.push({ type: 'text', content: `Skema diagram tidak valid: ${validated.error.message.slice(0, 60)}` });
-          }
-        } catch {
-          blocks.push({ type: 'text', content: `Konfigurasi diagram bukan JSON valid: ${jsonStr.slice(0, 60)}` });
-        }
+    } else {
+      // Lean DSL diagram block
+      const closeMatch = afterTag.match(/\[\/DIAGRAM\]/i);
+      if (closeMatch && closeMatch.index !== undefined) {
+        const dslContent = afterTag.slice(0, closeMatch.index).trim();
+        const endOfDiagram = DIAGRAM_START_RE.lastIndex + closeMatch.index + closeMatch[0].length;
+        const parsed = parseLeanDiagramDSL(dslContent, diagramTagType);
+        blocks.push({
+          type: 'diagram',
+          content: dslContent,
+          diagramType: parsed.type === '3d' ? '3d' : 'geometry',
+          diagramConfig: parsed,
+        });
         newRemaining += '\u0000DIAGRAM\u0000';
         lastIndex = endOfDiagram;
         DIAGRAM_START_RE.lastIndex = lastIndex;
         continue;
       }
     }
+
     newRemaining += match[0];
     lastIndex = DIAGRAM_START_RE.lastIndex;
   }
   newRemaining += remaining.slice(lastIndex);
   remaining = newRemaining;
 
-  // 1. Extract chart blocks
-  // Handle both with and without [/CHART] by matching balanced JSON braces
+  // 1. Extract chart blocks [CHART:BAR|LINE|PIE] ... [/CHART]
   newRemaining = '';
   lastIndex = 0;
 
   while ((match = CHART_START_RE.exec(remaining)) !== null) {
     newRemaining += remaining.slice(lastIndex, match.index);
     const type = match[1];
-    
-    let start = remaining.indexOf('{', CHART_START_RE.lastIndex);
-    // Ignore if { is too far (e.g.,>20 chars of whitespace)
-    if (start !== -1 && start - CHART_START_RE.lastIndex <= 20) {
-      let depth = 0;
-      let inString = false;
-      let escape = false;
-      let endIndex = -1;
-      
-      for (let i = start; i < remaining.length; i++) {
-        const char = remaining[i];
-        if (escape) { escape = false; continue; }
-        if (char === '\\') { escape = true; continue; }
-        if (char === '"') { inString = !inString; continue; }
-        if (!inString) {
-          if (char === '{') depth++;
-          else if (char === '}') depth--;
-          
-          if (depth === 0) {
-            endIndex = i + 1;
-            break;
+    const chartType = type.toUpperCase() as ChartType;
+    const afterTag = remaining.slice(CHART_START_RE.lastIndex);
+    const trimmedAfter = afterTag.trimStart();
+
+    if (trimmedAfter.startsWith('{')) {
+      // Legacy JSON chart block
+      const start = remaining.indexOf('{', CHART_START_RE.lastIndex);
+      if (start !== -1 && start - CHART_START_RE.lastIndex <= 20) {
+        let depth = 0, inString = false, escape = false, endIndex = -1;
+        for (let i = start; i < remaining.length; i++) {
+          const char = remaining[i];
+          if (escape) { escape = false; continue; }
+          if (char === '\\') { escape = true; continue; }
+          if (char === '"') { inString = !inString; continue; }
+          if (!inString) {
+            if (char === '{') depth++;
+            else if (char === '}') depth--;
+            if (depth === 0) { endIndex = i + 1; break; }
           }
+        }
+
+        if (endIndex !== -1) {
+          const jsonStr = remaining.slice(start, endIndex);
+          let endOfChart = endIndex;
+          const afterJson = remaining.slice(endIndex);
+          const closingMatch = afterJson.match(/^\s*\[\/CHART\]/i);
+          if (closingMatch) endOfChart += closingMatch[0].length;
+
+          try {
+            const rawParsed = JSON.parse(jsonStr);
+            const validated = ChartConfigSchema.safeParse(rawParsed);
+            if (!validated.success) {
+              blocks.push({ type: 'text', content: `Skema grafik tidak valid: ${validated.error.message.slice(0, 60)}` });
+            } else {
+              const parsed = validated.data as {
+                labels?: string[];
+                datasets?: { label?: string; data: number[] }[];
+                label?: string;
+                datasetLabel?: string;
+                data?: number[];
+                [key: string]: unknown;
+              };
+              let datasets = parsed.datasets;
+              if (!datasets) {
+                const keys = Object.keys(parsed);
+                const arrayKey = keys.find(k => k !== 'labels' && Array.isArray(parsed[k])) || 'data';
+                const rawArr = parsed[arrayKey];
+                const dataArr = Array.isArray(rawArr) ? (rawArr as number[]) : (parsed.data ?? []);
+                datasets = [{
+                  label: parsed.label || parsed.datasetLabel || (arrayKey !== 'data' ? arrayKey : undefined),
+                  data: dataArr,
+                }];
+              }
+
+              blocks.push({
+                type: 'chart',
+                content: jsonStr,
+                chartType,
+                chartData: {
+                  labels: parsed.labels ?? [],
+                  datasets: datasets,
+                },
+              });
+            }
+          } catch {
+            blocks.push({ type: 'text', content: `Data grafik bukan JSON valid: ${jsonStr.slice(0, 60)}` });
+          }
+
+          newRemaining += '\u0000CHART\u0000';
+          lastIndex = endOfChart;
+          CHART_START_RE.lastIndex = lastIndex;
+          continue;
         }
       }
-      
-      if (endIndex !== -1) {
-        const jsonStr = remaining.slice(start, endIndex);
-        
-        let endOfChart = endIndex;
-        const afterJson = remaining.slice(endIndex);
-        const closingMatch = afterJson.match(/^\s*\[\/CHART\]/i);
-        if (closingMatch) {
-          endOfChart += closingMatch[0].length;
-        }
-
-        const chartType = type.toUpperCase() as ChartType;
-        try {
-          const rawParsed = JSON.parse(jsonStr);
-          const validated = ChartConfigSchema.safeParse(rawParsed);
-          
-          if (!validated.success) {
-             blocks.push({ type: 'text', content: `Skema grafik tidak valid: ${validated.error.message.slice(0, 60)}` });
-          } else {
-            const parsed = validated.data as Record<string, any>;
-            let datasets = parsed.datasets;
-            
-            if (!datasets) {
-              // Find the best candidate for data if not in datasets format
-              const keys = Object.keys(parsed);
-              const arrayKey = keys.find(k => k !== 'labels' && Array.isArray(parsed[k])) || 'data';
-              datasets = [{ 
-                label: parsed.label || parsed.datasetLabel || (arrayKey !== 'data' ? arrayKey : undefined),
-                data: parsed[arrayKey] ?? parsed.data ?? [] 
-              }];
-            }
-
-            blocks.push({
-              type: 'chart',
-              content: jsonStr,
-              chartType,
-              chartData: {
-                labels: parsed.labels ?? [],
-                datasets: datasets,
-              },
-            });
-          }
-        } catch {
-          blocks.push({ type: 'text', content: `Data grafik bukan JSON valid: ${jsonStr.slice(0, 60)}` });
-        }
-        
+    } else {
+      // Lean DSL chart block
+      const closeMatch = afterTag.match(/\[\/CHART\]/i);
+      if (closeMatch && closeMatch.index !== undefined) {
+        const dslContent = afterTag.slice(0, closeMatch.index).trim();
+        const endOfChart = CHART_START_RE.lastIndex + closeMatch.index + closeMatch[0].length;
+        const parsed = parseLeanChartDSL(dslContent);
+        blocks.push({
+          type: 'chart',
+          content: dslContent,
+          chartType,
+          chartData: parsed,
+        });
         newRemaining += '\u0000CHART\u0000';
         lastIndex = endOfChart;
-        CHART_START_RE.lastIndex = lastIndex; // Update RegEx cursor
+        CHART_START_RE.lastIndex = lastIndex;
         continue;
       }
     }
-    
-    // Fallback if no valid JSON brace pair found
+
     newRemaining += match[0];
     lastIndex = CHART_START_RE.lastIndex;
   }
   newRemaining += remaining.slice(lastIndex);
   remaining = newRemaining;
 
-  // 2. Extract block math $$...$$
-  remaining = remaining.replace(MATH_BLOCK_RE, (_match, tex: string) => {
-    blocks.push({ type: 'math-block', content: tex.trim() });
-    return '\u0000MATH\u0000';
-  });
-
-  // 3. Extract code blocks ```...```
+  // 2. Extract code blocks ```...``` (protects code contents from math parsing)
   remaining = remaining.replace(CODE_BLOCK_RE, (_match, lang: string, code: string) => {
     blocks.push({ type: 'code-block', content: code.trim(), language: lang.trim() });
     return '\u0000CODE\u0000';
   });
 
-  // 4. Split on placeholders and process remaining text segments
+  // 3. Process remaining text segments with scanMathDelimiters & images
   const segments = remaining.split('\u0000');
   const finalBlocks: ContentBlock[] = [];
   let blockIdx = 0;
 
   for (const seg of segments) {
-    if (seg === 'CHART' || seg === 'MATH' || seg === 'CODE' || seg === 'DIAGRAM') {
+    if (seg === 'CHART' || seg === 'CODE' || seg === 'DIAGRAM') {
       finalBlocks.push(blocks[blockIdx++]);
       continue;
     }
     if (!seg.trim()) continue;
-    // Parse inline math and images within text segments
     finalBlocks.push(...parseTextSegment(seg));
   }
 
@@ -222,31 +261,34 @@ function parseInlineContent(raw: string): ContentBlock[] {
 
 function parseTextSegment(text: string): ContentBlock[] {
   const result: ContentBlock[] = [];
-  // Unified regex to capture inline math or images in order of appearance
-  const INLINE_RE = /\$((?!\$)[\s\S]*?)\$|!\[([^\]]*)\]\(([^)]+)\)/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
+  const mathTokens = scanMathDelimiters(text);
+  const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
 
-  while ((match = INLINE_RE.exec(text)) !== null) {
-    // Push preceding plain text
-    if (match.index > lastIndex) {
-      const preceding = text.slice(lastIndex, match.index);
-      if (preceding) result.push({ type: 'text', content: preceding });
-    }
-    if (match[1] !== undefined) {
-      // Inline math
-      result.push({ type: 'math-inline', content: match[1].trim() });
-    } else if (match[3] !== undefined) {
-      // Image
-      result.push({ type: 'image', content: match[3] });
-    }
-    lastIndex = match.index + match[0].length;
-  }
+  for (const token of mathTokens) {
+    if (token.type === 'math-block') {
+      result.push({ type: 'math-block', content: token.content.trim() });
+    } else if (token.type === 'math-inline') {
+      result.push({ type: 'math-inline', content: token.content.trim() });
+    } else {
+      // Plain text: extract images if present
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+      IMAGE_RE.lastIndex = 0;
 
-  // Trailing text
-  if (lastIndex < text.length) {
-    const trailing = text.slice(lastIndex);
-    if (trailing) result.push({ type: 'text', content: trailing });
+      while ((match = IMAGE_RE.exec(token.content)) !== null) {
+        if (match.index > lastIndex) {
+          const preceding = token.content.slice(lastIndex, match.index);
+          if (preceding) result.push({ type: 'text', content: preceding });
+        }
+        result.push({ type: 'image', content: match[2] });
+        lastIndex = match.index + match[0].length;
+      }
+
+      if (lastIndex < token.content.length) {
+        const trailing = token.content.slice(lastIndex);
+        if (trailing) result.push({ type: 'text', content: trailing });
+      }
+    }
   }
 
   return result;
@@ -274,6 +316,8 @@ export function parseMarkdown(markdown: string): Question[] {
     tipsList: { type: 'THEORY' | 'PRACTICE'; lines: string[] }[];
   } | null = null;
   let section: 'body' | 'options' | 'discussion' | 'tip_theory' | 'tip_practice' | 'labels' = 'body';
+  let inChartBlock = false;
+  let inDiagramBlock = false;
 
   function flushQuestion() {
     if (!current) return;
@@ -285,7 +329,7 @@ export function parseMarkdown(markdown: string): Question[] {
       body: parseInlineContent(o.textLines.join('\n').trim()),
     }));
     const discussionText = current.discussionLines.join('\n').trim();
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tips: any[] = current.tipsList.map(t => ({
       type: t.type,
@@ -362,15 +406,29 @@ export function parseMarkdown(markdown: string): Question[] {
 
     if (!current) continue;
 
+    // Track chart and diagram block boundaries to prevent nested keywords (like labels:) from escaping
+    if (/\[CHART:(?:BAR|LINE|PIE)\]/i.test(line)) {
+      inChartBlock = true;
+    }
+    if (/\[\/CHART\]/i.test(line)) {
+      inChartBlock = false;
+    }
+    if (/\[DIAGRAM(?::[a-zA-Z0-9_-]+)?\]/i.test(line)) {
+      inDiagramBlock = true;
+    }
+    if (/\[\/DIAGRAM\]/i.test(line)) {
+      inDiagramBlock = false;
+    }
+
     // Check for ANSWER line
-    const answerMatch = line.match(ANSWER_RE);
+    const answerMatch = !inChartBlock && !inDiagramBlock ? line.match(ANSWER_RE) : null;
     if (answerMatch) {
       current.answerRaw = answerMatch[1].trim();
       continue;
     }
 
     // Check for DISCUSSION line (can be multi-line, collects until next header)
-    const discussionMatch = line.match(DISCUSSION_RE);
+    const discussionMatch = !inChartBlock && !inDiagramBlock ? line.match(DISCUSSION_RE) : null;
     if (discussionMatch) {
       section = 'discussion';
       const initialContent = discussionMatch[1].trim();
@@ -378,7 +436,7 @@ export function parseMarkdown(markdown: string): Question[] {
       continue;
     }
 
-    const tipsTheoryMatch = line.match(TIPS_THEORY_RE);
+    const tipsTheoryMatch = !inChartBlock && !inDiagramBlock ? line.match(TIPS_THEORY_RE) : null;
     if (tipsTheoryMatch) {
       section = 'tip_theory';
       current.tipsList.push({ type: 'THEORY', lines: [] });
@@ -387,7 +445,7 @@ export function parseMarkdown(markdown: string): Question[] {
       continue;
     }
 
-    const tipsPracticeMatch = line.match(TIPS_PRACTICE_RE);
+    const tipsPracticeMatch = !inChartBlock && !inDiagramBlock ? line.match(TIPS_PRACTICE_RE) : null;
     if (tipsPracticeMatch) {
       section = 'tip_practice';
       current.tipsList.push({ type: 'PRACTICE', lines: [] });
@@ -396,7 +454,7 @@ export function parseMarkdown(markdown: string): Question[] {
       continue;
     }
 
-    const labelsMatch = line.match(LABELS_RE);
+    const labelsMatch = !inChartBlock && !inDiagramBlock ? line.match(LABELS_RE) : null;
     if (labelsMatch) {
       section = 'labels';
       current.labelsRaw.push(labelsMatch[1].trim());
@@ -448,13 +506,13 @@ export function parseMarkdown(markdown: string): Question[] {
  */
 export function getPenaltyForTip(configStr: string, tipIndex: number): number {
   if (!configStr || !configStr.trim() || tipIndex <= 0) return 0;
-  
+
   const parts = configStr.split(',').map(s => s.trim()).filter(Boolean);
   if (parts.length === 0) return 0;
 
   const hasEllipsis = parts[parts.length - 1] === '...';
   const numParts = hasEllipsis ? parts.slice(0, -1) : parts;
-  
+
   const numbers = numParts.map(s => parseFloat(s)).filter(n => !isNaN(n));
   if (numbers.length === 0) return 0;
 

@@ -157,28 +157,28 @@ export function AdminDashboard() {
       preset="page"
       className="h-screen print:h-auto bg-background text-foreground flex flex-col"
     >
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none print:hidden">
+      <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex-none print:hidden">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold">ExaPrep Admin</h1>
-            <Badge variant="outline">Dashboard</Badge>
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">ExaPrep Admin</h1>
+            <Badge variant="outline" className="rounded-lg border-border/60 font-medium">Dashboard</Badge>
           </div>
           <div className="flex items-center gap-2">
             {activeTab === 'editor' && (
               <>
-                <Button size="sm" variant="secondary" onClick={() => setShowPrintModal(true)}>
+                <Button size="sm" variant="secondary" onClick={() => setShowPrintModal(true)} className="rounded-xl font-semibold shadow-xs">
                   <Printer className="w-4 h-4 mr-2" />
                   Print Ujian
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setShowSettings((v) => !v)}>
+                <Button size="sm" variant="outline" onClick={() => setShowSettings((v) => !v)} className="rounded-xl font-semibold border-border/60">
                   {showSettings ? 'Tutup Pengaturan' : 'Pengaturan'}
                 </Button>
-                <Button size="sm" onClick={handleSave} disabled={saving}>
+                <Button size="sm" onClick={handleSave} disabled={saving} className="rounded-xl font-semibold shadow-xs">
                   {saving ? 'Menyimpan...' : 'Simpan Ujian'}
                 </Button>
               </>
             )}
-            <Button size="sm" variant="ghost" onClick={() => window.location.href = '/'}>
+            <Button size="sm" variant="ghost" onClick={() => window.location.href = '/'} className="rounded-xl font-semibold">
               Keluar
             </Button>
           </div>
@@ -223,35 +223,91 @@ export function AdminDashboard() {
       )}
 
       <div className="flex-1 flex overflow-hidden print:hidden relative">
-        <aside className="w-16 md:w-64 border-r bg-card flex flex-col shrink-0 transition-all duration-300 relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-          <div className="p-4 border-b hidden md:block">
-            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Menu Navigasi</h2>
+        <aside className="w-16 md:w-64 border-r border-border/60 bg-card flex flex-col shrink-0 transition-all duration-300 relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+          <div className="p-4 border-b border-border/60 hidden md:block">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Menu Navigasi</h2>
           </div>
-          <nav className="p-3 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
-            <Button variant={activeTab === 'tests' ? 'default' : 'ghost'} onClick={() => setActiveTab('tests')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+          <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto custom-scrollbar">
+            <Button
+              variant={activeTab === 'tests' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('tests')}
+              className={cn(
+                "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-medium",
+                activeTab === 'tests' && "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+              )}
+            >
               <FileText className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Daftar Ujian</span>
             </Button>
-            <Button variant={activeTab === 'bank' ? 'default' : 'ghost'} onClick={() => setActiveTab('bank')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+            <Button
+              variant={activeTab === 'bank' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('bank')}
+              className={cn(
+                "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-medium",
+                activeTab === 'bank' && "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+              )}
+            >
               <Database className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Bank Soal</span>
             </Button>
-            <Button variant={activeTab === 'attempts' ? 'default' : 'ghost'} onClick={() => setActiveTab('attempts')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+            <Button
+              variant={activeTab === 'attempts' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('attempts')}
+              className={cn(
+                "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-medium",
+                activeTab === 'attempts' && "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+              )}
+            >
               <CheckCircle2 className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Hasil Peserta</span>
             </Button>
-            <Button variant={activeTab === 'students' ? 'default' : 'ghost'} onClick={() => setActiveTab('students')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+            <Button
+              variant={activeTab === 'students' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('students')}
+              className={cn(
+                "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-medium",
+                activeTab === 'students' && "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+              )}
+            >
               <User className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Data Siswa</span>
             </Button>
-            <Button variant={activeTab === 'editor' ? 'default' : 'ghost'} onClick={() => setActiveTab('editor')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+            <Button
+              variant={activeTab === 'editor' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('editor')}
+              className={cn(
+                "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-medium",
+                activeTab === 'editor' && "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+              )}
+            >
               <Settings2 className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">{editId ? 'Edit Ujian' : 'Editor Baru'}</span>
             </Button>
-            <Button variant={activeTab === 'analytics' ? 'default' : 'ghost'} onClick={() => setActiveTab('analytics')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+            <Button
+              variant={activeTab === 'analytics' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('analytics')}
+              className={cn(
+                "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-medium",
+                activeTab === 'analytics' && "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+              )}
+            >
               <Columns className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Analisis Butir Soal</span>
             </Button>
-            <Button variant={activeTab === 'prompt' ? 'default' : 'ghost'} onClick={() => setActiveTab('prompt')} className="w-full justify-start overflow-hidden transition-all active:scale-[0.98]">
+            <Button
+              variant={activeTab === 'prompt' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('prompt')}
+              className={cn(
+                "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-medium",
+                activeTab === 'prompt' && "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+              )}
+            >
               <Type className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Prompt Generator</span>
             </Button>
             <div className="mt-8 border-t border-destructive/20 pt-4">
-              <Button variant={activeTab === 'danger' ? 'destructive' : 'ghost'} onClick={() => setActiveTab('danger')} className={cn("w-full justify-start overflow-hidden transition-all active:scale-[0.98]", activeTab === 'danger' ? 'bg-destructive text-destructive-foreground' : 'text-destructive hover:bg-destructive/10')}>
-                <AlertTriangle className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate font-bold">Danger Zone</span>
+              <Button
+                variant={activeTab === 'danger' ? 'destructive' : 'ghost'}
+                onClick={() => setActiveTab('danger')}
+                className={cn(
+                  "w-full justify-start overflow-hidden transition-all active:scale-[0.98] rounded-xl font-semibold",
+                  activeTab === 'danger' ? 'bg-destructive text-destructive-foreground shadow-xs' : 'text-destructive hover:bg-destructive/10'
+                )}
+              >
+                <AlertTriangle className="w-4 h-4 md:mr-2 shrink-0" /> <span className="hidden md:inline truncate">Danger Zone</span>
               </Button>
             </div>
           </nav>
