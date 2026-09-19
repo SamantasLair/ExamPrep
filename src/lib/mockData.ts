@@ -2,25 +2,39 @@ import type { StudentRow, TestRow, QuestionRow } from './types';
 
 export const INITIAL_STUDENTS: StudentRow[] = [
   {
-    id: 'EXA-001',
-    name: 'Budi Pratama',
+    id: 'SMA-001',
+    name: 'Budi Santoso',
     birthday: '2008-04-15',
     avatar_url: null,
     created_at: '2026-01-10T08:00:00.000Z'
   },
   {
-    id: 'EXA-002',
+    id: 'SMA-002',
     name: 'Siti Rahma',
     birthday: '2008-09-22',
     avatar_url: null,
     created_at: '2026-01-11T09:30:00.000Z'
   },
   {
-    id: 'EXA-003',
-    name: 'Ahmad Fauzi',
+    id: 'SMA-003',
+    name: 'Fajar Pratama',
     birthday: '2007-12-05',
     avatar_url: null,
     created_at: '2026-01-12T10:15:00.000Z'
+  },
+  {
+    id: 'SMA-004',
+    name: 'Aisha Putri',
+    birthday: '2008-07-18',
+    avatar_url: null,
+    created_at: '2026-01-14T11:20:00.000Z'
+  },
+  {
+    id: 'EXA-001',
+    name: 'Budi Pratama',
+    birthday: '2006-05-14',
+    avatar_url: null,
+    created_at: '2026-01-01T08:00:00.000Z'
   }
 ];
 

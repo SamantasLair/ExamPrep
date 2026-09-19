@@ -13,7 +13,7 @@ const STORAGE_KEYS = {
   tests: 'exaprep_mock_tests',
   questions: 'exaprep_mock_questions',
   attempts: 'exaprep_mock_attempts',
-  seeded: 'exaprep_mock_seeded_v7'
+  seeded: 'exaprep_mock_seeded_v8'
 };
 
 // In-memory fallback for SSR / non-browser environments
@@ -32,6 +32,16 @@ export function seedMockStorageIfEmpty(forceReset = false) {
   if (!isBrowser()) return;
   const alreadySeeded = localStorage.getItem(STORAGE_KEYS.seeded);
   if (!alreadySeeded || forceReset) {
+    // Purge legacy mock keys if seeded version is outdated
+    const keysToPurge: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('exaprep_mock_seeded_') && k !== STORAGE_KEYS.seeded) {
+        keysToPurge.push(k);
+      }
+    }
+    keysToPurge.forEach((k) => localStorage.removeItem(k));
+
     localStorage.setItem(STORAGE_KEYS.students, JSON.stringify(INITIAL_STUDENTS));
     localStorage.setItem(STORAGE_KEYS.tests, JSON.stringify(INITIAL_TESTS));
     localStorage.setItem(STORAGE_KEYS.questions, JSON.stringify(INITIAL_QUESTIONS));
@@ -194,9 +204,12 @@ class MockQueryBuilder {
     return this;
   }
 
-  upsert(data: any | any[]) {
+  private upsertOptions?: { onConflict?: string };
+
+  upsert(data: any | any[], options?: { onConflict?: string }) {
     this.mutationType = 'upsert';
     this.mutationData = data;
+    this.upsertOptions = options;
     return this;
   }
 
@@ -223,8 +236,17 @@ class MockQueryBuilder {
         ...r
       }));
 
-      const updated = [...insertedRows, ...current];
-      setTableData(this.table, updated);
+      // In real database tables, primary keys are unique. Replace existing if match by id, otherwise prepend.
+      const result = [...current];
+      for (const item of insertedRows) {
+        const existingIdx = result.findIndex(r => item.id !== undefined && r.id === item.id);
+        if (existingIdx >= 0) {
+          result[existingIdx] = { ...result[existingIdx], ...item };
+        } else {
+          result.unshift(item);
+        }
+      }
+      setTableData(this.table, result);
 
       return {
         data: this.isSingle ? insertedRows[0] : (Array.isArray(this.mutationData) ? insertedRows : insertedRows[0]),
@@ -237,9 +259,19 @@ class MockQueryBuilder {
       const current = getTableData<any>(this.table);
       const now = new Date().toISOString();
 
+      const conflictCols = this.upsertOptions?.onConflict
+        ? this.upsertOptions.onConflict.split(',').map(c => c.trim())
+        : null;
+
       const result = [...current];
       for (const item of rows) {
-        const existingIdx = result.findIndex(r => r.id === item.id);
+        const existingIdx = result.findIndex(r => {
+          if (conflictCols && conflictCols.length > 0) {
+            return conflictCols.every(col => r[col] !== undefined && r[col] === item[col]);
+          }
+          return item.id !== undefined && r.id === item.id;
+        });
+
         if (existingIdx >= 0) {
           result[existingIdx] = { ...result[existingIdx], ...item };
         } else {

@@ -68,6 +68,13 @@ export function DangerZoneTab({ onExecuteWipe, isSaving }: DangerZoneTabProps) {
               >
                 Hapus Semua Siswa
               </Button>
+              <Button 
+                variant="outline" 
+                className="border-destructive/30 text-destructive hover:bg-destructive hover:text-white justify-start col-span-1 sm:col-span-2" 
+                onClick={() => { setDangerAction('WIPE_LOCAL'); setDangerConfirmText(''); }}
+              >
+                Bersihkan Cache Offline & Dexie DB
+              </Button>
             </div>
           </div>
 

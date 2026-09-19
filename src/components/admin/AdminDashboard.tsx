@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { Printer, CheckCircle2, Columns, FileText, Settings2, User, Type, Database, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { clearAllLocalExamData } from '@/lib/cleanSlate';
 import { AnimeBox } from '@/components/ui/AnimeBox';
 import { useAdminDashboardVM } from '@/viewmodels/useAdminDashboardVM';
 import { useAnalyticsVM } from '@/viewmodels/useAnalyticsVM';
@@ -120,6 +121,9 @@ export function AdminDashboard() {
       await supabase.from('tests').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('questions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('students').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await clearAllLocalExamData();
+    } else if (action === 'WIPE_LOCAL') {
+      await clearAllLocalExamData();
     }
     setIsSaving(false);
     if (err) {

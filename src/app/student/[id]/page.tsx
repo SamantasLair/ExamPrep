@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, TrendingUp, Calendar, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { CourseBento } from '@/components/student/CourseBento';
 
 const StudentTrendChart = dynamic(
   () => import('@/components/student/StudentTrendChart').then((mod) => mod.StudentTrendChart),
@@ -217,6 +218,11 @@ export default function StudentDashboardPage() {
               </div>
             </Card>
           </div>
+        </div>
+
+        {/* INTEGRATED COURSE LEARNING BENTO */}
+        <div className="mt-8">
+          <CourseBento studentId={studentId} />
         </div>
       </div>
     </AnimeBox>

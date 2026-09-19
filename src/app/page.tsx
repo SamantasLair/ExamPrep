@@ -11,7 +11,7 @@ import { WelcomeAnimation } from '@/components/ui/WelcomeAnimation';
 import { 
   LogOut, Search, Clock, Award, 
   BarChart2, BookOpen, Calendar, CheckCircle2, Play,
-  ArrowRight, Layers, User
+  ArrowRight, Layers, User, Compass
 } from 'lucide-react';
 import { AnimeBox } from '@/components/ui/AnimeBox';
 import { useStudentPortalVM } from '@/viewmodels/useStudentPortalVM';
@@ -108,6 +108,13 @@ export default function HomePage() {
                 <p className="text-[10px] text-muted-foreground font-mono">{student.id}</p>
               </div>
             </div>
+
+            <Link href="/course">
+              <Button variant="outline" size="sm" className="h-8 text-xs font-medium rounded-lg gap-1.5 border-border/70 hover:bg-muted">
+                <Compass className="w-3.5 h-3.5 text-primary" />
+                <span className="hidden sm:inline">Katalog Kursus</span>
+              </Button>
+            </Link>
 
             <Link href={`/student/${student.id}`}>
               <Button variant="outline" size="sm" className="h-8 text-xs font-medium rounded-lg gap-1.5 border-border/70 hover:bg-muted">
@@ -266,8 +273,23 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Bottom Quick Link to Analytics */}
-            <div className="pt-3 border-t border-border/50">
+            {/* Bottom Quick Links */}
+            <div className="pt-3 border-t border-border/50 space-y-2">
+              <Link href="/course" className="block">
+                <div className="p-3 rounded-xl border border-border/70 bg-card hover:border-primary/40 hover:bg-muted/20 transition-all flex items-center justify-between group">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <Compass className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate">Katalog Kursus</p>
+                      <p className="text-[10px] text-muted-foreground">Modul & Latihan Interaktif</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+                </div>
+              </Link>
+
               <Link href={`/student/${student.id}`} className="block">
                 <div className="p-3 rounded-xl border border-border/70 bg-card hover:border-primary/40 hover:bg-muted/20 transition-all flex items-center justify-between group">
                   <div className="flex items-center gap-2.5 min-w-0">

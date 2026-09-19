@@ -1,4 +1,11 @@
-import { db, type AnswersQueueItem, type OfflineAttemptSubmission } from './db';
+import {
+  db,
+  getPendingCourseDeltas,
+  markCourseDeltasSynced,
+  getCourseProgressLocal,
+  type ProgressDeltaItem,
+  type CourseProgressRecord
+} from './db';
 import { supabase } from './supabase';
 
 export interface BatchSyncStatus {
@@ -12,7 +19,7 @@ export interface BatchSyncStatus {
 type SyncListener = (status: BatchSyncStatus) => void;
 
 class BatchSyncManager {
-  private syncIntervalMs = 15000; // 15 seconds batch interval
+  private syncIntervalMs = 25000; // 25s periodic ticker for background sync
   private timer: ReturnType<typeof setInterval> | null = null;
   private isSyncing = false;
   private listeners: Set<SyncListener> = new Set();
@@ -36,6 +43,18 @@ class BatchSyncManager {
         this.isOnline = false;
         this.notify();
       });
+
+      // Tri-Trigger Sync: Visibility / Unload Flush
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && this.isOnline) {
+          this.flushAll();
+        }
+      });
+      window.addEventListener('pagehide', () => {
+        if (this.isOnline) {
+          this.flushAll();
+        }
+      });
     }
   }
 
@@ -54,7 +73,8 @@ class BatchSyncManager {
     try {
       pendingCount = await db.answersQueue.where('synced').equals(0).count();
       const pendingSubmissions = await db.offlineSubmissions.where('status').equals('pending').count();
-      pendingCount += pendingSubmissions;
+      const pendingDeltas = await db.progressDeltas.where('synced').equals(0).count();
+      pendingCount += pendingSubmissions + pendingDeltas;
     } catch {
       // IndexedDB might not be accessible yet in SSR
     }
@@ -119,7 +139,134 @@ class BatchSyncManager {
   }
 
   /**
-   * Perform sync for both individual answer changes and offline attempt submissions
+   * Sync Course Progress:
+   * Mengambil pending deltas dari Dexie, mengelompokkan per courseId & userId,
+   * dan mengirim ke Supabase via RPC sync_course_progress_batch dengan fallback REST upsert.
+   */
+  public async syncCourseProgress(courseId?: string, userId?: string): Promise<boolean> {
+    if (!this.isOnline) return false;
+
+    try {
+      const deltas: ProgressDeltaItem[] = await getPendingCourseDeltas(courseId, userId);
+      if (!deltas || deltas.length === 0) return true;
+
+      // Group deltas by courseId and userId
+      const grouped = new Map<string, { courseId: string; userId: string; deltas: ProgressDeltaItem[] }>();
+      for (const d of deltas) {
+        const key = `${d.courseId}_${d.userId}`;
+        if (!grouped.has(key)) {
+          grouped.set(key, { courseId: d.courseId, userId: d.userId, deltas: [] });
+        }
+        grouped.get(key)!.deltas.push(d);
+      }
+
+      const payloadList: Array<{
+        user_id: string;
+        course_id: string;
+        completed_materials: string[];
+        exercise_scores: Record<string, number>;
+        quiz_scores: Record<string, number>;
+        overall_progress: number;
+        updated_at: string;
+      }> = [];
+
+      for (const group of grouped.values()) {
+        const localRecord: CourseProgressRecord | undefined = await getCourseProgressLocal(group.courseId, group.userId);
+
+        let completedMaterials = localRecord ? [...localRecord.completedMaterials] : [];
+        let exerciseScores = localRecord ? { ...localRecord.exerciseScores } : {};
+        let quizScores = localRecord ? { ...localRecord.quizScores } : {};
+        let overallProgress = localRecord ? localRecord.overallProgress : 0;
+
+        // Apply deltas in memory if needed
+        for (const d of group.deltas) {
+          if (d.entityType === 'MATERIAL_READ') {
+            if (!completedMaterials.includes(d.entityId)) {
+              completedMaterials.push(d.entityId);
+            }
+          } else if (d.entityType === 'EXERCISE_ANSWER') {
+            const score = typeof d.payload === 'number' ? d.payload : Number((d.payload as any)?.score ?? 100);
+            exerciseScores[d.entityId] = score;
+          } else if (d.entityType === 'QUIZ_SUBMIT') {
+            const score = typeof d.payload === 'number' ? d.payload : Number((d.payload as any)?.score ?? 100);
+            quizScores[d.entityId] = score;
+          }
+        }
+
+        payloadList.push({
+          user_id: group.userId,
+          course_id: group.courseId,
+          completed_materials: completedMaterials,
+          exercise_scores: exerciseScores,
+          quiz_scores: quizScores,
+          overall_progress: overallProgress,
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      // Try RPC first
+      let syncSuccess = false;
+      try {
+        const { error: rpcError } = await supabase.rpc('sync_course_progress_batch', {
+          p_payload: payloadList
+        });
+        if (!rpcError) {
+          syncSuccess = true;
+        } else {
+          console.warn('[BatchSyncManager] RPC sync_course_progress_batch failed, trying REST fallback:', rpcError.message);
+        }
+      } catch (rpcErr) {
+        console.warn('[BatchSyncManager] RPC call exception, trying REST fallback:', rpcErr);
+      }
+
+      // REST Fallback if RPC failed or not available
+      if (!syncSuccess) {
+        const { error: restError } = await supabase
+          .from('user_course_progress')
+          .upsert(payloadList, { onConflict: 'user_id,course_id' });
+
+        if (restError) {
+          throw new Error(`REST fallback sync failed: ${restError.message}`);
+        }
+        syncSuccess = true;
+      }
+
+      if (syncSuccess) {
+        const deltaIds = deltas.map(d => d.id!).filter(Boolean);
+        await markCourseDeltasSynced(deltaIds);
+        this.lastSyncedAt = Date.now();
+        this.notify();
+      }
+
+      return syncSuccess;
+    } catch (err: any) {
+      console.error('[BatchSyncManager] Course progress sync error:', err);
+      this.lastError = err?.message || 'Gagal sync course progress';
+      this.notify();
+      return false;
+    }
+  }
+
+  /**
+   * Milestone Instant Sync:
+   * Bypass throttle untuk sinkronisasi instan saat menyelesaikan materi, latihan, atau kuis.
+   */
+  public async syncCourseMilestone(courseId: string, userId: string): Promise<boolean> {
+    return await this.syncCourseProgress(courseId, userId);
+  }
+
+  /**
+   * Flush all pending exam submissions, answers, and course progress immediately
+   */
+  public async flushAll(): Promise<void> {
+    await Promise.allSettled([
+      this.syncAllPending(),
+      this.syncCourseProgress()
+    ]);
+  }
+
+  /**
+   * Perform sync for both individual answer changes, offline attempt submissions, and course progress
    */
   public async syncAllPending(): Promise<boolean> {
     if (!this.isOnline || this.isSyncing) return false;
@@ -163,6 +310,9 @@ class BatchSyncManager {
         const ids = pendingAnswers.map(a => a.id!).filter(Boolean);
         await db.answersQueue.where('id').anyOf(ids).modify({ synced: 1 });
       }
+
+      // 3. Process Course Progress Deltas
+      await this.syncCourseProgress();
 
       this.lastSyncedAt = Date.now();
       return true;

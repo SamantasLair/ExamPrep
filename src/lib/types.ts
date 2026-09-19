@@ -3,13 +3,15 @@
 export type ChartType = 'BAR' | 'LINE' | 'PIE';
 
 export interface ContentBlock {
-  type: 'text' | 'math-inline' | 'math-block' | 'chart' | 'image' | 'code-block' | 'diagram';
+  type: 'text' | 'math-inline' | 'math-block' | 'chart' | 'image' | 'code-block' | 'diagram' | 'callout';
   content: string;
   language?: string;
   chartType?: ChartType;
   chartData?: { labels: string[]; datasets: { label?: string; data: number[] }[] };
   diagramType?: 'functionPlot' | 'geometry' | '3d';
   diagramConfig?: Record<string, unknown>;
+  calloutType?: 'NOTE' | 'TIP' | 'WARNING' | 'IMPORTANT';
+  calloutTitle?: string;
 }
 
 export interface Option {
@@ -96,3 +98,91 @@ export interface StudentRow {
   avatar_url: string | null;
   created_at: string;
 }
+
+/* ── Course System Types ── */
+
+export type CourseLevel = 'SD' | 'SMP' | 'SMA' | 'UTBK' | 'OLIMPIADE' | 'UMUM';
+
+export interface Course {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  cover_url?: string;
+  level: CourseLevel;
+  tags: string[];
+  estimated_hours: number;
+  created_at: string;
+  updated_at: string;
+  categories?: CourseCategory[];
+}
+
+export interface CourseCategory {
+  id: string;
+  course_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  chapters?: CourseChapter[];
+}
+
+export interface CourseChapter {
+  id: string;
+  category_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  subchapters?: CourseSubChapter[];
+}
+
+export interface CourseSubChapter {
+  id: string;
+  chapter_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  materials?: CourseMaterial[];
+  exercises?: CourseExercise[];
+  quizzes?: CourseQuiz[];
+}
+
+export interface CourseMaterial {
+  id: string;
+  subchapter_id: string;
+  title: string;
+  content: string;
+  order_index: number;
+  estimated_read_minutes?: number;
+}
+
+export interface CourseExercise {
+  id: string;
+  subchapter_id: string;
+  title: string;
+  material_content?: string;
+  question_ids: string[];
+  questions?: Question[];
+  order_index: number;
+}
+
+export interface CourseQuiz {
+  id: string;
+  subchapter_id: string;
+  title: string;
+  question_ids: string[];
+  questions?: Question[];
+  passing_score: number;
+  order_index: number;
+}
+
+export interface UserCourseProgress {
+  id: string;
+  user_id: string;
+  course_id: string;
+  completed_materials: string[];
+  exercise_scores: Record<string, number>;
+  quiz_scores: Record<string, number>;
+  overall_progress: number;
+  updated_at: string;
+}
+

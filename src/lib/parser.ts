@@ -36,7 +36,7 @@ const CHART_START_RE = /\[CHART:(BAR|LINE|PIE)\]/gi;
 const DIAGRAM_START_RE = /\[DIAGRAM(?::([a-zA-Z0-9_-]+))?\]/gi;
 const CODE_BLOCK_RE = /```(\w*)\s*([\s\S]*?)```/g;
 
-function parseInlineContent(raw: string): ContentBlock[] {
+export function parseInlineContent(raw: string): ContentBlock[] {
   if (!raw.trim()) return [];
   const blocks: ContentBlock[] = [];
   let remaining = raw;
@@ -499,6 +499,8 @@ export function parseMarkdown(markdown: string): Question[] {
   flushQuestion();
   return questions;
 }
+
+export const parseMarkdownQuestion = parseMarkdown;
 
 /**
  * Parses a penalty config string like "10, 15, 20, ..." or "10, 15"
